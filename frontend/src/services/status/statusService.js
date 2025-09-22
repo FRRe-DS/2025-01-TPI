@@ -1,5 +1,5 @@
 // Servicio para consumir el endpoint de status del backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://p01--backend--vtq7dc7r2j7w.code.run';
 
 export const statusService = {
   // Obtener el status del backend
