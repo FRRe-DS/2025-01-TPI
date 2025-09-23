@@ -12,6 +12,7 @@ function App() {
       <main className="main-content">
         <div className="welcome-message">
           <h2>¡Bienvenido al TPI!</h2>
+          <h2>¡Maria ok!</h2>
         </div>
       </main>
 
