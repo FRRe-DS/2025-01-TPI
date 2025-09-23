@@ -26,9 +26,11 @@ async function bootstrap() {
       .setDescription('API del backend para el portal de compras ShopFlow - Módulo de Compras')
       .setVersion('1.0')
       .addTag('app', 'Endpoints principales de la aplicación')
-      .addTag('health', 'Endpoints de salud y monitoreo del sistema')
-      .addTag('status', 'Endpoints de información detallada del sistema')
-      .addTag('products', 'Endpoints de gestión de productos para compras')
+      .addTag('auth', 'Autenticación y autorización')
+      .addTag('health', 'Health checks y status del sistema')
+      .addTag('orders', 'Gestión de pedidos y compras')
+      .addTag('products', 'Gestión de productos y catálogo')
+      .addTag('users', 'Gestión de usuarios')
       .build();
     
     const document = SwaggerModule.createDocument(app, config);
