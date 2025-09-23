@@ -13,8 +13,8 @@ function App() {
         <div className="welcome-message">
           <h2>¡Bienvenido al TPI!</h2>
           <h2>¡Maria ok!</h2>
-          <h2>Julio ok!</h2>
-          <h2>Nadine ok!</h2>
+          <h2>Julio ok! Con mi rama personal</h2> 
+          <h2>Nadine ok!</h2> 
           <h2>Solana ok!</h2>
 
         </div>
