@@ -16,6 +16,7 @@ function App() {
           <h2>Julio ok! Con mi rama personal</h2> 
           <h2>Nadine ok!</h2> 
           <h2>Solana ok!</h2>
+          <h2>Yoel ok!</h2>
 
         </div>
       </main>
