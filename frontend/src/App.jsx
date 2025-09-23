@@ -14,6 +14,7 @@ function App() {
           <h2>¡Bienvenido al TPI!</h2>
           <h2>¡Maria ok!</h2>
           <h2>Julio ok!</h2>
+          <h2>Nadine ok!</h2>
         </div>
       </main>
 
