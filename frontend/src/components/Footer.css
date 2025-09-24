@@ -1,7 +1,7 @@
 /* Footer que ocupa 100% del ancho */
 .footer {
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #032d70;; 
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.6rem 0;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);

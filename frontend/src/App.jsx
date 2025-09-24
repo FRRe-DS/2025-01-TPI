@@ -1,26 +1,29 @@
-import React from 'react';
-import './App.css';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import React, { useState } from "react";
+import "./App.css";
+import Login from "./components/Login";
+import logo from "./assets/shipper-logo.png"; // asegurate de guardar tu logo en esta ruta
 
 function App() {
+  const [user, setUser] = useState(null);
+
   return (
     <div className="app">
-      <Header />
+      {/* Columna izquierda con logo */}
+      <div className="split-left">
+        <img src={logo} alt="Shipper logo" className="logo-left" />
+      </div>
 
-      {/* Contenido principal - página en blanco */}
-      <main className="main-content">
-        <div className="welcome-message">
-          <h2>¡Bienvenido al TPI!</h2>
-          <h2>¡Maria ok!</h2>
-          <h2>Julio ok!</h2>
-          <h2>Nadine ok!</h2>
-          <h2>Solana ok!</h2>
-
-        </div>
-      </main>
-
-      <Footer />
+      {/* Columna derecha con login o bienvenida */}
+      <div className="split-right">
+        {!user ? (
+          <Login onLogin={setUser} />
+        ) : (
+          <div className="welcome-message">
+            <h2>¡Bienvenido {user.user.name}!</h2>
+            <p>Tu sesión está iniciada 🎉</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

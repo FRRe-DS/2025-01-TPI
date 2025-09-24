@@ -1,17 +1,28 @@
 .app {
-  width: 100%;
-  min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  min-height: 100vh;
+  background: #fff;
 }
 
-.main-content {
+.split-left {
   flex: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background: #f9fafb;
+}
+
+.logo-left {
+  max-width: 65%;
+  height: auto;
+}
+
+.split-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 2rem;
-  background: #ffffff;
 }
 
 /* Mensaje de bienvenida */
