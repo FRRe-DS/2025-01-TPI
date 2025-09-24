@@ -31,6 +31,17 @@ async function bootstrap() {
       .addTag('orders', 'Gestión de pedidos y compras')
       .addTag('products', 'Gestión de productos y catálogo')
       .addTag('users', 'Gestión de usuarios')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'Authorization',
+          description: 'Token de autorización Bearer',
+          in: 'header',
+        },
+        'Authorization'
+      )
       .build();
     
     const document = SwaggerModule.createDocument(app, config);

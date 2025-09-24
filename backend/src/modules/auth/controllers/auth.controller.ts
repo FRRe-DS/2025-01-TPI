@@ -1,7 +1,8 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, Headers } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { PrismaClient } from '@prisma/client';
 import { RegisterDto } from '../dto/register.dto';
+import { ChangePasswordDto } from '../dto/changePassword.dto';
 
 const prisma = new PrismaClient();
 
@@ -231,6 +232,141 @@ export class AuthController {
           isActive: newUser.isActive,
           createdAt: newUser.createdAt,
           updatedAt: newUser.updatedAt
+        }
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Error en el servidor',
+        user: null,
+        error: error.message
+      };
+    }
+  }
+  @Post('change-password')
+  @ApiOperation({ 
+    summary: 'Cambio de password de usuario',
+    description: 'Cambia la contraseña del usuario'
+  })
+  @ApiBearerAuth('Authorization')
+  @ApiBody({
+    description: 'Datos para cambiar la contraseña del usuario',
+    type: ChangePasswordDto
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: '📋 DOCUMENTACIÓN: Ejemplos de respuestas exitosas',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'number' },
+            email: { type: 'string' },
+            name: { type: 'string' },
+            isActive: { type: 'boolean' },
+            createdAt: { type: 'string' },
+            updatedAt: { type: 'string' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: '📋 DOCUMENTACIÓN: Ejemplos de respuestas de error',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+        user: { type: 'null' }
+      }
+    }
+  })
+  async changePassword(@Body() changePasswordData: ChangePasswordDto, @Headers() headers: any) {
+    try {
+      const authHeader = headers.authorization || headers.Authorization;
+      
+      // Verificar que se envíe el token
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+          success: false,
+          message: 'Token de autorización requerido',
+          user: null
+        };
+      }
+
+      // Extraer el token
+      const token = authHeader.substring(7); // Quitar "Bearer "
+
+      // Buscar el token en la base de datos
+      const tokenRecord = await prisma.token.findUnique({
+        where: { token: token },
+        include: { user: true }
+      });
+
+      if (!tokenRecord) {
+        return {
+          success: false,
+          message: 'Token inválido',
+          user: null
+        };
+      }
+
+      // Verificar que el token no haya expirado
+      if (tokenRecord.expiresAt < new Date()) {
+        return {
+          success: false,
+          message: 'Token expirado',
+          user: null
+        };
+      }
+
+      const user = tokenRecord.user;
+
+      // Verificar que el usuario esté activo
+      if (!user.isActive) {
+        return {
+          success: false,
+          message: 'Usuario inactivo',
+          user: null
+        };
+      }
+
+      // Verificar password actual
+      if (user.password !== changePasswordData.currentPassword) {
+        return {
+          success: false,
+          message: 'Password actual incorrecto',
+          user: null
+        };
+      }
+
+      // Actualizar la contraseña
+      await prisma.auth.update({
+        where: { id: user.id },
+        data: {
+          password: changePasswordData.newPassword,
+          updatedAt: new Date()
+        }
+      });
+
+      // Contraseña cambiada exitosamente
+      return {
+        success: true,
+        message: 'Contraseña cambiada exitosamente',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: new Date()
         }
       };
 
