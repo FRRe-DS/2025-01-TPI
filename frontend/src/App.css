@@ -8,31 +8,11 @@
 .main-content {
   flex: 1;
   display: flex;
+    flex-direction: column; 
 }
 
 footer {
   margin-top: auto;
-}
-
-.split-left {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #fff;
-}
-
-.logo-left {
-  max-width: 65%;
-  height: auto;
-}
-
-.split-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
 }
 
 /* Mensaje de bienvenida */

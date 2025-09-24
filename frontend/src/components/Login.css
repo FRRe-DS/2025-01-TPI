@@ -1,3 +1,11 @@
+.login-page {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - 120px); 
+  flex-direction: row; 
+  align-items: center;
+}
+
 .login-card {
   background: #fff;
   padding: 2rem 2.5rem;
@@ -32,8 +40,8 @@
 }
 
 .login-form input:focus {
-  border-color: #6c63ff;
-  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.15);
+  border-color: #032d70;
+  box-shadow: 0 0 0 2px rgba(3, 45, 112, 0.15);
 }
 
 .login-form button {
@@ -76,7 +84,7 @@
 }
 
 .forgot-password a:hover {
-  color: #353739;
+  color: #032d70;
   text-decoration: underline;
 }
 
@@ -103,4 +111,25 @@
   background: #e5e7eb; /* gris claro */
   margin: 0.75rem 0 0.5rem;
   width: 100%;
+}
+
+.split-left {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.logo-left {
+  max-width: 65%;
+  height: auto;
+}
+
+.split-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
 }
