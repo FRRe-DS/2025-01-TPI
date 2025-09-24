@@ -3,23 +3,13 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nes
 import { PrismaClient } from '@prisma/client';
 import { RegisterDto } from '../dto/register.dto';
 import { ChangePasswordDto } from '../dto/changePassword.dto';
-
+import { AuthService } from '../services/auth.service';
 const prisma = new PrismaClient();
 
 @ApiTags('auth')
 @Controller('api/auth')
 export class AuthController {
-
-  // Método para generar token único
-  private generateToken(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let token = '';
-    for (let i = 0; i < 64; i++) {
-      token += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return token;
-  }
-  
+  constructor(private authService: AuthService) {}
   @Post('login')
   @ApiOperation({ 
     summary: 'Login de usuario',
@@ -81,10 +71,23 @@ export class AuthController {
   })
   async login(@Body() loginData: { email: string; password: string }) {
     try {
+      console.log('🔍 Iniciando proceso de login para:', loginData.email);
+      
+      // Verificar conexión a la base de datos
+      try {
+        await prisma.$connect();
+        console.log('✅ Conexión a la base de datos establecida');
+      } catch (dbError) {
+        console.error('❌ Error de conexión a la base de datos:', dbError);
+        throw dbError;
+      }
+
       // Buscar usuario por email
+      console.log('🔍 Buscando usuario con email:', loginData.email);
       const user = await prisma.auth.findUnique({
         where: { email: loginData.email }
       });
+      console.log('👤 Usuario encontrado:', user ? 'Sí' : 'No');
 
       if (!user) {
         return {
@@ -113,20 +116,54 @@ export class AuthController {
       }
 
       // Generar token único
-      const token = this.generateToken();
+      const token = this.authService.generateToken();
+      console.log('🔑 Token generado:', token);
+      console.log('🔑 Longitud del token:', token.length);
       
       // Calcular fecha de expiración (24 horas)
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
+      console.log('⏰ Fecha de expiración:', expiresAt);
+      console.log('👤 User ID:', user.id);
 
-      // Guardar token en la base de datos
-      await prisma.token.create({
-        data: {
-          token: token,
+      // Verificar tokens existentes para este usuario
+      const existingTokens = await prisma.token.findMany({
+        where: { userId: user.id }
+      });
+      console.log('🔍 Tokens existentes para el usuario:', existingTokens.length);
+      
+      // Limpiar tokens expirados
+      const expiredTokens = await prisma.token.deleteMany({
+        where: {
           userId: user.id,
-          expiresAt: expiresAt
+          expiresAt: { lt: new Date() }
         }
       });
+      console.log('🗑️ Tokens expirados eliminados:', expiredTokens.count);
+
+      // Debug: Datos que se van a insertar
+      const tokenData = {
+        token: token,
+        userId: user.id,
+        expiresAt: expiresAt
+      };
+      console.log('📝 Datos para insertar en token:', JSON.stringify(tokenData, null, 2));
+
+      // Guardar token en la base de datos
+      try {
+        const createdToken = await prisma.token.create({
+          data: tokenData
+        });
+        console.log('✅ Token creado exitosamente:', createdToken);
+      } catch (prismaError) {
+        console.error('❌ Error al crear token en Prisma:', prismaError);
+        console.error('❌ Detalles del error:', {
+          message: prismaError.message,
+          code: prismaError.code,
+          meta: prismaError.meta
+        });
+        throw prismaError;
+      }
 
       // Login exitoso - devolver datos del usuario y token
       return {
