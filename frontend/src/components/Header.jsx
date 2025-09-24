@@ -1,12 +1,16 @@
 import React from 'react';
 import './Header.css';
+import miniLogo from "../assets/Shipper-mini.png"; 
 
 const Header = () => {
   return (
     <header className="header">
       <div className="header-container">
         <div className="header-left">
-          <h1>Shipper</h1>
+          <h1>
+            <img src={miniLogo} alt="Shipper logo" className="header-logo" />
+            <em>Shipper</em>
+          </h1>
         </div>
         
         <div className="header-right">
