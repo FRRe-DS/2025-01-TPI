@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 500">
+  <!-- Camión -->
+  <g fill="#032d70">
+    <!-- Cuerpo del camión -->
+    <rect x="50" y="150" width="320" height="130" rx="15" ry="15"/>
+    <!-- Cabina -->
+    <path d="M370 180h80c20 0 40 20 40 40v60h-120z"/>
+    <!-- Ventana -->
+    <rect x="400" y="190" width="45" height="40" fill="#fff" rx="5" ry="5"/>
+    <!-- Líneas de velocidad -->
+    <rect x="20" y="170" width="50" height="15"/>
+    <rect x="20" y="200" width="70" height="15"/>
+    <rect x="20" y="230" width="90" height="15"/>
+    <!-- Ruedas -->
+    <circle cx="140" cy="310" r="35"/>
+    <circle cx="410" cy="310" r="35"/>
+    <!-- Check -->
+    <path d="M170 210 l40 40 80 -80" stroke="#fff" stroke-width="25" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Texto -->
+  <text x="300" y="430" text-anchor="middle"
+        font-size="90"
+        font-family="Arial, Helvetica, sans-serif"
+        font-weight="bold"
+        fill="#000">
+    Shipper
+  </text>
+</svg>

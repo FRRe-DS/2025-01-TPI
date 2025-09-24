@@ -1,7 +1,17 @@
 .app {
   display: flex;
-  min-height: 100vh;
+    flex-direction: column; 
+      min-height: 100vh;
   background: #fff;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+}
+
+footer {
+  margin-top: auto;
 }
 
 .split-left {
@@ -9,7 +19,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f9fafb;
+  background: #fff;
 }
 
 .logo-left {
