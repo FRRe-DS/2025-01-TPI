@@ -14,8 +14,14 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({
-    description: 'Nombre completo del usuario',
-    example: 'Juan Pérez'
+    description: 'Primer nombre del usuario',
+    example: 'Juan'
   })
-  name: string;
+  firstName: string;
+
+  @ApiProperty({
+    description: 'Apellido del usuario',
+    example: 'Pérez'
+  })
+  lastName: string;
 }

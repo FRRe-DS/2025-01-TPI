@@ -11,13 +11,15 @@ async function main() {
       {
         email: 'admin@shopflow.com',
         password: 'admin123',
-        name: 'Administrador',
+        firstName: 'Admin',
+        lastName: 'Sistema',
         isActive: true
       },
       {
         email: 'user@shopflow.com',
         password: 'user123',
-        name: 'Usuario Test',
+        firstName: 'Usuario',
+        lastName: 'Test',
         isActive: true
       }
     ],
@@ -30,7 +32,7 @@ async function main() {
   const allUsers = await prisma.auth.findMany();
   console.log('👥 Usuarios en la base de datos:');
   allUsers.forEach(user => {
-    console.log(`- ${user.name} (${user.email}) - Activo: ${user.isActive}`);
+    console.log(`- ${user.firstName} ${user.lastName} (${user.email}) - Activo: ${user.isActive}`);
   });
 }
 

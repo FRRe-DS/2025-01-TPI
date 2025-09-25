@@ -176,7 +176,8 @@ export class AuthController {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           isActive: user.isActive,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
@@ -258,7 +259,8 @@ export class AuthController {
         data: {
           email: registerData.email,
           password: hashedPassword,
-          name: registerData.name,
+          firstName: registerData.firstName,
+          lastName: registerData.lastName,
           isActive: true
         }
       });
@@ -270,7 +272,8 @@ export class AuthController {
         user: {
           id: newUser.id,
           email: newUser.email,
-          name: newUser.name,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
           isActive: newUser.isActive,
           createdAt: newUser.createdAt,
           updatedAt: newUser.updatedAt
@@ -408,7 +411,8 @@ export class AuthController {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           isActive: user.isActive,
           createdAt: user.createdAt,
           updatedAt: new Date()
