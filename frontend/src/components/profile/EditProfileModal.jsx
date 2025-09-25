@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "./EditProfileModal.css";
-// Eliminamos la carga desde API por ahora, usaremos el usuario recibido por props
 
 const EditProfileModal = ({ onClose, user }) => {
   const [name, setName] = useState("");
