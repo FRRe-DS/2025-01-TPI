@@ -7,11 +7,15 @@ import Login from "./components/Login";
 function App() {
   const [user, setUser] = useState(null);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+  };
+
   return (
     <div className="app">
-      <Header />
-
-      <main className="main-content">
+      <Header user={user} onLogout={handleLogout} />      
+        <main className="main-content">
           {!user ? (
             <Login onLogin={setUser} />
           ) : (

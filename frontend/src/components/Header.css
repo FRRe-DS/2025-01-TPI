@@ -97,8 +97,37 @@
     font-size: 0.7rem;
   }
   
-  .user-icon {
-    width: 32px;
-    height: 32px;
-  }
+}
+
+.user-menu {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 160px;        
+  overflow: hidden;        
+}
+
+.dropdown-menu button {
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #032d70;
+  width: 100%;
+  text-align: left;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-menu button:hover {
+  background: #032d70;
+  color: #fff;
 }
