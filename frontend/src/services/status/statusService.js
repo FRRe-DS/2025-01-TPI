@@ -1,11 +1,14 @@
 // Servicio para consumir el endpoint de status del backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://p01--backend--vtq7dc7r2j7w.code.run';
+import { API_URL } from '../config/apiConfig';
+
+const STATUS_URL = API_URL + '/status';
+const HEALTH_URL = API_URL + '/health';
 
 export const statusService = {
   // Obtener el status del backend
   async getStatus() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/status`);
+      const response = await fetch(STATUS_URL);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -29,7 +32,7 @@ export const statusService = {
   // Obtener el health check del backend
   async getHealth() {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`);
+      const response = await fetch(HEALTH_URL);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

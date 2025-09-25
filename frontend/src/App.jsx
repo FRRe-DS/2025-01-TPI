@@ -3,12 +3,13 @@ import "./App.css";
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Login from "./components/auth/Login";
+import { removeToken } from './services/config/apiConfig';
 
 function App() {
   const [user, setUser] = useState(null);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    removeToken();
     setUser(null);
   };
 
