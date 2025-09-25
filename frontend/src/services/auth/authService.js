@@ -47,10 +47,32 @@ export const getAuthToken = () => {
   return getToken();
 };
 
+// Obtener el usuario autenticado (perfil actual)
+export const getCurrentUser = async () => {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No autenticado');
+  }
+
+  const response = await fetch(API_URL + '/users/me', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo obtener el perfil');
+  }
+
+  return response.json();
+};
+
 // Exportar todas las funciones como objeto por conveniencia
 export default {
   login,
   logout,
   isAuthenticated,
-  getAuthToken
+  getAuthToken,
+  getCurrentUser
 };
