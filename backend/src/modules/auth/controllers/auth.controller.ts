@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { RegisterDto } from '../dto/register.dto';
 import { ChangePasswordDto } from '../dto/changePassword.dto';
 import { AuthService } from '../services/auth.service';
+import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 @ApiTags('auth')
@@ -97,8 +98,10 @@ export class AuthController {
         };
       }
 
-      // Verificar password (por ahora sin encriptación)
-      if (user.password !== loginData.password) {
+      // Verificar password
+      const passwordMatch = await bcrypt.compare(loginData.password, user.password);
+
+      if (!passwordMatch) {
         return {
           success: false,
           message: 'Password incorrecto',
@@ -249,10 +252,12 @@ export class AuthController {
       }
 
       // Crear nuevo usuario
+      const hashedPassword = await bcrypt.hash(registerData.password, 10);
+
       const newUser = await prisma.auth.create({
         data: {
           email: registerData.email,
-          password: registerData.password, // NOTA: En producción usar bcrypt
+          password: hashedPassword,
           name: registerData.name,
           isActive: true
         }
@@ -376,7 +381,8 @@ export class AuthController {
       }
 
       // Verificar password actual
-      if (user.password !== changePasswordData.currentPassword) {
+      const passwordMatch = await bcrypt.compare(changePasswordData.currentPassword, user.password);
+      if (!passwordMatch) {
         return {
           success: false,
           message: 'Password actual incorrecto',
@@ -385,10 +391,12 @@ export class AuthController {
       }
 
       // Actualizar la contraseña
+      const hashedPassword = await bcrypt.hash(changePasswordData.newPassword, 10);
+
       await prisma.auth.update({
         where: { id: user.id },
         data: {
-          password: changePasswordData.newPassword,
+          password: hashedPassword,
           updatedAt: new Date()
         }
       });
