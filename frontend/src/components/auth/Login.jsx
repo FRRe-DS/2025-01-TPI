@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Login.css";
-import logo from "../assets/Shipper-logo.png";
+import logo from "../../assets/Shipper-logo.png";
+import authService from "../../services/auth/authService";
 
 
 function Login({ onLogin }) {
@@ -12,18 +13,7 @@ function Login({ onLogin }) {
     e.preventDefault();
 
     try {
-      const response = await fetch("https://p01--backend--vtq7dc7r2j7w.code.run/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (!response.ok) throw new Error("Error en login");
-
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
+      const data = await authService.login(email, password);
       onLogin(data);
     } catch (err) {
       setError("Usuario o contraseña incorrectos. Intenta de nuevo.");

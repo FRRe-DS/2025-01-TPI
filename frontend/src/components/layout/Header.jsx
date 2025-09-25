@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './Header.css';
-import miniLogo from "../assets/Shipper-mini.png"; 
-import EditProfileModal from './EditProfileModal';
+import miniLogo from "../../assets/Shipper-mini.png"; 
+import EditProfileModal from '../profile/EditProfileModal';
 
 const Header = ({ user, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);

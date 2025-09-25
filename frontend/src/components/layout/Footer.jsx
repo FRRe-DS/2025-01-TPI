@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './Footer.css';
-import { statusService } from '../services/status/statusService';
+import { statusService } from '../../services/status/statusService';
 
 // Importar iconos desde src/icons
-import reactIcon from '../icons/react.png';
-import nestIcon from '../icons/nest.png';
-import postgreIcon from '../icons/postgre.png';
-import dockerIcon from '../icons/docker.png';
-import northflankIcon from '../icons/northflank.svg';
-import prismaIcon from '../icons/prisma.png';
+import reactIcon from '../../icons/react.png';
+import nestIcon from '../../icons/nest.png';
+import postgreIcon from '../../icons/postgre.png';
+import dockerIcon from '../../icons/docker.png';
+import northflankIcon from '../../icons/northflank.svg';
+import prismaIcon from '../../icons/prisma.png';
 
 const Footer = () => {
   const [backendStatus, setBackendStatus] = useState(null);

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "./App.css";
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Login from "./components/Login";
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import Login from "./components/auth/Login";
 
 function App() {
   const [user, setUser] = useState(null);
