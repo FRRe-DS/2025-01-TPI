@@ -116,7 +116,7 @@ export class AuthController {
       }
 
       // Generar token único
-      const token = this.authService.generateToken();
+      const token = this.authService.generateToken({userId: user.id});
       console.log('🔑 Token generado:', token);
       console.log('🔑 Longitud del token:', token.length);
       
