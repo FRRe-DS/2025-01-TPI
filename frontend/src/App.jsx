@@ -42,6 +42,8 @@ function App() {
 
             </div>
           )}
+=======
+      <Header />
       </main>
 
       <Footer />
