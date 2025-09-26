@@ -25,6 +25,8 @@ function App() {
               <p>Tu sesión está iniciada </p>
             </div>
           )}
+=======
+      <Header />
       </main>
 
       <Footer />
