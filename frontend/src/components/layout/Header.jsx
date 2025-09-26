@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './Header.css';
 import miniLogo from "../../assets/Shipper-mini.png"; 
 import EditProfileModal from '../profile/EditProfileModal';
@@ -8,6 +8,13 @@ const Header = ({ user, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+
+  // Asegurar que el menú se cierre cuando cambie el usuario
+  useEffect(() => {
+    if (!user) {
+      setMenuOpen(false);
+    }
+  }, [user]);
 
 
   const handleToggleMenu = () => {
@@ -43,7 +50,7 @@ const Header = ({ user, onLogout }) => {
             <div className="user-menu">
               <div 
                 className="user-icon" 
-                title={user.user?.name || "Usuario"} 
+                title={`${user.user?.firstName || ""} ${user.user?.lastName || ""}`.trim() || "Usuario"} 
                 onClick={handleToggleMenu}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -52,6 +52,7 @@ Crear archivo `.env` en la carpeta `backend/`:
 DATABASE_URL="postgresql://usuario:password@localhost:5432/shopflow"
 NODE_ENV="development"
 PORT=3000
+SECRET_KEY="your_secret_key"
 ```
 
 3. **Configurar base de datos:**

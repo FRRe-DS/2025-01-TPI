@@ -1,5 +1,5 @@
 // AuthService - Servicio para manejar la autenticación
-import { API_URL, setToken, removeToken, getToken } from '../config/apiConfig';
+import { API_URL, setToken, removeToken, getToken, setUser, removeUser, getUser } from '../config/apiConfig';
 
 const AUTH_URL = API_URL + '/auth';
 
@@ -14,15 +14,21 @@ export const login = async (email, password) => {
       body: JSON.stringify({ email, password }),
     });
 
-    if (!response.ok) {
-      throw new Error('Error en login');
-    }
-
     const data = await response.json();
     
-    // Guardar token en localStorage
+    // Si la respuesta no es exitosa, lanzar error con el mensaje del servidor
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error en login');
+    }
+    
+    // Guardar token y datos del usuario en localStorage
     if (data.token) {
       setToken(data.token);
+    }
+    
+    if (data.user) {
+      console.log('💾 Guardando datos del usuario:', data.user);
+      setUser(data.user);
     }
 
     return data;
@@ -35,6 +41,7 @@ export const login = async (email, password) => {
 // Función para logout
 export const logout = () => {
   removeToken();
+  removeUser();
 };
 
 // Función para verificar si está autenticado
@@ -47,25 +54,9 @@ export const getAuthToken = () => {
   return getToken();
 };
 
-// Obtener el usuario autenticado (perfil actual)
-export const getCurrentUser = async () => {
-  const token = getToken();
-  if (!token) {
-    throw new Error('No autenticado');
-  }
-
-  const response = await fetch(API_URL + '/users/me', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error('No se pudo obtener el perfil');
-  }
-
-  return response.json();
+// Función para obtener los datos del usuario desde localStorage
+export const getCurrentUser = () => {
+  return getUser();
 };
 
 // Exportar todas las funciones como objeto por conveniencia
