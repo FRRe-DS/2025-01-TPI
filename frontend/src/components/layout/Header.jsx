@@ -54,7 +54,7 @@ const Header = ({ user, onLogout }) => {
         )}
       </div>
       </div>
-    {showModal && <EditProfileModal onClose={handleCloseModal} />}
+    {showModal && <EditProfileModal onClose={handleCloseModal} user={user} />}
     </header>
   );
 };

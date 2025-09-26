@@ -9,6 +9,7 @@ async function bootstrap() {
     console.log('- NODE_ENV:', process.env.NODE_ENV);
     console.log('- PORT:', process.env.PORT);
     console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'Configurada' : 'NO CONFIGURADA');
+    console.log('- SECRET_KEY:', process.env.SECRET_KEY ? 'Configurada' : 'NO CONFIGURADA');
     
     const app = await NestFactory.create(AppModule);
     
@@ -26,9 +27,22 @@ async function bootstrap() {
       .setDescription('API del backend para el portal de compras ShopFlow - Módulo de Compras')
       .setVersion('1.0')
       .addTag('app', 'Endpoints principales de la aplicación')
-      .addTag('health', 'Endpoints de salud y monitoreo del sistema')
-      .addTag('status', 'Endpoints de información detallada del sistema')
-      .addTag('products', 'Endpoints de gestión de productos para compras')
+      .addTag('auth', 'Autenticación y autorización')
+      .addTag('health', 'Health checks y status del sistema')
+      .addTag('orders', 'Gestión de pedidos y compras')
+      .addTag('products', 'Gestión de productos y catálogo')
+      .addTag('users', 'Gestión de usuarios')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'Authorization',
+          description: 'Token de autorización Bearer',
+          in: 'header',
+        },
+        'Authorization'
+      )
       .build();
     
     const document = SwaggerModule.createDocument(app, config);
