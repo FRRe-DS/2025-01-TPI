@@ -6,12 +6,16 @@ const EditProfileModal = ({ onClose, user }) => {
   const [name, setName] = useState("");
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
-  const handleOpenChangePasswordModal = () => {
+  // abrir modal
+  const handleOpenChangePassword = () => {
     setShowChangePasswordModal(true);
-  }
+  };
 
-  const handleCloseChangePasswordModal = () => setShowChangePasswordModal(false);
-
+  // cerrar modal
+  const handleCloseChangePassword = () => {
+    setShowChangePasswordModal(false);
+  };
+  
   useEffect(() => {
     setName(user?.user?.name || user?.name || "");
   }, [user]);
@@ -34,12 +38,21 @@ const EditProfileModal = ({ onClose, user }) => {
         </form>
 
         <div className="modal-actions">
+          
+
+          <button type="button" onClick={handleOpenChangePassword} className ="change-password-btn">
+            Cambiar contraseña
+          </button>
+
           <button type="button" onClick={onClose} className="cancel-btn">
             Cerrar
           </button>
-          <button onClick={handleOpenChangePasswordModal}>Cambiar contraseña</button>
         </div>
       </div>
+       {/* Renderizar el modal de cambiar contraseña si está activo */}
+       {showChangePasswordModal && (
+        <ChangePasswordModal onClose={handleCloseChangePassword} />
+      )}
     </div>
   );
 };

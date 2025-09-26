@@ -15,10 +15,10 @@ function App() {
     const savedUser = authService.getCurrentUser();
     console.log('👤 Usuario guardado:', savedUser);
     if (savedUser) {
-      console.log('✅ Restaurando sesión...');
+      console.log('Restaurando sesión...');
       setUser({ user: savedUser });
     } else {
-      console.log('❌ No hay datos guardados');
+      console.log('No hay datos guardados');
     }
   }, []);
 

@@ -27,20 +27,39 @@
 }
 
 .modal-actions {
-  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center; 
+  gap: 1rem; 
+  margin-top: 1rem;
 }
 
 .cancel-btn {
   background: #032d70;
   color: #fff;
   border: none;
-  padding: 0.7rem 1.2rem;
+  padding: 0.7rem 1.0rem;
   border-radius: 0.5rem;
   cursor: pointer;
   font-weight: 600;
 }
 
 .cancel-btn:hover {
+  background: #ddd;
+  color: #032d70;
+  border: 1px solid #ccc;
+}
+
+.change-password-btn {
+  background: #032d70;
+  color: #fff;
+  border: none;
+  padding: 0.7rem 1.0rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.change-password-btn:hover {
   background: #ddd;
   color: #032d70;
   border: 1px solid #ccc;
