@@ -5,55 +5,34 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Iniciando seed de la base de datos...');
 
-  // Crear productos de prueba
-  const products = await prisma.product.createMany({
+  // Crear usuarios de prueba
+  const users = await prisma.auth.createMany({
     data: [
       {
-        name: 'Laptop Gaming',
-        description: 'Laptop para gaming de alta gama con RTX 4070',
-        price: 1299.99,
-        stock: 10,
-        category: 'Electronics'
+        email: 'admin@shopflow.com',
+        password: 'admin123',
+        firstName: 'Admin',
+        lastName: 'Sistema',
+        isActive: true
       },
       {
-        name: 'iPhone 15 Pro',
-        description: 'Smartphone premium de Apple',
-        price: 999.99,
-        stock: 25,
-        category: 'Electronics'
-      },
-      {
-        name: 'Nike Air Max',
-        description: 'Zapatillas deportivas Nike',
-        price: 120.00,
-        stock: 50,
-        category: 'Fashion'
-      },
-      {
-        name: 'MacBook Pro M3',
-        description: 'Laptop profesional de Apple con chip M3',
-        price: 1999.99,
-        stock: 5,
-        category: 'Electronics'
-      },
-      {
-        name: 'Samsung Galaxy S24',
-        description: 'Smartphone Android de última generación',
-        price: 899.99,
-        stock: 30,
-        category: 'Electronics'
+        email: 'user@shopflow.com',
+        password: 'user123',
+        firstName: 'Usuario',
+        lastName: 'Test',
+        isActive: true
       }
     ],
     skipDuplicates: true
   });
 
-  console.log(`✅ ${products.count} productos creados exitosamente`);
+  console.log(`✅ ${users.count} usuarios creados exitosamente`);
   
-  // Mostrar productos creados
-  const allProducts = await prisma.product.findMany();
-  console.log('📦 Productos en la base de datos:');
-  allProducts.forEach(product => {
-    console.log(`- ${product.name}: $${product.price} (Stock: ${product.stock})`);
+  // Mostrar usuarios creados
+  const allUsers = await prisma.auth.findMany();
+  console.log('👥 Usuarios en la base de datos:');
+  allUsers.forEach(user => {
+    console.log(`- ${user.firstName} ${user.lastName} (${user.email}) - Activo: ${user.isActive}`);
   });
 }
 
