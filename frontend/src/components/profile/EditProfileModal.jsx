@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
 import "./EditProfileModal.css";
+import ChangePasswordModal from "../auth/ChangePasswordModal";
 
 const EditProfileModal = ({ onClose, user }) => {
   const [name, setName] = useState("");
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+
+  const handleOpenChangePasswordModal = () => {
+    setShowChangePasswordModal(true);
+  }
+
+  const handleCloseChangePasswordModal = () => setShowChangePasswordModal(false);
 
   useEffect(() => {
     setName(user?.user?.name || user?.name || "");
@@ -22,13 +30,14 @@ const EditProfileModal = ({ onClose, user }) => {
               readOnly
               style={{ width: "100%", padding: ".6rem", borderRadius: ".5rem", border: "1px solid #ccc", backgroundColor: "#f0f0f0" }}
             />
-          </div>
+          </div> 
         </form>
 
         <div className="modal-actions">
           <button type="button" onClick={onClose} className="cancel-btn">
             Cerrar
           </button>
+          <button onClick={handleOpenChangePasswordModal}>Cambiar contraseña</button>
         </div>
       </div>
     </div>
