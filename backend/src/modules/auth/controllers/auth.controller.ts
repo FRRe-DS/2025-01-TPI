@@ -93,7 +93,7 @@ export class AuthController {
       if (!user) {
         return {
           success: false,
-          message: 'Usuario no encontrado',
+          message: 'Email o contraseña inválidos',
           user: null
         };
       }
@@ -104,7 +104,7 @@ export class AuthController {
       if (!passwordMatch) {
         return {
           success: false,
-          message: 'Password incorrecto',
+          message: 'Email o contraseña inválidos',
           user: null
         };
       }
@@ -113,7 +113,7 @@ export class AuthController {
       if (!user.isActive) {
         return {
           success: false,
-          message: 'Usuario inactivo',
+          message: 'Email o contraseña inválidos',
           user: null
         };
       }

@@ -11,12 +11,15 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Limpiar errores previos
 
     try {
       const data = await authService.login(email, password);
       onLogin(data);
     } catch (err) {
-      setError("Usuario o contraseña incorrectos. Intenta de nuevo.");
+      console.error('Error en login:', err);
+      // El mensaje de error viene del authService (del backend)
+      setError(err.message || "Email o contraseña inválidos. Intenta de nuevo.");
     }
   };
 
@@ -47,10 +50,6 @@ function Login({ onLogin }) {
               required
             />
             <button type="submit">Ingresar</button>
-
-            <p className="forgot-password">
-              <a href="#">¿Olvidaste tu contraseña?</a>
-            </p>
 
             <hr className="form-divider" />
 

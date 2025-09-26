@@ -14,11 +14,12 @@ export const login = async (email, password) => {
       body: JSON.stringify({ email, password }),
     });
 
-    if (!response.ok) {
-      throw new Error('Error en login');
-    }
-
     const data = await response.json();
+    
+    // Si la respuesta no es exitosa, lanzar error con el mensaje del servidor
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error en login');
+    }
     
     // Guardar token y datos del usuario en localStorage
     if (data.token) {
