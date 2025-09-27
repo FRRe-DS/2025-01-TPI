@@ -3,7 +3,6 @@ import "./Login.css";
 import logo from "../../assets/Shipper-logo.png";
 import authService from "../../services/auth/authService";
 
-
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

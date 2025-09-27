@@ -58,19 +58,21 @@ const Header = ({ user, onLogout }) => {
                   <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="currentColor"/>
                 </svg>
               </div>
-
-              {menuOpen && (
+      {menuOpen && (
                 <div className="dropdown-menu">
                   <button onClick={handleOpenEditModal}>Editar perfil</button>
+                  <button onClick={handleOpenChangePasswordModal}>Cambiar contraseña</button>
                   <button onClick={onLogout}>Cerrar sesión</button>
                 </div>
               )}
+            </div>
+          )}
         </div>
-        )}
       </div>
-      </div>
-    {showEditModal && <EditProfileModal onClose={handleCloseEditModal} user={user} />}
-    {showChangePasswordModal && <ChangePasswordModal onClose={handleCloseChangePasswordModal} />}
+
+      {/* Modales */}
+      {showEditModal && <EditProfileModal onClose={handleCloseEditModal} user={user} />}
+      {showChangePasswordModal && <ChangePasswordModal onClose={handleCloseChangePasswordModal} />}
     </header>
   );
 };
