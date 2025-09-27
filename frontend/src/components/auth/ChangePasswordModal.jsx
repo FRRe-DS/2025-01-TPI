@@ -28,10 +28,6 @@ export default function ChangePasswordModal({ onClose }) {
       return;
     }
 
-    if (!authService.isAuthenticated()) {
-      setError("Tenés que iniciar sesión para cambiar tu contraseña.");
-      return;
-    }
 
     try {
       setLoading(true);
@@ -49,12 +45,13 @@ export default function ChangePasswordModal({ onClose }) {
         onClose();
       }, 2000);
     } catch (error) {
-      console.error('Error al cambiar contraseña:', error);
-      if (error.message.includes('401') || error.message.includes('No autorizado') || error.message.includes('Unauthorized')) {
+      console.error("Error al cambiar contraseña:", error);
+    
+      if (error.status === 401) {
         setError("No autorizado. Volvé a iniciar sesión.");
-      } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+      } else if (error.status === 400) {
         setError("La contraseña actual es incorrecta.");
-      } else if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
+      } else if (error.status === 500) {
         setError("Error del servidor. Intentá más tarde.");
       } else {
         setError(error.message || "No se pudo cambiar la contraseña.");

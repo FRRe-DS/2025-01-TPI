@@ -59,11 +59,46 @@ export const getCurrentUser = () => {
   return getUser();
 };
 
+// 🚀 Nueva función para cambiar contraseña
+export const changePassword = async (currentPassword, newPassword) => {
+  try {
+    const token = getToken();
+    if (!token) {
+      throw new Error("No autenticado (401)");
+    }
+
+    const response = await fetch(AUTH_URL + "/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Incluir el status en el error para manejarlo en el modal
+      const error = new Error(data.message || "Error al cambiar contraseña");
+      error.status = response.status;
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error en changePassword:", error);
+    throw error;
+  }
+};
+
 // Exportar todas las funciones como objeto por conveniencia
 export default {
   login,
   logout,
   isAuthenticated,
   getAuthToken,
-  getCurrentUser
+  getCurrentUser,
+  changePassword
 };
+
