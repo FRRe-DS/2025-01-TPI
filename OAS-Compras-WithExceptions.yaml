@@ -203,6 +203,21 @@ components:
         - dni
         - birthDate
 
+    UserProfileUpdate:
+      type: object
+      properties:
+        phone:
+          type: string
+        dni:
+          type: string
+        birthDate:
+          type: string
+          format: date
+      required:
+        - phone
+        - dni
+        - birthDate
+
 paths:
   # ========== FRONTEND ↔ BACKEND COMPRAS ==========
   
@@ -499,7 +514,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserProfileCreate'
+              $ref: '#/components/schemas/UserProfileUpdate'
       responses:
         '200':
           description: Perfil actualizado exitosamente
