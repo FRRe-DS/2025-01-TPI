@@ -1,0 +1,5 @@
+Este proyecto corresponde a la materia Desarrollo de Software de la carrera Ingeniería en Sistemas de Información de la Universidad Tecnológica Nacional.
+El trabajo consiste en el desarrollo de un sistema compuesto por tres subsistemas principales: Compras, Stock y Logística. La cátedra dividió al alumnado en grupos, asignando a cada uno de ellos la responsabilidad de implementar uno de estos subsistemas. En nuestro caso, se nos ha asignado el subsistema Compras.
+Cada subsistema debe contar con su propio Frontend y Backend, y la comunicación entre ellos se realiza de backend a backend. Dado que existen múltiples grupos trabajando en paralelo, cada subsistema tendrá varias implementaciones. Sin embargo, para garantizar la interoperabilidad, es requisito que todas las API de un mismo subsistema compartan contratos idénticos, de modo que cualquier instancia pueda integrarse sin inconvenientes con las de los demás subsistemas.
+
+En el archivo OAS-WithExceptions.txt esta el ejemplo de contrato actual de COMPRAS.
