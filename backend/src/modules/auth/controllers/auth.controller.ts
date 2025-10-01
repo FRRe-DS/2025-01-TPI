@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { PrismaClient } from '@prisma/client';
 import { RegisterDto } from '../dto/register.dto';
@@ -37,22 +37,28 @@ export class AuthController {
   })
   @ApiResponse({ 
     status: 200, 
-    description: '📋 DOCUMENTACIÓN: Ejemplos de respuestas exitosas',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean' },
-        message: { type: 'string' },
-        token: { type: 'string', description: 'Token de autenticación válido por 24 horas' },
-        user: {
+    description: 'Login exitoso',
+    content: {
+      'application/json': {
+        schema: {
           type: 'object',
           properties: {
-            id: { type: 'number' },
-            email: { type: 'string' },
-            name: { type: 'string' },
-            isActive: { type: 'boolean' },
-            createdAt: { type: 'string' },
-            updatedAt: { type: 'string' }
+            token: { 
+              type: 'string',
+              description: 'Token de autenticación válido por 24 horas'
+            },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'number' },
+                email: { type: 'string' },
+                firstName: { type: 'string' },
+                lastName: { type: 'string' },
+                isActive: { type: 'boolean' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' }
+              }
+            }
           }
         }
       }
@@ -60,13 +66,43 @@ export class AuthController {
   })
   @ApiResponse({ 
     status: 401, 
-    description: '📋 DOCUMENTACIÓN: Ejemplos de respuestas de error',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean' },
-        message: { type: 'string' },
-        user: { type: 'null' }
+    description: 'Credenciales inválidas',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'Credenciales incorrectas'
+            },
+            code: { 
+              type: 'string',
+              example: 'INVALID_CREDENTIALS'
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 500, 
+    description: 'Error interno del servidor',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'Error interno del servidor'
+            },
+            code: { 
+              type: 'string',
+              example: 'INTERNAL_ERROR'
+            }
+          }
+        }
       }
     }
   })
@@ -92,9 +128,8 @@ export class AuthController {
 
       if (!user) {
         return {
-          success: false,
-          message: 'Email o contraseña inválidos',
-          user: null
+          error: 'Credenciales incorrectas',
+          code: 'INVALID_CREDENTIALS'
         };
       }
 
@@ -103,18 +138,16 @@ export class AuthController {
 
       if (!passwordMatch) {
         return {
-          success: false,
-          message: 'Email o contraseña inválidos',
-          user: null
+          error: 'Credenciales incorrectas',
+          code: 'INVALID_CREDENTIALS'
         };
       }
 
       // Verificar que el usuario esté activo
       if (!user.isActive) {
         return {
-          success: false,
-          message: 'Email o contraseña inválidos',
-          user: null
+          error: 'Credenciales incorrectas',
+          code: 'INVALID_CREDENTIALS'
         };
       }
 
@@ -170,8 +203,6 @@ export class AuthController {
 
       // Login exitoso - devolver datos del usuario y token
       return {
-        success: true,
-        message: 'Login exitoso',
         token: token,
         user: {
           id: user.id,
@@ -186,10 +217,8 @@ export class AuthController {
 
     } catch (error) {
       return {
-        success: false,
-        message: 'Error en el servidor',
-        user: null,
-        error: error.message
+        error: 'Error interno del servidor',
+        code: 'INTERNAL_ERROR'
       };
     }
   }
@@ -205,21 +234,16 @@ export class AuthController {
   })
   @ApiResponse({ 
     status: 201, 
-    description: '📋 DOCUMENTACIÓN: Usuario registrado exitosamente',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean' },
-        message: { type: 'string' },
-        user: {
+    description: 'Usuario registrado exitosamente',
+    content: {
+      'application/json': {
+        schema: {
           type: 'object',
           properties: {
-            id: { type: 'number' },
-            email: { type: 'string' },
-            name: { type: 'string' },
-            isActive: { type: 'boolean' },
-            createdAt: { type: 'string' },
-            updatedAt: { type: 'string' }
+            message: { 
+              type: 'string',
+              example: 'Usuario registrado exitosamente'
+            }
           }
         }
       }
@@ -227,18 +251,77 @@ export class AuthController {
   })
   @ApiResponse({ 
     status: 400, 
-    description: '📋 DOCUMENTACIÓN: Error en el registro',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean' },
-        message: { type: 'string' },
-        user: { type: 'null' }
+    description: 'Solicitud incorrecta',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'Las contraseñas no coinciden'
+            },
+            code: { 
+              type: 'string',
+              example: 'PASSWORD_MISMATCH'
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 409, 
+    description: 'Conflicto - Email ya registrado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'El email ya está registrado'
+            },
+            code: { 
+              type: 'string',
+              example: 'EMAIL_ALREADY_EXISTS'
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 500, 
+    description: 'Error interno del servidor',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'Error interno del servidor'
+            },
+            code: { 
+              type: 'string',
+              example: 'INTERNAL_ERROR'
+            }
+          }
+        }
       }
     }
   })
   async register(@Body() registerData: RegisterDto) {
     try {
+      // Validar que las contraseñas coincidan
+      if (registerData.password !== registerData.repeatPassword) {
+        return {
+          error: "Las contraseñas no coinciden",
+          code: "PASSWORD_MISMATCH"
+        };
+      }
+
       // Verificar si el email ya existe
       const existingUser = await prisma.auth.findUnique({
         where: { email: registerData.email }
@@ -246,16 +329,15 @@ export class AuthController {
 
       if (existingUser) {
         return {
-          success: false,
-          message: 'El email ya está registrado',
-          user: null
+          error: "El email ya está registrado",
+          code: "EMAIL_ALREADY_EXISTS"
         };
       }
 
       // Crear nuevo usuario
       const hashedPassword = await bcrypt.hash(registerData.password, 10);
 
-      const newUser = await prisma.auth.create({
+      await prisma.auth.create({
         data: {
           email: registerData.email,
           password: hashedPassword,
@@ -267,28 +349,157 @@ export class AuthController {
 
       // Usuario creado exitosamente
       return {
-        success: true,
-        message: 'Usuario registrado exitosamente',
-        user: {
-          id: newUser.id,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          isActive: newUser.isActive,
-          createdAt: newUser.createdAt,
-          updatedAt: newUser.updatedAt
-        }
+        message: "Usuario registrado exitosamente"
       };
 
     } catch (error) {
       return {
-        success: false,
-        message: 'Error en el servidor',
-        user: null,
-        error: error.message
+        error: "Error interno del servidor",
+        code: "INTERNAL_ERROR"
       };
     }
   }
+
+  @Get('refresh')
+  @ApiOperation({ 
+    summary: 'Refrescar token JWT',
+    description: 'Refresca el token de autenticación del usuario'
+  })
+  @ApiBearerAuth('Authorization')
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Token refrescado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            token: { 
+              type: 'string',
+              description: 'Nuevo token de autenticación'
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'Token inválido o expirado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'Token inválido o expirado'
+            },
+            code: { 
+              type: 'string',
+              example: 'INVALID_TOKEN'
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 500, 
+    description: 'Error interno del servidor',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string',
+              example: 'Error interno del servidor'
+            },
+            code: { 
+              type: 'string',
+              example: 'INTERNAL_ERROR'
+            }
+          }
+        }
+      }
+    }
+  })
+  async refreshToken(@Headers() headers: any) {
+    try {
+      const authHeader = headers.authorization || headers.Authorization;
+      
+      // Verificar que se envíe el token
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+          error: 'Token de autorización requerido',
+          code: 'UNAUTHORIZED'
+        };
+      }
+
+      // Extraer el token
+      const token = authHeader.substring(7); // Quitar "Bearer "
+
+      // Buscar el token en la base de datos
+      const tokenRecord = await prisma.token.findUnique({
+        where: { token: token },
+        include: { user: true }
+      });
+
+      if (!tokenRecord) {
+        return {
+          error: 'Token inválido o expirado',
+          code: 'INVALID_TOKEN'
+        };
+      }
+
+      // Verificar que el token no haya expirado
+      if (tokenRecord.expiresAt < new Date()) {
+        return {
+          error: 'Token inválido o expirado',
+          code: 'INVALID_TOKEN'
+        };
+      }
+
+      const user = tokenRecord.user;
+
+      // Verificar que el usuario esté activo
+      if (!user.isActive) {
+        return {
+          error: 'Token inválido o expirado',
+          code: 'INVALID_TOKEN'
+        };
+      }
+
+      // Generar nuevo token
+      const newToken = this.authService.generateToken({userId: user.id});
+      
+      // Calcular nueva fecha de expiración (24 horas)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      // Actualizar token en la base de datos
+      await prisma.token.update({
+        where: { id: tokenRecord.id },
+        data: {
+          token: newToken,
+          expiresAt: expiresAt
+        }
+      });
+
+      // Token refrescado exitosamente
+      return {
+        token: newToken
+      };
+
+    } catch (error) {
+      return {
+        error: 'Error interno del servidor',
+        code: 'INTERNAL_ERROR'
+      };
+    }
+  }
+
   @Post('change-password')
   @ApiOperation({ 
     summary: 'Cambio de password de usuario',

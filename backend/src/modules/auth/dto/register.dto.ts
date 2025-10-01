@@ -14,6 +14,12 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({
+    description: 'Repetir password del usuario',
+    example: 'password123'
+  })
+  repeatPassword: string;
+
+  @ApiProperty({
     description: 'Primer nombre del usuario',
     example: 'Juan'
   })

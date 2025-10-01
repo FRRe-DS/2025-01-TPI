@@ -13,12 +13,29 @@ async function bootstrap() {
     
     const app = await NestFactory.create(AppModule);
     
-    // Configurar CORS básico
+    // Configurar CORS para desarrollo
     app.enableCors({
-      origin: true, // Permitir todos los orígenes temporalmente
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      credentials: true
+      origin: [
+        'http://localhost:3000',
+        'http://localhost:3001', 
+        'http://localhost:5173',
+        'http://localhost:4173',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:4173'
+      ],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'Accept',
+        'Origin',
+        'X-Requested-With'
+      ],
+      credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     });
 
     // Configurar Swagger

@@ -23,6 +23,9 @@ model Auth {
   
   // Relación con tokens
   tokens    Token[]
+  
+  // Relación con perfil de usuario
+  profile   UserProfile?
 }
 
 // Modelo de tokens para autenticación
@@ -32,6 +35,20 @@ model Token {
   userId    Int
   expiresAt DateTime
   createdAt DateTime @default(now())
+  
+  // Relación con usuario
+  user      Auth     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Modelo de perfil de usuario complementario
+model UserProfile {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  phone     String
+  dni       String
+  birthDate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
   // Relación con usuario
   user      Auth     @relation(fields: [userId], references: [id], onDelete: Cascade)
