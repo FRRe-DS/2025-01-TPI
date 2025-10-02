@@ -4,9 +4,11 @@ import { ProductsModule } from './modules/products/products.module';
 import { UsersModule } from './modules/users/users.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AppModule as AppModuleController } from './modules/app/app.module';
 
 @Module({
   imports: [
+    AppModuleController,
     HealthModule,
     ProductsModule,
     UsersModule,
