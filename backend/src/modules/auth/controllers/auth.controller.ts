@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Headers, Get } from '@nestjs/common';
+import { Controller, Post, Body, Headers, Get, HttpCode, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { PrismaClient } from '@prisma/client';
 import { RegisterDto } from '../dto/register.dto';
@@ -12,6 +12,7 @@ const prisma = new PrismaClient();
 export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({ 
     summary: 'Login de usuario',
     description: 'Autentica un usuario y devuelve sus datos completos'
@@ -127,7 +128,7 @@ export class AuthController {
       console.log('👤 Usuario encontrado:', user ? 'Sí' : 'No');
 
       if (!user) {
-        return {
+        throw {
           error: 'Credenciales incorrectas',
           code: 'INVALID_CREDENTIALS'
         };
@@ -137,7 +138,7 @@ export class AuthController {
       const passwordMatch = await bcrypt.compare(loginData.password, user.password);
 
       if (!passwordMatch) {
-        return {
+        throw {
           error: 'Credenciales incorrectas',
           code: 'INVALID_CREDENTIALS'
         };
@@ -145,7 +146,7 @@ export class AuthController {
 
       // Verificar que el usuario esté activo
       if (!user.isActive) {
-        return {
+        throw {
           error: 'Credenciales incorrectas',
           code: 'INVALID_CREDENTIALS'
         };
@@ -216,10 +217,21 @@ export class AuthController {
       };
 
     } catch (error) {
-      return {
+      console.error('❌ Error en login:', error);
+      
+      // Si es un error de credenciales, devolver 401
+      if (error.error === 'Credenciales incorrectas') {
+        throw new HttpException({
+          error: error.error,
+          code: error.code
+        }, HttpStatus.UNAUTHORIZED);
+      }
+      
+      // Para otros errores, devolver 500
+      throw new HttpException({
         error: 'Error interno del servidor',
         code: 'INTERNAL_ERROR'
-      };
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

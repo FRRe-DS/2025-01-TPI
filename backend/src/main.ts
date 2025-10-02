@@ -13,35 +13,36 @@ async function bootstrap() {
     
     const app = await NestFactory.create(AppModule);
     
-    // Configurar CORS para desarrollo y producción
+    // Middleware CORS manual adicional - GARANTÍA ABSOLUTA
+    app.use((req, res, next) => {
+      console.log(`🌐 CORS: ${req.method} ${req.path} desde ${req.get('Origin') || 'localhost'}`);
+      
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+      res.header('Access-Control-Expose-Headers', '*');
+      res.header('Access-Control-Allow-Credentials', 'false');
+      
+      // Responder a OPTIONS inmediatamente
+      if (req.method === 'OPTIONS') {
+        console.log('✅ CORS: Respondiendo OPTIONS con 200');
+        res.status(200).end();
+        return;
+      }
+      
+      next();
+    });
+    
+    // Configurar CORS para aceptar CUALQUIER petición - SIN RESTRICCIONES
     app.enableCors({
-      origin: [
-        // Localhost para desarrollo
-        'http://localhost:3000',
-        'http://localhost:3001', 
-        'http://localhost:5173',
-        'http://localhost:4173',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:4173',
-        // URLs de producción (agregar las URLs reales del frontend)
-        'https://p01--frontend--vtq7dc7r2j7w.code.run',
-        'https://frontend--vtq7dc7r2j7w.code.run',
-        // Permitir cualquier origen en desarrollo
-        ...(process.env.NODE_ENV === 'development' ? ['*'] : [])
-      ],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-      allowedHeaders: [
-        'Content-Type', 
-        'Authorization', 
-        'Accept',
-        'Origin',
-        'X-Requested-With'
-      ],
-      credentials: true,
+      origin: true, // ✅ ACEPTA CUALQUIER ORIGEN (más permisivo que '*')
+      methods: '*', // ✅ ACEPTA CUALQUIER MÉTODO HTTP
+      allowedHeaders: '*', // ✅ ACEPTA CUALQUIER HEADER
+      exposedHeaders: '*', // ✅ EXPONE CUALQUIER HEADER
+      credentials: false, // ✅ Sin credenciales para máxima compatibilidad
       preflightContinue: false,
-      optionsSuccessStatus: 204
+      optionsSuccessStatus: 200, // ✅ Status 200 para OPTIONS
+      maxAge: 86400 // ✅ Cache preflight por 24 horas
     });
 
     // Configurar Swagger
