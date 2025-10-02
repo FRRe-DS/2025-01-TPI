@@ -13,9 +13,10 @@ async function bootstrap() {
     
     const app = await NestFactory.create(AppModule);
     
-    // Configurar CORS para desarrollo
+    // Configurar CORS para desarrollo y producción
     app.enableCors({
       origin: [
+        // Localhost para desarrollo
         'http://localhost:3000',
         'http://localhost:3001', 
         'http://localhost:5173',
@@ -23,7 +24,12 @@ async function bootstrap() {
         'http://127.0.0.1:3000',
         'http://127.0.0.1:3001',
         'http://127.0.0.1:5173',
-        'http://127.0.0.1:4173'
+        'http://127.0.0.1:4173',
+        // URLs de producción (agregar las URLs reales del frontend)
+        'https://p01--frontend--vtq7dc7r2j7w.code.run',
+        'https://frontend--vtq7dc7r2j7w.code.run',
+        // Permitir cualquier origen en desarrollo
+        ...(process.env.NODE_ENV === 'development' ? ['*'] : [])
       ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       allowedHeaders: [
