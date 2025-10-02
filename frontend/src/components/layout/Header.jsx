@@ -48,6 +48,12 @@ const Header = ({ user, onLogout }) => {
          {/* Solo  si el usuario está logueado */}
          {user && (
             <div className="user-menu">
+              {/* Nombre del usuario */}
+              <div className="user-name">
+                {`${user.user?.firstName || ""} ${user.user?.lastName || ""}`.trim() || "Usuario"}
+              </div>
+              
+              {/* Icono de usuario con círculo verde */}
               <div 
                 className="user-icon" 
                 title={`${user.user?.firstName || ""} ${user.user?.lastName || ""}`.trim() || "Usuario"} 
@@ -57,6 +63,8 @@ const Header = ({ user, onLogout }) => {
                   <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="currentColor"/>
                   <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="currentColor"/>
                 </svg>
+                {/* Círculo verde de estado online */}
+                <div className="user-status-indicator"></div>
               </div>
       {menuOpen && (
                 <div className="dropdown-menu">

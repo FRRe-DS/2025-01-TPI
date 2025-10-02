@@ -37,7 +37,7 @@ function App() {
           ) : (
             <div className="welcome-message">
 
-              <h2>¡Bienvenido {user?.user?.firstName} {user?.user?.lastName}!</h2>
+              <h2>¡Bienvenido!</h2>
               <p>Tu sesión está iniciada</p>
 
             </div>
