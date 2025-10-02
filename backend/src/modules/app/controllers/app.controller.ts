@@ -15,7 +15,7 @@ export class AppController {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopFlow API - Portal de Compras</title>
+    <title>Shipper API - Portal de Compras</title>
     <style>
         * {
             margin: 0;
@@ -121,7 +121,7 @@ export class AppController {
 </head>
 <body>
     <div class="container">
-        <div class="logo">🛒 ShopFlow API</div>
+        <div class="logo">🚚 Shipper API</div>
         <div class="subtitle">Portal de Compras - Módulo de Compras</div>
         
         <div class="status">✅ Sistema funcionando correctamente</div>

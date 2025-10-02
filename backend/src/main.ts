@@ -46,8 +46,8 @@ async function bootstrap() {
 
     // Configurar Swagger
     const config = new DocumentBuilder()
-      .setTitle('ShopFlow API')
-      .setDescription('API del backend para el portal de compras ShopFlow - Módulo de Compras')
+      .setTitle('Shipper API')
+      .setDescription('API del backend para el portal de compras Shipper - Módulo de Compras')
       .setVersion('1.0')
       .addTag('app', 'Endpoints principales de la aplicación')
       .addTag('auth', 'Autenticación y autorización')
@@ -70,7 +70,7 @@ async function bootstrap() {
     
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document, {
-      customSiteTitle: 'ShopFlow API Docs',
+      customSiteTitle: 'Shipper API Docs',
       customfavIcon: 'https://nestjs.com/img/logo-small.svg',
       customJs: [
         'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js',

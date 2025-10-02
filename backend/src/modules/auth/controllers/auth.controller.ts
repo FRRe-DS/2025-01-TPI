@@ -23,7 +23,7 @@ export class AuthController {
       properties: {
         email: { 
           type: 'string', 
-          example: 'admin@shopflow.com',
+          example: 'admin@shipper.com',
           description: 'Email del usuario'
         },
         password: { 
