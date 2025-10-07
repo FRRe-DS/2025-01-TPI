@@ -5,7 +5,8 @@
       "src": "package.json",
       "use": "@vercel/node",
       "config": {
-        "zeroConfig": false
+        "zeroConfig": false,
+        "maxDuration": 30
       }
     }
   ],
@@ -14,10 +15,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "functions": {
-    "package.json": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
