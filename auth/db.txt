@@ -1,0 +1,90 @@
+-- 1. Ver todas las tablas existentes
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+
+#	table_name
+1	_prisma_migrations
+
+-- 2. Ver estructura de cada tabla (columnas, tipos, etc.)
+SELECT 
+    table_name,
+    column_name,
+    data_type,
+    is_nullable,
+    column_default
+FROM information_schema.columns 
+WHERE table_schema = 'public' 
+ORDER BY table_name, ordinal_position;
+
+##	table_name	column_name	data_type	is_nullable	column_default
+1	_prisma_migrations	id	character varying	NO	
+2	_prisma_migrations	checksum	character varying	NO	
+3	_prisma_migrations	finished_at	timestamp with time zone	YES	
+4	_prisma_migrations	migration_name	character varying	NO	
+5	_prisma_migrations	logs	text	YES	
+6	_prisma_migrations	rolled_back_at	timestamp with time zone	YES	
+7	_prisma_migrations	started_at	timestamp with time zone	NO	now()
+8	_prisma_migrations	applied_steps_count	integer	NO	0
+
+-- 3. Ver índices existentes
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    indexdef
+FROM pg_indexes 
+WHERE schemaname = 'public'
+ORDER BY tablename, indexname;
+
+#	schemaname	tablename	indexname	indexdef
+1	public	_prisma_migrations	_prisma_migrations_pkey	CREATE UNIQUE INDEX _prisma_migrations_pkey ON public._prisma_migrations USING btree (id)
+
+-- 4. Ver restricciones (foreign keys, etc.)
+SELECT 
+    tc.table_name,
+    tc.constraint_name,
+    tc.constraint_type,
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints AS tc 
+LEFT JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+LEFT JOIN information_schema.constraint_column_usage AS ccu
+    ON ccu.constraint_name = tc.constraint_name
+WHERE tc.table_schema = 'public'
+ORDER BY tc.table_name, tc.constraint_name;
+
+#	table_name	constraint_name	constraint_type	column_name	foreign_table_name	foreign_column_name
+1	_prisma_migrations	2200_16486_1_not_null	CHECK			
+2	_prisma_migrations	2200_16486_2_not_null	CHECK			
+3	_prisma_migrations	2200_16486_4_not_null	CHECK			
+4	_prisma_migrations	2200_16486_7_not_null	CHECK			
+5	_prisma_migrations	2200_16486_8_not_null	CHECK			
+6	_prisma_migrations	_prisma_migrations_pkey	PRIMARY KEY	id	_prisma_migrations	id
+
+-- 5. Ver datos en cada tabla (conteo de registros)
+SELECT 
+    schemaname,
+    relname as table_name,
+    n_tup_ins as inserts,
+    n_tup_upd as updates,
+    n_tup_del as deletes,
+    n_live_tup as live_tuples,
+    n_dead_tup as dead_tuples
+FROM pg_stat_user_tables 
+WHERE schemaname = 'public'
+ORDER BY relname;
+
+#	schemaname	table_name	inserts	updates	deletes	live_tuples	dead_tuples
+1	public	_prisma_migrations	2	4	0	2	4
+
+-- 6. Ver migraciones de Prisma aplicadas
+SELECT * FROM _prisma_migrations 
+ORDER BY finished_at DESC;
+
+#	id	checksum	finished_at	migration_name	logs	rolled_back_at	started_at	applied_steps_count
+1	2b9606e9-9e72-46a8-9b9c-f9b2b480e606	0aa7a955893fb4e1eace2cdcbbaca9df66f81e6a778f89e20c4a6e95775ce451	2025-09-11 16:52:40.613145+00	20250911165238_add_products			2025-09-11 16:52:39.493045+00	1
+2	b2cf07aa-c423-48a5-b0dd-57d8f3cd1905	3e40e192b5ed01fa0018d662bd31118339ee0f839a0bd389be53dca24e14b847	2025-09-11 16:46:22.87922+00	20250911164620_init			2025-09-11 16:46:21.77775+00	1	
