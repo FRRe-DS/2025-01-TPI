@@ -1,6 +1,4 @@
 # Development files
-src/
-*.ts
 *.tsbuildinfo
 
 # Test files
