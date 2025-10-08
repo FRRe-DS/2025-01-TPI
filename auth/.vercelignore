@@ -52,3 +52,8 @@ node_modules/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Build files that should be included
+!dist/
+!api/
+!prisma/

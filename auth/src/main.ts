@@ -76,8 +76,8 @@ async function bootstrap() {
       ],
     });
     
-    const port = process.env.PORT ?? 3001;
-    await app.listen(port);
+    const port = process.env.PORT || 3001;
+    await app.listen(port, '0.0.0.0');
     console.log(`✅ Servicio de autenticación iniciado correctamente en el puerto ${port}`);
     console.log(`📚 Swagger disponible en: http://localhost:${port}/api/docs`);
   } catch (error) {

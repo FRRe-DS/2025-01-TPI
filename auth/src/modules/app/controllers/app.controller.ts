@@ -15,7 +15,7 @@ export class AppController {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auth Service - Servicio de Autenticación</title>
+    <title>Shipper API - Portal de Compras</title>
     <style>
         * {
             margin: 0;
@@ -121,8 +121,8 @@ export class AppController {
 </head>
 <body>
     <div class="container">
-        <div class="logo">🔐 Auth Service</div>
-        <div class="subtitle">Servicio de Autenticación y Autorización</div>
+        <div class="logo">🚚 Shipper API</div>
+        <div class="subtitle">Portal de Compras - Módulo de Compras</div>
         
         <div class="status">✅ Sistema funcionando correctamente</div>
         
@@ -138,24 +138,25 @@ export class AppController {
             </div>
             
             <div class="info-card">
-                <h3>🔒 Seguridad</h3>
-                <p>Sistema de autenticación robusto con JWT tokens y validación de credenciales.</p>
+                <h3>👤 Perfiles</h3>
+                <p>Gestión de perfiles de usuario con datos complementarios como teléfono, DNI y fecha de nacimiento.</p>
             </div>
             
             <div class="info-card">
-                <h3>🔄 Refresh Tokens</h3>
-                <p>Sistema de renovación automática de tokens JWT para mantener sesiones activas.</p>
+                <h3>🛍️ Compras</h3>
+                <p>Endpoints para gestión de productos, carrito de compras y pedidos (en desarrollo).</p>
             </div>
         </div>
         
         <div class="links">
             <a href="/api/docs" class="link-button">📖 Ver Documentación</a>
-            <a href="/api/auth" class="link-button">🔐 Endpoints Auth</a>
+            <a href="/health" class="link-button">💚 Health Check</a>
+            <a href="/api/status" class="link-button">📊 Status</a>
         </div>
         
         <div class="footer">
             <p>Desarrollado para el proyecto TPI - 2025</p>
-            <p>Auth Service: NestJS + Prisma + PostgreSQL</p>
+            <p>Backend: NestJS + Prisma + PostgreSQL</p>
         </div>
     </div>
 </body>
