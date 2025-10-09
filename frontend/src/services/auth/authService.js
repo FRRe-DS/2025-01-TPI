@@ -25,7 +25,6 @@ export const login = async (email, password) => {
     }
     
     if (data.user) {
-      console.log('💾 Guardando datos del usuario:', data.user);
       setUser(data.user);
     }
 

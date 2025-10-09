@@ -11,14 +11,9 @@ function App() {
 
   // Verificar si hay datos del usuario al cargar la aplicación
   useEffect(() => {
-    console.log('🔍 Verificando datos guardados...');
     const savedUser = authService.getCurrentUser();
-    console.log('👤 Usuario guardado:', savedUser);
     if (savedUser) {
-      console.log('Restaurando sesión...');
       setUser({ user: savedUser });
-    } else {
-      console.log('No hay datos guardados');
     }
   }, []);
 

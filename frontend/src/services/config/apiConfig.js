@@ -1,14 +1,14 @@
 // URLs base de los servicios
-const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://shipper-server-auth.onrender.com';
-const AUTH_BASE = import.meta.env.VITE_AUTH_BASE_URL?.replace(/\/$/, '') || 'https://shipper-server-auth.onrender.com';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'https://p01--backend--vtq7dc7r2j7w.code.run')
+  .replace(/^hhttps:\/\//, 'https://') // Remove leading 'h' if 'hhttps://'
+  .replace(/\/$/, ''); // Remove trailing slash
+const AUTH_BASE = (import.meta.env.VITE_AUTH_BASE_URL || 'https://shipper-server-auth.onrender.com').replace(/\/$/, '');
 
 export const API_URL = API_BASE + '/api';
 export const AUTH_URL = AUTH_BASE + '/api/auth';
 
-// Debug: mostrar las URLs que se están usando
-console.log('🔧 API_BASE:', API_BASE);
-console.log('🔧 AUTH_BASE:', AUTH_BASE);
-console.log('🔧 AUTH_URL:', AUTH_URL);
+// Debug: URLs de servicios
+console.log('🔧 Services URLs - API:', API_BASE, '| AUTH:', AUTH_BASE);
 
 // Funciones para manejar el token
 export const getToken = () => {

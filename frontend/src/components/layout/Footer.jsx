@@ -11,53 +11,90 @@ import northflankIcon from '../../icons/northflank.svg';
 import prismaIcon from '../../icons/prisma.png';
 
 const Footer = () => {
-  const [backendStatus, setBackendStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [authStatus, setAuthStatus] = useState(null);
+  const [apiStatus, setApiStatus] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [apiLoading, setApiLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+  const [apiError, setApiError] = useState(null);
 
   useEffect(() => {
-    const fetchStatus = async () => {
+    const fetchAuthStatus = async () => {
       try {
-        setLoading(true);
-        const result = await statusService.getStatus();
-
-        if (result.success) {
-          setBackendStatus(result.data);
-          setError(null);
+        setAuthLoading(true);
+        const authBaseUrl = (import.meta.env.VITE_AUTH_BASE_URL || 'https://shipper-server-auth.onrender.com').replace(/\/$/, '');
+        const response = await fetch(authBaseUrl);
+        
+        if (response.ok) {
+          setAuthStatus('connected');
+          setAuthError(null);
         } else {
-          setError(result.error);
+          setAuthError('Error');
         }
       } catch (err) {
-        setError(err.message);
+        setAuthError(err.message);
       } finally {
-        setLoading(false);
+        setAuthLoading(false);
       }
     };
 
-    fetchStatus();
+    const fetchApiStatus = async () => {
+      try {
+        setApiLoading(true);
+        const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'https://p01--backend--vtq7dc7r2j7w.code.run')
+          .replace(/^hhttps:\/\//, 'https://') // Remove leading 'h' if 'hhttps://'
+          .replace(/\/$/, ''); // Remove trailing slash
+        const healthUrl = `${apiBaseUrl}/health`;
+        console.log('🔍 Footer: Fetching API health from:', healthUrl);
+        const response = await fetch(healthUrl);
+        
+        if (response.ok) {
+          setApiStatus('connected');
+          setApiError(null);
+          console.log('✅ API Status: Connected');
+        } else {
+          setApiError('Error');
+          console.log('❌ API Status: Error -', response.status);
+        }
+      } catch (err) {
+        setApiError(err.message);
+        console.log('❌ API Status: Exception -', err.message);
+      } finally {
+        setApiLoading(false);
+      }
+    };
+
+    fetchAuthStatus();
+    fetchApiStatus();
   }, []);
 
-  const getStatusClass = () => {
+  const getStatusClass = (loading, error, status) => {
     if (loading) return 'status-dot loading';
     if (error) return 'status-dot error';
-    if (backendStatus) return 'status-dot success';
+    if (status) return 'status-dot success';
     return 'status-dot';
   };
 
-  const getStatusText = () => {
-    if (loading) return 'Conectando...';
-    if (error) return 'Backend desconectado';
-    if (backendStatus) return `Backend conectado - DB: ${backendStatus.services.database}`;
-    return 'Estado desconocido';
+  const getStatusText = (loading, error, status, serviceName) => {
+    if (loading) return `${serviceName} Conectando...`;
+    if (error) return `${serviceName} Desconectado`;
+    if (status) return `${serviceName} Conectado`;
+    return `${serviceName} Estado desconocido`;
   };
 
   return (
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-left">
-          <div className="status-indicator">
-            <div className={getStatusClass()}></div>
-            <span>{getStatusText()}</span>
+          <div className="status-indicators">
+            <div className="status-indicator">
+              <div className={getStatusClass(authLoading, authError, authStatus)}></div>
+              <span>{getStatusText(authLoading, authError, authStatus, 'Shipper Server Auth')}</span>
+            </div>
+            <div className="status-indicator">
+              <div className={getStatusClass(apiLoading, apiError, apiStatus)}></div>
+              <span>{getStatusText(apiLoading, apiError, apiStatus, 'Shipper Server API')}</span>
+            </div>
           </div>
         </div>
         
