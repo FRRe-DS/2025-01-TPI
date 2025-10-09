@@ -71,7 +71,9 @@ export class AuthService {
       console.log('🔑 Refresh token generado (longitud):', refreshToken.length);
 
       // Guardar refresh token en la base de datos
-      await this.refreshTokensService.saveRefreshToken(user.id, refreshToken);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 días
+      await this.refreshTokensService.createRefreshToken(user.id, refreshToken, expiresAt);
 
       // Login exitoso - devolver tokens y datos del usuario
       return {
@@ -145,19 +147,17 @@ export class AuthService {
       console.log('🔄 Procesando refresh token...');
 
       // Validar refresh token en la base de datos
-      const validation = await this.refreshTokensService.validateRefreshToken(refreshToken);
+      const isValid = await this.refreshTokensService.isValidRefreshToken(refreshToken);
       
-      if (!validation.isValid) {
+      if (!isValid) {
         throw {
           error: 'Refresh token inválido o expirado',
           code: 'INVALID_REFRESH_TOKEN'
         };
       }
 
-      // Obtener datos del usuario
-      const user = await this.prisma.auth.findUnique({
-        where: { id: validation.userId }
-      });
+      // Obtener datos del usuario desde el token
+      const user = await this.refreshTokensService.getUserFromRefreshToken(refreshToken);
 
       if (!user || !user.isActive) {
         throw {
@@ -171,8 +171,10 @@ export class AuthService {
       const newRefreshToken = this.jwtService.generateRefreshToken({ userId: user.id });
 
       // Revocar el refresh token anterior y guardar el nuevo
-      await this.refreshTokensService.revokeRefreshToken(refreshToken);
-      await this.refreshTokensService.saveRefreshToken(user.id, newRefreshToken);
+      await this.refreshTokensService.deleteRefreshToken(refreshToken);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 días
+      await this.refreshTokensService.createRefreshToken(user.id, newRefreshToken, expiresAt);
 
       console.log('✅ Tokens renovados exitosamente');
 
@@ -233,7 +235,7 @@ export class AuthService {
       });
 
       // Revocar todos los refresh tokens del usuario (forzar re-login)
-      await this.refreshTokensService.revokeAllUserTokens(userId);
+      await this.refreshTokensService.deleteAllUserRefreshTokens(userId);
 
       // Contraseña cambiada exitosamente
       return {
@@ -258,6 +260,8 @@ export class AuthService {
 
 
   getPublicKey(): string {
-    return this.jwtService.getPublicKey();
+    // Para JWT con clave secreta, no hay clave pública
+    // Esto es para compatibilidad con el controller
+    return 'JWT con clave secreta - no requiere clave pública';
   }
 }
