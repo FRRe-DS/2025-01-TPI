@@ -1,7 +1,5 @@
 // AuthService - Servicio para manejar la autenticación
-import { API_URL, setToken, removeToken, getToken, setUser, removeUser, getUser } from '../config/apiConfig';
-
-const AUTH_URL = API_URL + '/auth';
+import { API_URL, AUTH_URL, setToken, removeToken, getToken, getRefreshToken, setUser, removeUser, getUser } from '../config/apiConfig';
 
 // Función para realizar login
 export const login = async (email, password) => {
@@ -21,9 +19,9 @@ export const login = async (email, password) => {
       throw new Error(data.error || data.message || 'Error en login');
     }
     
-    // Guardar token y datos del usuario en localStorage
-    if (data.token) {
-      setToken(data.token);
+    // Guardar tokens y datos del usuario en localStorage
+    if (data.access_token && data.refresh_token) {
+      setToken(data.access_token, data.refresh_token);
     }
     
     if (data.user) {
@@ -59,7 +57,7 @@ export const getCurrentUser = () => {
   return getUser();
 };
 
-// 🚀 Nueva función para cambiar contraseña
+// 🚀 Función para cambiar contraseña
 export const changePassword = async (currentPassword, newPassword) => {
   try {
     const token = getToken();
@@ -85,9 +83,52 @@ export const changePassword = async (currentPassword, newPassword) => {
       throw error;
     }
 
+    // Si el cambio fue exitoso, limpiar tokens (fueron revocados)
+    if (data.success) {
+      removeToken();
+      removeUser();
+    }
+
     return data;
   } catch (error) {
     console.error("Error en changePassword:", error);
+    throw error;
+  }
+};
+
+// 🆕 Función para refrescar token
+export const refreshToken = async () => {
+  try {
+    const refreshTokenValue = getRefreshToken();
+    if (!refreshTokenValue) {
+      throw new Error("No refresh token disponible");
+    }
+
+    const response = await fetch(AUTH_URL + "/refresh", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refresh_token: refreshTokenValue }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Error al refrescar token");
+    }
+
+    // Guardar nuevos tokens
+    if (data.access_token && data.refresh_token) {
+      setToken(data.access_token, data.refresh_token);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error en refreshToken:", error);
+    // Si falla el refresh, limpiar todo
+    removeToken();
+    removeUser();
     throw error;
   }
 };
@@ -99,6 +140,7 @@ export default {
   isAuthenticated,
   getAuthToken,
   getCurrentUser,
-  changePassword
+  changePassword,
+  refreshToken
 };
 

@@ -1,17 +1,29 @@
-// URL base del backend
-export const API_URL = 'https://p01--backend--vtq7dc7r2j7w.code.run/api';
+// URLs base de los servicios
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '';
+const AUTH_BASE = import.meta.env.VITE_AUTH_BASE_URL?.replace(/\/$/, '') || '';
+
+export const API_URL = API_BASE + '/api';
+export const AUTH_URL = AUTH_BASE + '/api/auth';
 
 // Funciones para manejar el token
 export const getToken = () => {
-  return localStorage.getItem('token');
+  return localStorage.getItem('access_token');
 };
 
-export const setToken = (token) => {
-  localStorage.setItem('token', token);
+export const getRefreshToken = () => {
+  return localStorage.getItem('refresh_token');
+};
+
+export const setToken = (accessToken, refreshToken) => {
+  localStorage.setItem('access_token', accessToken);
+  if (refreshToken) {
+    localStorage.setItem('refresh_token', refreshToken);
+  }
 };
 
 export const removeToken = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
 };
 
 // Funciones para manejar los datos del usuario
@@ -28,4 +40,4 @@ export const removeUser = () => {
   localStorage.removeItem('user');
 };
 
-export default API_URL;
+export default { API_URL, AUTH_URL };
