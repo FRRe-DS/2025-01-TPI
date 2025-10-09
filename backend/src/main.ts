@@ -51,11 +51,8 @@ async function bootstrap() {
       .setDescription('API del backend para el portal de compras Shipper - Módulo de Compras')
       .setVersion('1.0')
       .addTag('app', 'Endpoints principales de la aplicación')
-      .addTag('auth', 'Autenticación y autorización')
       .addTag('health', 'Health checks y status del sistema')
-      .addTag('orders', 'Gestión de pedidos y compras')
-      .addTag('products', 'Gestión de productos y catálogo')
-      .addTag('users', 'Gestión de usuarios')
+      .addTag('user', 'Gestión de usuarios')
       .addBearerAuth(
         {
           type: 'http',
