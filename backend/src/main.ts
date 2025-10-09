@@ -1,9 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AuthGuard } from './core/auth/guards/auth.guard';
-import { Reflector } from '@nestjs/core';
-import { JwtValidationService } from './core/auth/services/jwt-validation.service';
 
 async function bootstrap() {
   try {
@@ -15,11 +12,6 @@ async function bootstrap() {
     console.log('- SECRET_KEY:', process.env.SECRET_KEY ? 'Configurada' : 'NO CONFIGURADA');
     
     const app = await NestFactory.create(AppModule);
-    
-    // Configurar guard global de autenticación
-    const reflector = app.get(Reflector);
-    const jwtValidationService = app.get(JwtValidationService);
-    app.useGlobalGuards(new AuthGuard(jwtValidationService, reflector));
     
     // Middleware CORS manual adicional - GARANTÍA ABSOLUTA
     app.use((req, res, next) => {
@@ -59,9 +51,11 @@ async function bootstrap() {
       .setDescription('API del backend para el portal de compras Shipper - Módulo de Compras')
       .setVersion('1.0')
       .addTag('app', 'Endpoints principales de la aplicación')
+      .addTag('auth', 'Autenticación y autorización')
       .addTag('health', 'Health checks y status del sistema')
-      .addTag('status', 'Status del sistema y monitoreo')
-      .addTag('user', 'Gestión de usuarios')
+      .addTag('orders', 'Gestión de pedidos y compras')
+      .addTag('products', 'Gestión de productos y catálogo')
+      .addTag('users', 'Gestión de usuarios')
       .addBearerAuth(
         {
           type: 'http',

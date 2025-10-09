@@ -1,90 +1,343 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { User, UserId, UserEmail } from '../../../core/auth/decorators/user.decorator';
-import type { AuthenticatedUser } from '../../../core/auth/decorators/user.decorator';
-import { AuthGuard } from '../../../core/auth/guards/auth.guard';
-import { Public } from '../../../core/auth/guards/auth.guard';
+import { PrismaClient } from '@prisma/client';
+import { UserProfileCreateDto } from '../dto/userProfile.dto';
+import { UserService } from '../services/user.service';
+
+const prisma = new PrismaClient();
 
 @ApiTags('user')
 @Controller('api/user')
-@UseGuards(AuthGuard)
 export class UserController {
+  constructor(private userService: UserService) {}
 
   @Get('profile')
-  @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
+  @ApiOperation({ 
+    summary: 'Obtener perfil del usuario',
+    description: 'Obtiene el perfil complementario del usuario autenticado'
+  })
   @ApiBearerAuth('Authorization')
-  @ApiResponse({ status: 200, description: 'Perfil del usuario obtenido exitosamente' })
-  @ApiResponse({ status: 401, description: 'Token de autorización requerido o inválido' })
-  getProfile(@User() user: AuthenticatedUser) {
-    return {
-      message: 'Perfil del usuario obtenido exitosamente',
-      user: {
-        id: user.userId,
-        email: user.email,
-        tokenIssuedAt: new Date(user.iat * 1000),
-        tokenExpiresAt: new Date(user.exp * 1000)
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Perfil del usuario',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            userId: { type: 'integer' },
+            phone: { type: 'string' },
+            dni: { type: 'string' },
+            birthDate: { type: 'string', format: 'date' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' }
+          }
+        }
       }
-    };
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'No autorizado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'No autorizado' },
+            code: { type: 'string', example: 'UNAUTHORIZED' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Perfil no encontrado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Perfil no encontrado' },
+            code: { type: 'string', example: 'PROFILE_NOT_FOUND' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 500, 
+    description: 'Error interno del servidor',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Error interno del servidor' },
+            code: { type: 'string', example: 'INTERNAL_ERROR' }
+          }
+        }
+      }
+    }
+  })
+  async getUserProfile(@Headers() headers: any) {
+    try {
+      const authHeader = headers.authorization || headers.Authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+          error: 'Token de autorización requerido',
+          code: 'UNAUTHORIZED'
+        };
+      }
+
+      const token = authHeader.substring(7);
+      const tokenRecord = await prisma.token.findUnique({
+        where: { token: token },
+        include: { user: true }
+      });
+
+      if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+        return {
+          error: 'Token inválido o expirado',
+          code: 'UNAUTHORIZED'
+        };
+      }
+
+      return await this.userService.getUserProfile(tokenRecord.userId);
+    } catch (error) {
+      return {
+        error: 'Error interno del servidor',
+        code: 'INTERNAL_ERROR'
+      };
+    }
   }
 
-  @Get('orders')
-  @ApiOperation({ summary: 'Obtener órdenes del usuario autenticado' })
+  @Post('profile')
+  @ApiOperation({ 
+    summary: 'Crear perfil del usuario',
+    description: 'Crea el perfil complementario del usuario autenticado'
+  })
   @ApiBearerAuth('Authorization')
-  @ApiResponse({ status: 200, description: 'Órdenes obtenidas exitosamente' })
-  @ApiResponse({ status: 401, description: 'Token de autorización requerido o inválido' })
-  getUserOrders(@UserId() userId: number) {
-    return {
-      message: 'Órdenes del usuario obtenidas exitosamente',
-      userId: userId,
-      orders: [
-        { id: 1, product: 'Producto 1', status: 'completed' },
-        { id: 2, product: 'Producto 2', status: 'pending' }
-      ]
-    };
+  @ApiResponse({ 
+    status: 201, 
+    description: 'Perfil creado exitosamente',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', example: 'Perfil creado exitosamente' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Solicitud incorrecta',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Datos de perfil inválidos' },
+            code: { type: 'string', example: 'INVALID_PROFILE_DATA' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'No autorizado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'No autorizado' },
+            code: { type: 'string', example: 'UNAUTHORIZED' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 409, 
+    description: 'Conflicto - Perfil ya existe',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'El perfil ya existe' },
+            code: { type: 'string', example: 'PROFILE_ALREADY_EXISTS' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 500, 
+    description: 'Error interno del servidor',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Error interno del servidor' },
+            code: { type: 'string', example: 'INTERNAL_ERROR' }
+          }
+        }
+      }
+    }
+  })
+  async createUserProfile(@Body() profileData: UserProfileCreateDto, @Headers() headers: any) {
+    try {
+      const authHeader = headers.authorization || headers.Authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+          error: 'Token de autorización requerido',
+          code: 'UNAUTHORIZED'
+        };
+      }
+
+      const token = authHeader.substring(7);
+      const tokenRecord = await prisma.token.findUnique({
+        where: { token: token },
+        include: { user: true }
+      });
+
+      if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+        return {
+          error: 'Token inválido o expirado',
+          code: 'UNAUTHORIZED'
+        };
+      }
+
+      return await this.userService.createUserProfile(tokenRecord.userId, profileData);
+    } catch (error) {
+      return {
+        error: 'Error interno del servidor',
+        code: 'INTERNAL_ERROR'
+      };
+    }
   }
 
-  @Get('notifications')
-  @ApiOperation({ summary: 'Obtener notificaciones del usuario autenticado' })
+  @Put('profile')
+  @ApiOperation({ 
+    summary: 'Actualizar perfil del usuario',
+    description: 'Actualiza el perfil complementario del usuario autenticado'
+  })
   @ApiBearerAuth('Authorization')
-  @ApiResponse({ status: 200, description: 'Notificaciones obtenidas exitosamente' })
-  @ApiResponse({ status: 401, description: 'Token de autorización requerido o inválido' })
-  getUserNotifications(@UserEmail() email: string) {
-    return {
-      message: 'Notificaciones obtenidas exitosamente',
-      email: email,
-      notifications: [
-        { id: 1, message: 'Tu pedido ha sido enviado', read: false },
-        { id: 2, message: 'Nueva oferta disponible', read: true }
-      ]
-    };
-  }
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Perfil actualizado exitosamente',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', example: 'Perfil actualizado exitosamente' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Solicitud incorrecta',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Datos de perfil inválidos' },
+            code: { type: 'string', example: 'INVALID_PROFILE_DATA' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'No autorizado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'No autorizado' },
+            code: { type: 'string', example: 'UNAUTHORIZED' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Perfil no encontrado',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Perfil no encontrado' },
+            code: { type: 'string', example: 'PROFILE_NOT_FOUND' }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 500, 
+    description: 'Error interno del servidor',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Error interno del servidor' },
+            code: { type: 'string', example: 'INTERNAL_ERROR' }
+          }
+        }
+      }
+    }
+  })
+  async updateUserProfile(@Body() profileData: UserProfileCreateDto, @Headers() headers: any) {
+    try {
+      const authHeader = headers.authorization || headers.Authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+          error: 'Token de autorización requerido',
+          code: 'UNAUTHORIZED'
+        };
+      }
 
-  @Get('public-info')
-  @Public()
-  @ApiOperation({ summary: 'Información pública (no requiere autenticación)' })
-  @ApiResponse({ status: 200, description: 'Información pública obtenida exitosamente' })
-  getPublicInfo() {
-    return {
-      message: 'Esta es información pública que no requiere autenticación',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    };
-  }
+      const token = authHeader.substring(7);
+      const tokenRecord = await prisma.token.findUnique({
+        where: { token: token },
+        include: { user: true }
+      });
 
-  @Post('test-auth')
-  @ApiOperation({ summary: 'Endpoint de prueba para verificar autenticación' })
-  @ApiBearerAuth('Authorization')
-  @ApiResponse({ status: 200, description: 'Autenticación verificada exitosamente' })
-  @ApiResponse({ status: 401, description: 'Token de autorización requerido o inválido' })
-  testAuthentication(@User() user: AuthenticatedUser) {
-    return {
-      message: 'Autenticación verificada exitosamente',
-      authenticated: true,
-      user: {
-        id: user.userId,
-        email: user.email
-      },
-      timestamp: new Date().toISOString()
-    };
+      if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+        return {
+          error: 'Token inválido o expirado',
+          code: 'UNAUTHORIZED'
+        };
+      }
+
+      return await this.userService.updateUserProfile(tokenRecord.userId, profileData);
+    } catch (error) {
+      return {
+        error: 'Error interno del servidor',
+        code: 'INTERNAL_ERROR'
+      };
+    }
   }
 }
