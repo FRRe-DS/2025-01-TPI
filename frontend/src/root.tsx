@@ -15,7 +15,7 @@ import type { User } from "oidc-client-ts";
 export function Layout({ children }: { children: React.ReactNode }) {
   const oidcConfig = {
     authority: 'http://localhost:8080/realms/ds-2025-realm',
-    client_id: 'account',
+    client_id: 'grupo-01',
     redirect_uri: 'http://localhost:5173/login/callback',
     response_type: 'code',
     post_logout_redirect_uri: 'http://localhost:5173/',
