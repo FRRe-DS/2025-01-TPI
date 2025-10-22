@@ -1,15 +1,16 @@
-import { Controller, Get, Post, Put, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Put, Body, Headers } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { PrismaClient } from '@prisma/client';
-import { UserProfileCreateDto } from '../dto/userProfile.dto';
+import { UserProfileUpdateDto } from '../dto/userProfile.dto';
 import { UserService } from '../services/user.service';
-
-const prisma = new PrismaClient();
+import { KeycloakService } from '../../../core/keycloak/keycloak.service';
 
 @ApiTags('user')
 @Controller('api/user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private keycloakService: KeycloakService
+  ) {}
 
   @Get('profile')
   @ApiOperation({ 
@@ -94,132 +95,29 @@ export class UserController {
       }
 
       const token = authHeader.substring(7);
-      const tokenRecord = await prisma.token.findUnique({
-        where: { token: token },
-        include: { user: true }
-      });
-
-      if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
-        return {
-          error: 'Token inválido o expirado',
-          code: 'UNAUTHORIZED'
-        };
-      }
-
-      return await this.userService.getUserProfile(tokenRecord.userId);
-    } catch (error) {
-      return {
-        error: 'Error interno del servidor',
-        code: 'INTERNAL_ERROR'
-      };
-    }
-  }
-
-  @Post('profile')
-  @ApiOperation({ 
-    summary: 'Crear perfil del usuario',
-    description: 'Crea el perfil complementario del usuario autenticado'
-  })
-  @ApiBearerAuth('Authorization')
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Perfil creado exitosamente',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            message: { type: 'string', example: 'Perfil creado exitosamente' }
-          }
-        }
-      }
-    }
-  })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Solicitud incorrecta',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            error: { type: 'string', example: 'Datos de perfil inválidos' },
-            code: { type: 'string', example: 'INVALID_PROFILE_DATA' }
-          }
-        }
-      }
-    }
-  })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'No autorizado',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            error: { type: 'string', example: 'No autorizado' },
-            code: { type: 'string', example: 'UNAUTHORIZED' }
-          }
-        }
-      }
-    }
-  })
-  @ApiResponse({ 
-    status: 409, 
-    description: 'Conflicto - Perfil ya existe',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            error: { type: 'string', example: 'El perfil ya existe' },
-            code: { type: 'string', example: 'PROFILE_ALREADY_EXISTS' }
-          }
-        }
-      }
-    }
-  })
-  @ApiResponse({ 
-    status: 500, 
-    description: 'Error interno del servidor',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            error: { type: 'string', example: 'Error interno del servidor' },
-            code: { type: 'string', example: 'INTERNAL_ERROR' }
-          }
-        }
-      }
-    }
-  })
-  async createUserProfile(@Body() profileData: UserProfileCreateDto, @Headers() headers: any) {
-    try {
-      const authHeader = headers.authorization || headers.Authorization;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return {
-          error: 'Token de autorización requerido',
-          code: 'UNAUTHORIZED'
-        };
-      }
-
-      const token = authHeader.substring(7);
-      const tokenRecord = await prisma.token.findUnique({
-        where: { token: token },
-        include: { user: true }
-      });
-
-      if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+      // Validar token con Keycloak y obtener datos del usuario
+      const userData = await this.keycloakService.getUserByToken(token);
+      
+      if (!userData) {
         return {
           error: 'Token inválido o expirado',
           code: 'UNAUTHORIZED'
         };
       }
 
-      return await this.userService.createUserProfile(tokenRecord.userId, profileData);
+      return {
+        success: true,
+        user: {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          enabled: userData.enabled,
+          createdTimestamp: userData.createdTimestamp
+        }
+      };
     } catch (error) {
       return {
         error: 'Error interno del servidor',
@@ -227,6 +125,7 @@ export class UserController {
       };
     }
   }
+
 
   @Put('profile')
   @ApiOperation({ 
@@ -308,7 +207,7 @@ export class UserController {
       }
     }
   })
-  async updateUserProfile(@Body() profileData: UserProfileCreateDto, @Headers() headers: any) {
+  async updateUserProfile(@Body() profileData: UserProfileUpdateDto, @Headers() headers: any) {
     try {
       const authHeader = headers.authorization || headers.Authorization;
       
@@ -320,19 +219,39 @@ export class UserController {
       }
 
       const token = authHeader.substring(7);
-      const tokenRecord = await prisma.token.findUnique({
-        where: { token: token },
-        include: { user: true }
-      });
-
-      if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+      
+      // Validar token con Keycloak y obtener datos del usuario
+      const userData = await this.keycloakService.getUserByToken(token);
+      
+      if (!userData) {
         return {
           error: 'Token inválido o expirado',
           code: 'UNAUTHORIZED'
         };
       }
 
-      return await this.userService.updateUserProfile(tokenRecord.userId, profileData);
+      // Actualizar usuario en Keycloak
+      const updateData = {
+        firstName: profileData.firstName || userData.firstName,
+        lastName: profileData.lastName || userData.lastName,
+        email: profileData.email || userData.email,
+        enabled: userData.enabled
+      };
+
+      await this.keycloakService.updateUser(userData.id, updateData);
+
+      return {
+        success: true,
+        message: 'Perfil actualizado exitosamente',
+        user: {
+          id: userData.id,
+          username: userData.username,
+          email: updateData.email,
+          firstName: updateData.firstName,
+          lastName: updateData.lastName,
+          enabled: updateData.enabled
+        }
+      };
     } catch (error) {
       return {
         error: 'Error interno del servidor',
