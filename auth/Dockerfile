@@ -45,11 +45,11 @@ RUN chown -R nestjs:nodejs /app
 USER nestjs
 
 # Exponer puerto 3001
-EXPOSE 3001
+EXPOSE 8080
 
 # Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

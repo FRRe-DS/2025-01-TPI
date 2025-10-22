@@ -1,5 +1,5 @@
 // src/components/Product/ProductCard.tsx
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { type Product } from '../../services/product.service';
 
 export function ProductCard({ product }: { product: Product }) {
