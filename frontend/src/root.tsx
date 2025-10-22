@@ -9,7 +9,7 @@ import {
 import { AuthProvider } from 'react-oidc-context';
 import type { Route } from "./+types/root";
 import "./app.css";
-import Header from "./components/Header";
+import Header from "./components/layout/Header";
 import type { User } from "oidc-client-ts";
 
 export function Layout({ children }: { children: React.ReactNode }) {
