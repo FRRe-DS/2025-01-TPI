@@ -15,6 +15,16 @@ export default function Header() {
         }
     }, [path]);
 
+    // Debug logs
+    useEffect(() => {
+        console.log('Auth state:', {
+            isAuthenticated: auth.isAuthenticated,
+            isLoading: auth.isLoading,
+            error: auth.error,
+            user: auth.user
+        });
+    }, [auth.isAuthenticated, auth.isLoading, auth.error, auth.user]);
+
     return (
         <header className="header">
             <div className="header-container">
@@ -31,7 +41,11 @@ export default function Header() {
                     {!auth.isAuthenticated ? (
                         <button 
                             className="login-button" 
-                            onClick={() => auth.signinRedirect()}
+                            onClick={() => {
+                                console.log('Botón de login clickeado');
+                                auth.signinRedirect();
+                            }}
+                            type="button"
                         >
                             Iniciar Sesión
                         </button>

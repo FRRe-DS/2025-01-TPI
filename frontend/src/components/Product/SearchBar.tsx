@@ -1,47 +1,47 @@
 // src/components/Product/SearchBar.tsx
-import { getCategories } from '../../services/product.service';
-
 interface SearchBarProps {
     initialQuery: string;
-    initialCategory: string;
-    onSearch: (query: string, category: string) => void;
+    onSearch: (query: string) => void;
+    isSearching?: boolean;
 }
 
-const categories = getCategories();
-
-export function SearchBar({ initialQuery, initialCategory, onSearch }: SearchBarProps) {
+export function SearchBar({ initialQuery, onSearch, isSearching = false }: SearchBarProps) {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const query = formData.get('q') as string;
-        const category = formData.get('category') as string;
-        onSearch(query, category);
+        onSearch(query);
     };
 
     return (
         <form 
         onSubmit={handleSubmit} 
-        className="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-white rounded-lg shadow-md"
+        className="flex flex-col md:flex-row gap-4 p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"
         >
         <input
             type="text"
             name="q"
             defaultValue={initialQuery}
-            placeholder="Buscar productos..."
-            className="flex-grow p-2 border rounded-md text-black placeholder:text-gray-700"
+            placeholder="Buscar productos, marcas, descripciones..."
+            className="flex-grow p-4 border-2 border-gray-200 rounded-xl text-gray-800 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 text-lg"
         />
-        <select
-            name="category"
-            defaultValue={initialCategory}
-            className="p-2 border rounded-md bg-white text-black"
+        <button 
+            type="submit" 
+            disabled={isSearching}
+            className={`px-8 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                isSearching 
+                    ? 'bg-blue-600 text-white cursor-not-allowed opacity-75' 
+                    : 'bg-blue-900 text-white hover:bg-blue-800'
+            }`}
         >
-            <option value="all">Todas las categorías</option>
-            {categories.map(cat => (
-            <option key={cat.id} value={cat.id.toString()}>{cat.nombre}</option>
-            ))}
-        </select>
-        <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Buscar
+            {isSearching ? (
+                <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Buscando...
+                </div>
+            ) : (
+                'Buscar'
+            )}
         </button>
         </form>
     );
