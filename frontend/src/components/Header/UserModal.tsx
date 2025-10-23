@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
+import ProfileModal from "./ProfileModal";
 
 export default function UserModal() {
   const auth = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [showUnderConstruction, setShowUnderConstruction] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const handleProfileClick = () => {
     setShowModal(false);
-    setShowUnderConstruction(true);
+    setShowProfileModal(true);
   };
 
   const handlePedidos = () => {
@@ -61,6 +63,12 @@ export default function UserModal() {
           </div>
         </>
       )}
+
+      {/* Modal de Perfil */}
+      <ProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+      />
 
       {/* Modal "En construcción" */}
       {showUnderConstruction && (
