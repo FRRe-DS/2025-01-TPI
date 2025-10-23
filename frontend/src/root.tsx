@@ -8,7 +8,7 @@ import {
 } from "react-router";
 import { AuthProvider } from 'react-oidc-context';
 import type { Route } from "./+types/root";
-import "./app.css";
+import "./App.css";
 import Header from "./components/Header";
 import type { User } from "oidc-client-ts";
 

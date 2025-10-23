@@ -1,7 +1,10 @@
-import { type RouteConfig, route } from "@react-router/dev/routes";
+import { type RouteConfig, route, index } from "@react-router/dev/routes";
 
 export default [
-  route("/", "./routes/product.route.tsx"),
+  index("./routes/_index.route.tsx"),
   route("/login/callback", "./routes/loginCallback.route.tsx"),
-  route("/private", "./routes/private.route.tsx")
+  route("/private", "./routes/private.route.tsx"),
+  route("/profile", "./routes/profile.route.tsx"),
+  route("/cart", "./routes/cart.route.tsx"),
+  route("/product/:id", "./routes/product.route.tsx")
 ] satisfies RouteConfig;

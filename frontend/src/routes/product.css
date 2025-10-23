@@ -1,0 +1,300 @@
+/* Efecto de líquido/agua para el botón de agregar al carrito */
+.liquid-button {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: all 0.3s ease;
+}
+
+.liquid-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
+  z-index: 1;
+}
+
+.liquid-button:hover::before {
+  left: 100%;
+}
+
+.liquid-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: 0;
+}
+
+.liquid-button:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.liquid-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+}
+
+.liquid-button:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+}
+
+/* Efecto de ondas adicionales */
+.liquid-button:hover {
+  animation: liquidWave 0.6s ease-out;
+}
+
+@keyframes liquidWave {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(37, 99, 235, 0);
+  }
+}
+
+/* Asegurar que el texto esté por encima de los efectos */
+.liquid-button span,
+.liquid-button {
+  position: relative;
+  z-index: 2;
+}
+
+/* Animación del carrito flotante */
+@keyframes slideInFromBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideOutToBottom {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+}
+
+.floating-cart-enter {
+  animation: slideInFromBottom 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.floating-cart-exit {
+  animation: slideOutToBottom 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animaciones del modal de agregar al carrito */
+@keyframes modalFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+}
+
+.modal-enter {
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.modal-exit {
+  animation: modalFadeOut 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Efecto de pulso para el botón de agregar al carrito */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 0.6s ease-in-out;
+}
+
+/* Animación de deslizamiento desde la derecha - Mejorada */
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(50%) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(50%) scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slideOutRight {
+  animation: slideOutRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Animación alternativa más suave */
+@keyframes slideInRightSmooth {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) rotateY(15deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) rotateY(0deg);
+  }
+}
+
+.animate-slideInRightSmooth {
+  animation: slideInRightSmooth 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Animación desde el ícono del carrito - Más fluida */
+@keyframes cartIconZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.05) translateY(80px) translateX(-60px);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+  15% {
+    opacity: 0.2;
+    transform: scale(0.15) translateY(60px) translateX(-45px);
+    border-radius: 45%;
+    filter: blur(1px);
+  }
+  30% {
+    opacity: 0.4;
+    transform: scale(0.3) translateY(45px) translateX(-35px);
+    border-radius: 35%;
+    filter: blur(0.5px);
+  }
+  45% {
+    opacity: 0.6;
+    transform: scale(0.5) translateY(30px) translateX(-25px);
+    border-radius: 25%;
+    filter: blur(0.2px);
+  }
+  60% {
+    opacity: 0.8;
+    transform: scale(0.7) translateY(15px) translateX(-15px);
+    border-radius: 15%;
+    filter: blur(0px);
+  }
+  75% {
+    opacity: 0.9;
+    transform: scale(0.9) translateY(5px) translateX(-5px);
+    border-radius: 8%;
+    filter: blur(0px);
+  }
+  90% {
+    opacity: 0.95;
+    transform: scale(1.02) translateY(-1px) translateX(1px);
+    border-radius: 4%;
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateX(0);
+    border-radius: 0.5rem;
+    filter: blur(0px);
+  }
+}
+
+@keyframes macosZoomOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateX(0);
+    border-radius: 0.5rem;
+  }
+  20% {
+    opacity: 0.8;
+    transform: scale(1.1) translateY(-5px) translateX(5px);
+    border-radius: 15%;
+  }
+  40% {
+    opacity: 0.6;
+    transform: scale(0.8) translateY(20px) translateX(-10px);
+    border-radius: 30%;
+  }
+  60% {
+    opacity: 0.4;
+    transform: scale(0.5) translateY(40px) translateX(-15px);
+    border-radius: 45%;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.1) translateY(60px) translateX(-20px);
+    border-radius: 50%;
+  }
+}
+
+.animate-cartIconZoomIn {
+  animation: cartIconZoomIn 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-macosZoomOut {
+  animation: macosZoomOut 0.4s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+}
