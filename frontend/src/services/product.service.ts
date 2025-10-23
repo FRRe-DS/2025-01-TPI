@@ -269,19 +269,15 @@ export function getProducts(filter: Filter): Promise<PaginatedProducts> {
 
   // 2. Filtro por categoría
   if (categoryId && categoryId !== 'all') {
-    console.log('Filtrando por categoría ID:', categoryId);
     const categoryIdNum = parseInt(categoryId, 10);
-    console.log('Categoría ID numérico:', categoryIdNum);
     
     const beforeFilter = filteredProducts.length;
     filteredProducts = filteredProducts.filter(p => {
       const hasCategory = p.categorias.some(c => c.id === categoryIdNum);
       if (hasCategory) {
-        console.log('Producto encontrado:', p.nombre, 'categorías:', p.categorias);
       }
       return hasCategory;
     });
-    console.log(`Productos antes del filtro: ${beforeFilter}, después: ${filteredProducts.length}`);
   }
 
   // 3. Filtro por marca

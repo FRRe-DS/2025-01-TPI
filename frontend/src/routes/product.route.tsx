@@ -28,10 +28,8 @@ export default function ProductPage() {
     const fetchProduct = async () => {
       try {
         const productId = parseInt(id || '0');
-        console.log('Buscando producto con ID:', productId);
         
         const foundProduct = await getProductById(productId);
-        console.log('Producto encontrado:', foundProduct);
         
         setProduct(foundProduct);
         if (foundProduct) {
@@ -118,19 +116,15 @@ export default function ProductPage() {
       ? product.imagenes.map(img => img.url)
       : ['https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'];
     
-    console.log('Product images:', productImages.length);
     
     if (productImages.length <= 1) {
-      console.log('Solo hay 1 imagen, no se activa el carrusel');
       return;
     }
     
-    console.log('Iniciando carrusel con', productImages.length, 'imágenes');
     
     const interval = setInterval(() => {
       setCurrentImageIndex(prev => {
         const nextIndex = prev === productImages.length - 1 ? 0 : prev + 1;
-        console.log('Cambiando imagen de', prev, 'a', nextIndex);
         return nextIndex;
       });
     }, 5000);
@@ -168,11 +162,9 @@ export default function ProductPage() {
 
   // Funciones simples para manejo de imágenes
   const handleImageError = () => {
-    console.log('Error cargando imagen');
   };
 
   const handleImageLoad = () => {
-    console.log('Imagen cargada correctamente');
   };
 
   const handleAddToCart = async () => {
@@ -183,14 +175,6 @@ export default function ProductPage() {
     // Simular proceso de agregar al carrito - reducido a la mitad
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    console.log('Agregando al carrito:', {
-      product: product.id,
-      color: selectedColor,
-      size: selectedSize,
-      material: selectedMaterial,
-      quantity,
-      price: currentPrice
-    });
     
     setIsAddingToCart(false);
     setCartAnimating(true);
@@ -202,13 +186,6 @@ export default function ProductPage() {
 
   const handleBuyNow = () => {
     // Aquí se implementará la lógica para comprar ahora
-    console.log('Comprando ahora:', {
-      product: product.id,
-      color: selectedColor,
-      size: selectedSize,
-      material: selectedMaterial,
-      quantity
-    });
   };
 
   return (

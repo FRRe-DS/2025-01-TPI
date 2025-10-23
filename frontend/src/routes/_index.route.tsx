@@ -31,7 +31,6 @@ export default function IndexRoute() {
 
   useEffect(() => {
     if (showProducts) {
-      console.log("Cargando productos...", { page, limit, query, filters, sortBy });
       setLoading(true);
       setError(null);
       
@@ -47,7 +46,6 @@ export default function IndexRoute() {
         sortBy: sortBy as any
       })
         .then(data => {
-          console.log("Productos cargados:", data);
           setProductData(data);
           setLoading(false);
         })
