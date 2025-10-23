@@ -115,7 +115,10 @@ export class UserController {
           firstName: userData.firstName,
           lastName: userData.lastName,
           enabled: userData.enabled,
-          createdTimestamp: userData.createdTimestamp
+          createdTimestamp: userData.createdTimestamp,
+          phone: userData.attributes?.phone?.[0] || '',
+          dni: userData.attributes?.dni?.[0] || '',
+          birthDate: userData.attributes?.birthDate?.[0] || ''
         }
       };
     } catch (error) {
@@ -235,7 +238,12 @@ export class UserController {
         firstName: profileData.firstName || userData.firstName,
         lastName: profileData.lastName || userData.lastName,
         email: profileData.email || userData.email,
-        enabled: userData.enabled
+        enabled: userData.enabled,
+        attributes: {
+          phone: profileData.phone ? [profileData.phone] : userData.attributes?.phone || [],
+          dni: profileData.dni ? [profileData.dni] : userData.attributes?.dni || [],
+          birthDate: profileData.birthDate ? [profileData.birthDate] : userData.attributes?.birthDate || []
+        }
       };
 
       await this.keycloakService.updateUser(userData.id, updateData);

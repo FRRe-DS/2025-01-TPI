@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
+import { getUserProfile, updateUserProfile, type UpdateProfileData } from "../../services/user.service";
 import "./Header.css";
 
 interface ProfileModalProps {
@@ -11,6 +12,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const auth = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   
   // Estados para el formulario
@@ -32,22 +34,30 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const loadProfile = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
     
     try {
-      // Por ahora, usamos los datos del token OIDC
-      // Cuando tengamos el endpoint en el backend, usaremos getUserProfile
-      const profile = auth.user?.profile;
+      const token = auth.user?.access_token;
+      if (!token) {
+        throw new Error('No hay token de acceso disponible');
+      }
+
+      const response = await getUserProfile(token);
       
-      setFormData({
-        firstName: profile?.given_name || '',
-        lastName: profile?.family_name || '',
-        email: profile?.email || '',
-        phone: '', // Estos vendrán del backend eventualmente
-        dni: '',
-        birthDate: ''
-      });
+      if (response.success && response.user) {
+        setFormData({
+          firstName: response.user.firstName || '',
+          lastName: response.user.lastName || '',
+          email: response.user.email || '',
+          phone: response.user.phone || '',
+          dni: response.user.dni || '',
+          birthDate: response.user.birthDate || ''
+        });
+      } else {
+        throw new Error('Error en la respuesta del servidor');
+      }
     } catch (err) {
-      setError('Error al cargar el perfil');
+      setError(err instanceof Error ? err.message : 'Error al cargar el perfil');
       console.error(err);
     } finally {
       setLoading(false);
@@ -66,19 +76,43 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      // TODO: Cuando tengamos el endpoint, actualizar el perfil
-      // const token = auth.user?.access_token;
-      // if (token) {
-      //   await updateUserProfile(token, formData);
-      // }
+      const token = auth.user?.access_token;
+      if (!token) {
+        throw new Error('No hay token de acceso disponible');
+      }
+
+      // Preparar datos para enviar
+      const updateData: UpdateProfileData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        dni: formData.dni,
+        birthDate: formData.birthDate,
+      };
+
+      const response = await updateUserProfile(token, updateData);
       
-      setEditMode(false);
-      // Mostrar mensaje de éxito
-      alert('Perfil actualizado exitosamente (funcionalidad pendiente de implementación en backend)');
+      if (response.success) {
+        setEditMode(false);
+        // Recargar el perfil para mostrar los datos actualizados
+        await loadProfile();
+        
+        // Mostrar mensaje de éxito después de recargar
+        setSuccess('Perfil actualizado exitosamente');
+        
+        // Ocultar mensaje de éxito después de 5 segundos
+        setTimeout(() => {
+          setSuccess(null);
+        }, 5000);
+      } else {
+        throw new Error('Error en la respuesta del servidor');
+      }
     } catch (err) {
-      setError('Error al actualizar el perfil');
+      setError(err instanceof Error ? err.message : 'Error al actualizar el perfil');
       console.error(err);
     } finally {
       setLoading(false);
@@ -123,6 +157,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         {error && (
           <div className="error-message">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="success-message">
+            ✅ {success}
           </div>
         )}
 
@@ -180,8 +220,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   name="email"
                   type="email"
                   value={formData.email}
-                  disabled
-                  className="disabled"
+                  onChange={handleInputChange}
+                  disabled={!editMode}
+                  className={!editMode ? 'disabled' : ''}
                 />
               </div>
             </div>

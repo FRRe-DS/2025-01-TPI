@@ -1,35 +1,49 @@
-// Servicio para gestionar datos de usuario
-const API_URL = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:3001';
+// Servicio para gestionar datos de usuario con Keycloak
+const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
 
 export interface UserProfile {
-  id: number;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  profile?: {
-    id: number;
+  success: boolean;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    enabled: boolean;
+    createdTimestamp: number;
     phone: string;
     dni: string;
     birthDate: string;
-  } | null;
+  };
 }
 
 export interface UpdateProfileData {
   firstName?: string;
   lastName?: string;
+  email?: string;
   phone?: string;
   dni?: string;
   birthDate?: string;
 }
 
+export interface UpdateProfileResponse {
+  success: boolean;
+  message: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    enabled: boolean;
+  };
+}
+
 /**
- * Obtiene el perfil completo del usuario autenticado
+ * Obtiene el perfil completo del usuario autenticado desde Keycloak
  */
 export async function getUserProfile(token: string): Promise<UserProfile> {
-  const response = await fetch(`${API_URL}/api/auth/profile`, {
+  const response = await fetch(`${API_URL}/api/user/profile`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -38,18 +52,19 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
   });
 
   if (!response.ok) {
-    throw new Error('Error al obtener el perfil del usuario');
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Error al obtener el perfil del usuario');
   }
 
   return await response.json();
 }
 
 /**
- * Actualiza el perfil del usuario
+ * Actualiza el perfil del usuario en Keycloak
  */
-export async function updateUserProfile(token: string, data: UpdateProfileData): Promise<UserProfile> {
-  const response = await fetch(`${API_URL}/api/auth/profile`, {
-    method: 'PATCH',
+export async function updateUserProfile(token: string, data: UpdateProfileData): Promise<UpdateProfileResponse> {
+  const response = await fetch(`${API_URL}/api/user/profile`, {
+    method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -58,7 +73,8 @@ export async function updateUserProfile(token: string, data: UpdateProfileData):
   });
 
   if (!response.ok) {
-    throw new Error('Error al actualizar el perfil');
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Error al actualizar el perfil');
   }
 
   return await response.json();
