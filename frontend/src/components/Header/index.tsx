@@ -10,6 +10,7 @@ export default function Header() {
     const path = useLocation().pathname;
     const [showSearchButton, setShowSearchButton] = useState(false);
     const [isLeaving, setIsLeaving] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     
     useEffect(() => {
         if (path !== '/login/callback') {
@@ -63,60 +64,122 @@ export default function Header() {
     }, [path, showSearchButton]);
 
     const handleSearchClick = () => {
-        // Scroll hacia el SearchBar principal si existe
-        const searchBar = document.querySelector('[data-search-bar]');
-        if (searchBar) {
-            searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        // Toggle del buscador desplegable
+        setIsSearchOpen(!isSearchOpen);
     };
+
+    const closeSearch = () => {
+        setIsSearchOpen(false);
+    };
+
+    // Efecto para manejar la tecla ESC
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && isSearchOpen) {
+                closeSearch();
+            }
+        };
+
+        if (isSearchOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isSearchOpen]);
+
+    // Efecto para manejar mouse leave del header y desplegable
+    useEffect(() => {
+        const handleMouseMove = (event: MouseEvent) => {
+            if (!isSearchOpen) return;
+            
+            const target = event.target as Element;
+            const header = document.querySelector('.header');
+            const searchDropdown = document.querySelector('.search-dropdown');
+            
+            // Verificar si el mouse está fuera del header y del desplegable
+            if (header && searchDropdown && 
+                !header.contains(target) && 
+                !searchDropdown.contains(target)) {
+                closeSearch();
+            }
+        };
+
+        if (isSearchOpen) {
+            // Pequeño delay para evitar que se cierre inmediatamente al abrir
+            const timeoutId = setTimeout(() => {
+                document.addEventListener('mousemove', handleMouseMove);
+            }, 100);
+            
+            return () => {
+                clearTimeout(timeoutId);
+                document.removeEventListener('mousemove', handleMouseMove);
+            };
+        }
+    }, [isSearchOpen]);
 
 
     return (
-        <header className="header">
-            <div className="header-container">
-                <div className="header-left">
-                    <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-                        <h1>
-                            <img src="/Shipper-mini.png" alt="Shipper logo" className="header-logo" />
-                            <em>Shipper</em>
-                        </h1>
-                    </a>
-                </div>
-                
-                <div className="header-right">
-                    {/* Botón de búsqueda - solo visible cuando el SearchBar principal no está en pantalla */}
-                    {showSearchButton && (
-                        <button 
-                            className={`search-button ${isLeaving ? 'leaving' : 'entering'}`}
-                            onClick={handleSearchClick}
-                            type="button"
-                            title="Buscar productos"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="11" cy="11" r="8"/>
-                                <path d="m21 21-4.35-4.35"/>
-                            </svg>
-                        </button>
-                    )}
+        <>
+            <header className="header">
+                <div className="header-container">
+                    <div className="header-left">
+                        <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                            <h1>
+                                <img src="/Shipper-mini.png" alt="Shipper logo" className="header-logo" />
+                                <em>Shipper</em>
+                            </h1>
+                        </a>
+                    </div>
                     
-                    {!auth.isAuthenticated ? (
-                        <button 
-                            className="login-button" 
-                            onClick={() => {
-                                auth.signinRedirect();
-                            }}
-                            type="button"
-                        >
-                            Iniciar Sesión
-                        </button>
-                    ) : (
-                        <>
-                            <ShopCartModal />
-                            <UserModal />
-                        </>
-                    )}
+                    <div className="header-right">
+                        {/* Botón de búsqueda - solo visible cuando el SearchBar principal no está en pantalla */}
+                        {showSearchButton && (
+                            <button 
+                                className={`search-button ${isLeaving ? 'leaving' : 'entering'}`}
+                                onClick={handleSearchClick}
+                                type="button"
+                                title="Buscar productos"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="m21 21-4.35-4.35"/>
+                                </svg>
+                            </button>
+                        )}
+                        
+                        {!auth.isAuthenticated ? (
+                            <button 
+                                className="login-button" 
+                                onClick={() => {
+                                    auth.signinRedirect();
+                                }}
+                                type="button"
+                            >
+                                Iniciar Sesión
+                            </button>
+                        ) : (
+                            <>
+                                <ShopCartModal />
+                                <UserModal />
+                            </>
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            {/* Overlay de fondo borroso */}
+            {isSearchOpen && (
+                <div className="search-overlay" onClick={closeSearch}></div>
+            )}
+
+            {/* Sección de búsqueda desplegable */}
+            <div className={`search-dropdown ${isSearchOpen ? 'search-dropdown--open' : ''}`}>
+                <div className="search-dropdown-content">
+                    {/* Aquí irá el contenido del buscador más adelante */}
                 </div>
             </div>
-        </header>
+        </>
     );
 }
