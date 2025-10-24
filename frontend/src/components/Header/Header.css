@@ -325,6 +325,151 @@
   margin: 0 auto;
 }
 
+/* ==================== CAMPO DE BÚSQUEDA ESTILO APPLE ==================== */
+
+.apple-search-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 3rem 0 0.5rem 0;
+  padding-left: 2rem;
+}
+
+.apple-search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.apple-search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 1rem 0 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+.apple-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.apple-search-input:focus {
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.apple-search-input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ==================== ENLACES RÁPIDOS ESTILO APPLE ==================== */
+
+.quick-links-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0.25rem 2rem 2rem 2rem;
+}
+
+.quick-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 500px;
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  transition: all 0.10s ease;
+  padding: 0.4rem 1.2rem;
+  border-radius: 6px;
+  background: transparent;
+  width: 100%;
+}
+
+.quick-link-arrow {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  font-weight: 300;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.quick-link-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.quick-link {
+  position: relative;
+}
+
+.quick-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0rem;
+  right: -56rem;
+  bottom: 0;
+  background: transparent;
+  border-radius: 6px;
+  transition: all 0.05s ease;
+  z-index: -1;
+}
+
+.quick-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.quick-link:hover::before {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quick-link:hover .quick-link-arrow {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.quick-link:hover .quick-link-text {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .search-placeholder {
   text-align: center;
   padding: 3rem 0;
@@ -721,9 +866,35 @@
     padding: 1.5rem;
   }
   
-  .search-placeholder {
-    padding: 2rem 0;
+  .apple-search-container {
+    padding: 1.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .apple-search-field {
+    max-width: 100%;
+  }
+  
+  .apple-search-input {
     font-size: 1rem;
+    padding: 0.8rem 0 0.8rem 2.2rem;
+  }
+  
+  .search-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .quick-links-container {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+  }
+  
+  .quick-links {
+    max-width: 100%;
+  }
+  
+  .quick-link {
+    font-size: 0.9rem;
   }
 }
 
@@ -732,8 +903,26 @@
     padding: 1rem;
   }
   
-  .search-placeholder {
-    padding: 1.5rem 0;
+  .apple-search-container {
+    padding: 1rem 0;
+    padding-left: 1rem;
+  }
+  
+  .apple-search-input {
     font-size: 0.95rem;
+    padding: 0.7rem 0 0.7rem 2rem;
+  }
+  
+  .search-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .quick-links-container {
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .quick-link {
+    font-size: 0.85rem;
   }
 }

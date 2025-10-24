@@ -177,7 +177,46 @@ export default function Header() {
             {/* Sección de búsqueda desplegable */}
             <div className={`search-dropdown ${isSearchOpen ? 'search-dropdown--open' : ''}`}>
                 <div className="search-dropdown-content">
-                    {/* Aquí irá el contenido del buscador más adelante */}
+                    <div className="apple-search-container">
+                        <div className="apple-search-field">
+                            <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            <input 
+                                type="text" 
+                                className="apple-search-input"
+                                placeholder="Buscar productos, marcas..."
+                                autoFocus={isSearchOpen}
+                            />
+                        </div>
+                    </div>
+                    
+                    {/* Enlaces rápidos estilo Apple */}
+                    <div className="quick-links-container">
+                        <div className="quick-links">
+                            <a href="#" className="quick-link">
+                                <span className="quick-link-arrow">→</span>
+                                <span className="quick-link-text">Productos populares</span>
+                            </a>
+                            <a href="#" className="quick-link">
+                                <span className="quick-link-arrow">→</span>
+                                <span className="quick-link-text">Ofertas especiales</span>
+                            </a>
+                            <a href="#" className="quick-link">
+                                <span className="quick-link-arrow">→</span>
+                                <span className="quick-link-text">Nuevas marcas</span>
+                            </a>
+                            <a href="#" className="quick-link">
+                                <span className="quick-link-arrow">→</span>
+                                <span className="quick-link-text">Categorías</span>
+                            </a>
+                            <a href="#" className="quick-link">
+                                <span className="quick-link-arrow">→</span>
+                                <span className="quick-link-text">Ayuda</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
