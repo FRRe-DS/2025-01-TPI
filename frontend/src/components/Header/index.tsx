@@ -12,6 +12,7 @@ export default function Header() {
     const [isLeaving, setIsLeaving] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [searchHistory, setSearchHistory] = useState<string[]>([]);
     
     useEffect(() => {
         if (path !== '/login/callback') {
@@ -79,6 +80,49 @@ export default function Header() {
 
     const clearSearch = () => {
         setSearchValue('');
+    };
+
+    // Cargar historial de búsquedas al abrir el buscador
+    useEffect(() => {
+        if (isSearchOpen) {
+            const savedHistory = localStorage.getItem('searchHistory');
+            if (savedHistory) {
+                setSearchHistory(JSON.parse(savedHistory));
+            }
+        }
+    }, [isSearchOpen]);
+
+    // Guardar búsqueda en el historial
+    const saveSearchToHistory = (query: string) => {
+        if (query.trim() === '') return;
+        
+        const trimmedQuery = query.trim();
+        const newHistory = [trimmedQuery, ...searchHistory.filter(item => item !== trimmedQuery)].slice(0, 5);
+        setSearchHistory(newHistory);
+        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+    };
+
+    // Manejar búsqueda (cuando se presiona Enter)
+    const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && searchValue.trim()) {
+            saveSearchToHistory(searchValue);
+            // Aquí puedes agregar la lógica de búsqueda real
+            console.log('Buscando:', searchValue);
+        }
+    };
+
+    // Eliminar búsqueda del historial
+    const removeFromHistory = (queryToRemove: string) => {
+        const newHistory = searchHistory.filter(item => item !== queryToRemove);
+        setSearchHistory(newHistory);
+        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+    };
+
+    // Usar búsqueda del historial
+    const useHistorySearch = (query: string) => {
+        setSearchValue(query);
+        // Aquí puedes agregar la lógica de búsqueda real
+        console.log('Buscando desde historial:', query);
     };
 
     // Efecto para manejar la tecla ESC
@@ -198,6 +242,7 @@ export default function Header() {
                                 placeholder="Buscar productos, marcas..."
                                 value={searchValue}
                                 onChange={handleSearchChange}
+                                onKeyDown={handleSearchSubmit}
                                 autoFocus={isSearchOpen}
                             />
                             {searchValue && (
@@ -216,31 +261,37 @@ export default function Header() {
                         </div>
                     </div>
                     
-                    {/* Enlaces rápidos estilo Apple */}
-                    <div className="quick-links-container">
-                        <div className="quick-links">
-                            <a href="#" className="quick-link">
-                                <span className="quick-link-arrow">→</span>
-                                <span className="quick-link-text">Productos populares</span>
-                            </a>
-                            <a href="#" className="quick-link">
-                                <span className="quick-link-arrow">→</span>
-                                <span className="quick-link-text">Ofertas especiales</span>
-                            </a>
-                            <a href="#" className="quick-link">
-                                <span className="quick-link-arrow">→</span>
-                                <span className="quick-link-text">Nuevas marcas</span>
-                            </a>
-                            <a href="#" className="quick-link">
-                                <span className="quick-link-arrow">→</span>
-                                <span className="quick-link-text">Categorías</span>
-                            </a>
-                            <a href="#" className="quick-link">
-                                <span className="quick-link-arrow">→</span>
-                                <span className="quick-link-text">Ayuda</span>
-                            </a>
+                    {/* Historial de búsquedas */}
+                    {searchHistory.length > 0 && (
+                        <div className="quick-links-container">
+                            <div className="quick-links">
+                                {searchHistory.map((query, index) => (
+                                    <div key={index} className="quick-link">
+                                        <span className="quick-link-arrow">→</span>
+                                        <span 
+                                            className="quick-link-text"
+                                            onClick={() => useHistorySearch(query)}
+                                        >
+                                            {query}
+                                        </span>
+                                        <button 
+                                            className="remove-history-button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeFromHistory(query);
+                                            }}
+                                            title="Eliminar de historial"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </>
