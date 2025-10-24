@@ -17,6 +17,7 @@ export function SearchBar({ initialQuery, onSearch, isSearching = false }: Searc
         <form 
         onSubmit={handleSubmit} 
         className="flex flex-col md:flex-row gap-4 p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"
+        data-search-bar
         >
         <input
             type="text"

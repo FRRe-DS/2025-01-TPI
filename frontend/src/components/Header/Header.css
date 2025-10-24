@@ -53,6 +53,73 @@
   gap: 1rem;
 }
 
+/* Botón de búsqueda */
+.search-button {
+  background: rgba(255, 255, 255, 0.95);
+  color: #032d70;
+  border: 2px solid transparent;
+  padding: 0.6rem;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+/* Estados de animación */
+.search-button.entering {
+  animation: searchButtonFadeIn 0.3s ease-out;
+}
+
+.search-button.leaving {
+  animation: searchButtonFadeOut 0.3s ease-in;
+}
+
+.search-button:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.search-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Animación de aparición del botón */
+@keyframes searchButtonFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animación de desaparición del botón */
+@keyframes searchButtonFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
 .user-menu {
   position: relative;
 }
@@ -166,6 +233,17 @@
     width: 38px;
     height: 38px;
   }
+
+  .search-button {
+    width: 36px;
+    height: 36px;
+    padding: 0.5rem;
+  }
+
+  .search-button svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -193,6 +271,17 @@
   .user-icon {
     width: 35px;
     height: 35px;
+  }
+
+  .search-button {
+    width: 32px;
+    height: 32px;
+    padding: 0.4rem;
+  }
+
+  .search-button svg {
+    width: 14px;
+    height: 14px;
   }
 
   .dropdown-menu {
