@@ -11,6 +11,7 @@ export default function Header() {
     const [showSearchButton, setShowSearchButton] = useState(false);
     const [isLeaving, setIsLeaving] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchValue, setSearchValue] = useState('');
     
     useEffect(() => {
         if (path !== '/login/callback') {
@@ -70,6 +71,14 @@ export default function Header() {
 
     const closeSearch = () => {
         setIsSearchOpen(false);
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(e.target.value);
+    };
+
+    const clearSearch = () => {
+        setSearchValue('');
     };
 
     // Efecto para manejar la tecla ESC
@@ -178,7 +187,7 @@ export default function Header() {
             <div className={`search-dropdown ${isSearchOpen ? 'search-dropdown--open' : ''}`}>
                 <div className="search-dropdown-content">
                     <div className="apple-search-container">
-                        <div className="apple-search-field">
+                        <div className={`apple-search-field ${searchValue ? 'has-text' : ''}`}>
                             <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                 <circle cx="11" cy="11" r="8"/>
                                 <path d="m21 21-4.35-4.35"/>
@@ -187,8 +196,23 @@ export default function Header() {
                                 type="text" 
                                 className="apple-search-input"
                                 placeholder="Buscar productos, marcas..."
+                                value={searchValue}
+                                onChange={handleSearchChange}
                                 autoFocus={isSearchOpen}
                             />
+                            {searchValue && (
+                                <button 
+                                    className="clear-search-button"
+                                    onClick={clearSearch}
+                                    type="button"
+                                    title="Limpiar búsqueda"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            )}
                         </div>
                     </div>
                     

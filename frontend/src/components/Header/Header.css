@@ -340,7 +340,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 500px;
+  max-width: 100%;
   background: transparent;
   border: none;
   outline: none;
@@ -361,7 +361,7 @@
   background: transparent;
   border: none;
   outline: none;
-  padding: 1rem 0 1rem 2.5rem;
+  padding: 1rem 2.5rem 1rem 2.5rem;
   font-size: 1.1rem;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.9);
@@ -387,6 +387,46 @@
 
 .apple-search-input:focus::placeholder {
   color: rgba(255, 255, 255, 0.4);
+}
+
+/* Botón de limpiar búsqueda */
+.clear-search-button {
+  position: absolute;
+  right: 0rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #032d70;
+  transition: all 0.15s ease;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+}
+
+.clear-search-button:hover {
+  color: #02244f;
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.clear-search-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Mostrar botón cuando hay texto */
+.apple-search-field.has-text .clear-search-button {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* ==================== ENLACES RÁPIDOS ESTILO APPLE ==================== */
