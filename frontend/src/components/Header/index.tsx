@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import UserModal from "./UserModal";
 import ShopCartModal from "./ShopCartModal";
 import "./Header.css";
@@ -8,17 +8,28 @@ import "./Header.css";
 export default function Header() {
     const auth = useAuth();
     const path = useLocation().pathname;
+    const navigate = useNavigate();
     const [showSearchButton, setShowSearchButton] = useState(false);
     const [isLeaving, setIsLeaving] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [searchHistory, setSearchHistory] = useState<string[]>([]);
+    const [truckArrived, setTruckArrived] = useState(false);
     
     useEffect(() => {
         if (path !== '/login/callback') {
             localStorage.setItem('redirect_path', path);
         }
     }, [path]);
+
+    // Marcar cuando el camión ha llegado (después de 2 segundos)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTruckArrived(true);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+    }, []);
 
     // Lógica para mostrar/ocultar el botón de búsqueda
     useEffect(() => {
@@ -106,8 +117,7 @@ export default function Header() {
     const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchValue.trim()) {
             saveSearchToHistory(searchValue);
-            // Aquí puedes agregar la lógica de búsqueda real
-            console.log('Buscando:', searchValue);
+            performSearch(searchValue);
         }
     };
 
@@ -121,8 +131,19 @@ export default function Header() {
     // Usar búsqueda del historial
     const useHistorySearch = (query: string) => {
         setSearchValue(query);
-        // Aquí puedes agregar la lógica de búsqueda real
-        console.log('Buscando desde historial:', query);
+        performSearch(query);
+    };
+
+    // Función para realizar la búsqueda
+    const performSearch = (query: string) => {
+        // Cerrar el dropdown de búsqueda
+        setIsSearchOpen(false);
+        
+        // Navegar a la página principal con la query como parámetro
+        navigate(`/?q=${encodeURIComponent(query)}`);
+        
+        // Guardar la query en localStorage para que la página principal la use
+        localStorage.setItem('searchQuery', query);
     };
 
     // Efecto para manejar la tecla ESC
@@ -180,7 +201,7 @@ export default function Header() {
                     <div className="header-left">
                         <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
                             <h1>
-                                <img src="/Shipper-mini.png" alt="Shipper logo" className="header-logo" />
+                                <img src="/Shipper-mini.png" alt="Shipper logo" className={`header-logo ${truckArrived ? 'arrived' : ''}`} />
                                 <em>Shipper</em>
                             </h1>
                         </a>
@@ -242,7 +263,15 @@ export default function Header() {
                                 placeholder="Buscar productos, marcas..."
                                 value={searchValue}
                                 onChange={handleSearchChange}
-                                onKeyDown={handleSearchSubmit}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if (searchValue.trim()) {
+                                            saveSearchToHistory(searchValue);
+                                            performSearch(searchValue);
+                                        }
+                                    }
+                                }}
                                 autoFocus={isSearchOpen}
                             />
                             {searchValue && (

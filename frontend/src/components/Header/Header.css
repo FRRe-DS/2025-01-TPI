@@ -30,12 +30,75 @@
   align-items: center;
   gap: 0.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.header-left h1:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .header-logo {
   height: 28px;
   width: auto;
   vertical-align: middle;
+  transition: all 0.3s ease;
+  transform-origin: center;
+  animation: truckArrival 2s ease-out;
+  animation-fill-mode: forwards;
+}
+
+.header-logo.arrived {
+  animation: none;
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+/* Animación de llegada del camión */
+@keyframes truckArrival {
+  0% {
+    transform: translateX(-100px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-20px) scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Estado final del camión después de la llegada */
+.header-logo.arrived {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+.header-left h1:hover .header-logo.arrived {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Animación del camión arrancando */
+@keyframes truckStart {
+  0% {
+    transform: scale(1) translateX(0);
+  }
+  25% {
+    transform: scale(1.05) translateX(-2px);
+  }
+  50% {
+    transform: scale(1.1) translateX(2px);
+  }
+  75% {
+    transform: scale(1.05) translateX(-1px);
+  }
+  100% {
+    transform: scale(1.1) translateX(0);
+  }
 }
 
 .header-left p {
@@ -221,6 +284,19 @@
 
   .header-logo {
     height: 24px;
+    animation: truckArrival 1.8s ease-out;
+    animation-fill-mode: forwards;
+  }
+  
+  .header-logo.arrived {
+    animation: none;
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  
+  .header-left h1:hover .header-logo.arrived {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
   }
   
   .header-left p {
@@ -260,6 +336,19 @@
 
   .header-logo {
     height: 20px;
+    animation: truckArrival 1.5s ease-out;
+    animation-fill-mode: forwards;
+  }
+  
+  .header-logo.arrived {
+    animation: none;
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  
+  .header-left h1:hover .header-logo.arrived {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
   }
   
   .header-left p {
@@ -392,7 +481,7 @@
 /* Botón de limpiar búsqueda */
 .clear-search-button {
   position: absolute;
-  right: 0rem;
+  right: 1rem;
   top: 50%;
   transform: translateY(-50%);
   background: white;
@@ -422,6 +511,7 @@
   width: 12px;
   height: 12px;
 }
+
 
 /* Mostrar botón cuando hay texto */
 .apple-search-field.has-text .clear-search-button {

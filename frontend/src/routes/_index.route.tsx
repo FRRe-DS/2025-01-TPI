@@ -29,6 +29,17 @@ export default function IndexRoute() {
   // Ref para hacer scroll a la sección de productos
   const productsSectionRef = useRef<HTMLElement>(null);
 
+  // Cargar query del localStorage al montar el componente
+  useEffect(() => {
+    const savedQuery = localStorage.getItem('searchQuery');
+    if (savedQuery) {
+      setQuery(savedQuery);
+      setShowProducts(true);
+      // Limpiar el localStorage después de usarlo
+      localStorage.removeItem('searchQuery');
+    }
+  }, []);
+
   useEffect(() => {
     if (showProducts) {
       setLoading(true);
@@ -116,7 +127,7 @@ export default function IndexRoute() {
       <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20">
         <div className="container mx-auto px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Bienvenido a <span className="text-blue-200">Shipper</span>
+            Bienvenido a <span className="text-blue-200 shipper-animated">Shipper</span>
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
             Todos tus productos en un solo lugar

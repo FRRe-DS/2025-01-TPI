@@ -13,3 +13,32 @@ body {
     color-scheme: dark;
   }
 }
+
+/* Animación para la palabra "Shipper" */
+.shipper-animated {
+  display: inline-block;
+  background: linear-gradient(90deg, #ffffff, #3b82f6, #ffffff);
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shipperGradient 15s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.shipper-animated:hover {
+  animation-play-state: paused;
+  transform: scale(1.05);
+}
+
+@keyframes shipperGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
