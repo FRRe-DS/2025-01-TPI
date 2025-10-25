@@ -2,6 +2,8 @@ import { useParams, Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
+import { useCart } from '../contexts/CartContext';
+import CartAnimation from '../components/CartAnimation';
 import './product.css';
 
 export default function ProductPage() {
@@ -13,16 +15,15 @@ export default function ProductPage() {
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [showImageModal, setShowImageModal] = useState(false);
-  const [showFloatingCart, setShowFloatingCart] = useState(false);
-  const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [currentStock, setCurrentStock] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showCartSidebar, setShowCartSidebar] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [cartAnimating, setCartAnimating] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -64,49 +65,6 @@ export default function ProductPage() {
     }
   }, [selectedColor, selectedSize, selectedMaterial, product]);
 
-  // Detectar scroll para mostrar/ocultar el carrito flotante
-  useEffect(() => {
-    let ticking = false;
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollPosition = window.scrollY;
-          const windowHeight = window.innerHeight;
-          const documentHeight = document.documentElement.scrollHeight;
-          
-          // Mostrar cuando el usuario haya scrolleado más del 40% de la página
-          // Esto significa que ya pasó la imagen, detalles, descripción y características
-          const threshold = documentHeight * 0.4;
-          const shouldShow = scrollPosition > threshold;
-          
-          if (shouldShow && !showFloatingCart) {
-            setIsCartAnimating(true);
-            setShowFloatingCart(true);
-            // Resetear el estado de animación después de que termine
-            setTimeout(() => setIsCartAnimating(false), 600);
-          } else if (!shouldShow && showFloatingCart) {
-            setIsCartAnimating(true);
-            // Esperar a que termine la animación de salida antes de ocultar
-            setTimeout(() => {
-              setShowFloatingCart(false);
-              setIsCartAnimating(false);
-            }, 400);
-          }
-          
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [showFloatingCart]);
 
   // Auto-cambio de imágenes cada 5 segundos
   useEffect(() => {
@@ -172,16 +130,31 @@ export default function ProductPage() {
     
     setIsAddingToCart(true);
     
-    // Simular proceso de agregar al carrito - reducido a la mitad
+    // Simular proceso de agregar al carrito
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Agregar al carrito real
+    const mainImage = product.imagenes.length > 0 
+      ? product.imagenes[0].url
+      : 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
     
+    addToCart({
+      id: product.id,
+      name: product.nombre,
+      price: currentPrice,
+      image: mainImage,
+      color: selectedColor,
+      size: selectedSize,
+      material: selectedMaterial
+    }, quantity);
+    
+    // Iniciar animación
+    setIsAnimating(true);
     setIsAddingToCart(false);
-    setCartAnimating(true);
-    setShowCartSidebar(true);
-    
-    // Reset animation state
-    setTimeout(() => setCartAnimating(false), 300);
+  };
+
+  const handleAnimationComplete = () => {
+    setIsAnimating(false);
   };
 
   const handleBuyNow = () => {
@@ -445,13 +418,28 @@ export default function ProductPage() {
                 className="liquid-button flex-1 min-w-[200px] bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
               >
                 {isAddingToCart ? (
-                  <>
+                  <div className="flex items-center gap-2">
                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Agregando...
-                  </>
+                    <span>Agregando</span>
+                    <motion.div
+                      className="flex items-center"
+                      animate={{
+                        x: [0, 100],
+                        opacity: [1, 0]
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        ease: "easeIn"
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 18C5.9 18 5.01 18.9 5.01 20C5.01 21.1 5.9 22 7 22C8.1 22 9 21.1 9 20C9 18.9 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5.48C20.96 5.34 21 5.17 21 5C21 4.45 20.55 4 20 4H5.21L4.27 2H1ZM17 18C15.9 18 15.01 18.9 15.01 20C15.01 21.1 15.9 22 17 22C18.1 22 19 21.1 19 20C19 18.9 18.1 18 17 18Z" fill="currentColor"/>
+                      </svg>
+                    </motion.div>
+                  </div>
                 ) : (
                   'Agregar al carrito'
                 )}
@@ -780,68 +768,6 @@ export default function ProductPage() {
         )}
       </div>
 
-      {/* Carrito flotante */}
-      {showFloatingCart && product && (
-        <div className={`fixed bottom-6 right-6 z-50 ${isCartAnimating ? 'floating-cart-enter' : ''}`}>
-          <div className="bg-[#F8F7F2] border border-gray-300 rounded-2xl p-4 shadow-2xl max-w-sm">
-            <div className="flex items-center gap-4">
-              {/* Imagen del producto */}
-              <div className="flex-shrink-0">
-                <img 
-                  src={mainImage} 
-                  alt={product.nombre}
-                  className="w-16 h-16 object-cover rounded-lg shadow-md"
-                  onError={handleImageError}
-                  onLoad={handleImageLoad}
-                />
-              </div>
-              
-              {/* Detalles del producto */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-800 text-sm truncate">
-                    {product.nombre}
-                  </h3>
-                  <span className="text-gray-600 text-xs">| {product.marca}</span>
-                </div>
-                <div className="text-xs text-gray-600 mb-1">
-                  {selectedColor} / {selectedSize} / {selectedMaterial}
-                </div>
-                <div className="text-sm font-semibold text-gray-800">
-                  ${currentPrice.toLocaleString('es-AR')}
-                </div>
-              </div>
-              
-              {/* Botón de agregar al carrito */}
-              <div className="flex-shrink-0">
-                <motion.button
-                  onClick={handleAddToCart}
-                  disabled={isAddingToCart || currentStock === 0}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-full text-sm transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
-                  whileHover={!isAddingToCart && currentStock > 0 ? { 
-                    scale: 1.05, 
-                    boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.3), 0 10px 10px -5px rgba(59, 130, 246, 0.1)" 
-                  } : {}}
-                  whileTap={!isAddingToCart && currentStock > 0 ? { scale: 0.95 } : {}}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  {isAddingToCart ? (
-                    <>
-                      <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Agregando...
-                    </>
-                  ) : (
-                    'Agregar al carrito'
-                  )}
-                </motion.button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal de zoom de imagen */}
       {showImageModal && (
@@ -870,142 +796,15 @@ export default function ProductPage() {
         </div>
       )}
 
-      {/* Carrito Lateral con Framer Motion */}
-      <AnimatePresence>
-        {showCartSidebar && (
-          <motion.div 
-            className="fixed top-16 right-4 h-[calc(100vh-5rem)] w-96 bg-gray-800 z-50 shadow-2xl flex flex-col rounded-lg"
-            initial={{ 
-              scale: 0.1, 
-              opacity: 0, 
-              x: 400, 
-              y: 120,
-              borderRadius: "50%"
-            }}
-            animate={{ 
-              scale: 1, 
-              opacity: 1, 
-              x: 0, 
-              y: 0,
-              borderRadius: "0.5rem"
-            }}
-            exit={{ 
-              scale: 0.1, 
-              opacity: 0, 
-              x: -380, 
-              y: 40,
-              borderRadius: "50%"
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              duration: 0.25
-            }}
-          >
-            {/* Header del carrito */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white">Carrito</h2>
-                <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">1</span>
-              </div>
-              <button
-                onClick={() => setShowCartSidebar(false)}
-                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-full"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+      {/* Animación del carrito */}
+      {product && (
+        <CartAnimation
+          isAnimating={isAnimating}
+          productImage={productImages[currentImageIndex]}
+          onAnimationComplete={handleAnimationComplete}
+        />
+      )}
 
-            {/* Contenido del carrito */}
-            <div className="flex-1 overflow-y-auto p-4 min-h-0">
-              {/* Mensaje de envío gratis */}
-              <div className="bg-green-600 text-white p-3 rounded-lg mb-4">
-                <p className="text-sm font-medium">¡Te faltan solo $56.875,00 para conseguir envío gratis!</p>
-                <div className="w-full bg-green-800 rounded-full h-2 mt-2">
-                  <div className="bg-white h-2 rounded-full" style={{width: '30%'}}></div>
-                </div>
-              </div>
-
-              {/* Producto agregado */}
-              <div className="bg-gray-700 rounded-lg p-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={mainImage} 
-                    alt={product.nombre}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-white text-sm">{product.nombre}</h3>
-                    <p className="text-xs text-gray-300 mb-1">{product.marca}</p>
-                    <p className="text-xs text-gray-400">
-                      {selectedColor} / {selectedSize} / {selectedMaterial}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-white font-bold">${currentPrice.toLocaleString('es-AR')}</span>
-                      <div className="flex items-center gap-2">
-                        <button className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm">-</button>
-                        <span className="text-white text-sm w-6 text-center">{quantity}</span>
-                        <button className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm">+</button>
-                      </div>
-                    </div>
-                    <button className="text-red-400 text-xs mt-2 hover:text-red-300">
-                      Quitar 😢
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Información de envío */}
-              <div className="space-y-4">
-                <div className="border-b border-gray-600 pb-4">
-                  <h4 className="text-white font-medium mb-2">Gastos de envío</h4>
-                  <p className="text-gray-300 text-sm">🚚 Enviamos con Andreani: $6000 a sucursal o $9000 a domicilio 😎</p>
-                </div>
-
-                <div className="border-b border-gray-600 pb-4">
-                  <h4 className="text-white font-medium mb-2">Notas para entrega</h4>
-                  <p className="text-gray-300 text-sm">Indicaciones para la entrega del pedido</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer del carrito */}
-            <div className="border-t border-gray-700 p-4 flex-shrink-0">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-white font-medium">Subtotal</span>
-                <span className="text-white font-bold text-lg">${(currentPrice * quantity).toLocaleString('es-AR')} ARS</span>
-              </div>
-              
-              <div className="space-y-3">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Finalizar pedido 🤝
-                </button>
-                
-                <button
-                  onClick={() => setShowCartSidebar(false)}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  Seguir comprando
-                </button>
-                
-                <Link
-                  to="/cart"
-                  onClick={() => setShowCartSidebar(false)}
-                  className="w-full bg-gray-600 hover:bg-gray-500 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center block"
-                >
-                  Ver carrito completo
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
