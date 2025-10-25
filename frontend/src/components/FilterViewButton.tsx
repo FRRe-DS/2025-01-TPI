@@ -70,14 +70,14 @@ export function FilterViewButton({
             : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
       >
-      <div className="bg-white rounded-full shadow-lg border border-blue-100 px-3 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2 sm:gap-3 backdrop-blur-sm max-w-xs sm:max-w-none transition-all duration-300 ease-out hover:shadow-xl hover:scale-105">
+      <div className="filter-view-container">
         {/* Filter & Sort Button */}
         <button
           ref={buttonRef}
           onClick={onFilterClick}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="text-white px-4 py-2 sm:px-6 sm:py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0 shadow-lg hover:shadow-xl relative overflow-hidden"
+          className="filter-view-button"
           style={{ 
             width: '60%',
             background: isHovered ? 'linear-gradient(135deg, #02244f 0%, #032d70 100%)' : 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
@@ -134,19 +134,15 @@ export function FilterViewButton({
               strokeLinejoin="round"
             />
           </svg>
-          <span className="truncate">Filtrar</span>
+          <span className="filter-view-button-text">Filtrar</span>
         </button>
 
         {/* View Icons */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="filter-view-icons">
           {/* Grid View Icon */}
           <button
             onClick={() => onViewChange('grid')}
-            className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) active:scale-90 ${
-              currentView === 'grid' && !autoView
-                ? 'text-white shadow-md'
-                : 'text-blue-400 hover:text-blue-600 hover:bg-blue-50'
-            }`}
+            className={`filter-view-icon ${currentView === 'grid' && !autoView ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
             style={currentView === 'grid' && !autoView ? {
               background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
               boxShadow: '0 2px 8px rgba(3, 45, 112, 0.3)'
@@ -185,11 +181,7 @@ export function FilterViewButton({
           {onToggleAutoView && (
             <button
               onClick={onToggleAutoView}
-              className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) active:scale-90 ${
-                autoView
-                  ? 'text-white shadow-md'
-                  : 'text-blue-400 hover:text-blue-600 hover:bg-blue-50'
-              }`}
+              className={`filter-view-icon ${autoView ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
               style={autoView ? {
                 background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
                 boxShadow: '0 2px 8px rgba(3, 45, 112, 0.3)'

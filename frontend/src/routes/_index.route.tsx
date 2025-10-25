@@ -198,6 +198,7 @@ export default function IndexRoute() {
 
   return (
     <main className="min-h-screen">
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20">
         <div className="container mx-auto px-8 text-center">
@@ -220,9 +221,9 @@ export default function IndexRoute() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="categories-section">
         <div className="container mx-auto px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
+          <h2 className="categories-title">
             Las categorías más buscadas
           </h2>
           
@@ -254,14 +255,14 @@ export default function IndexRoute() {
 
       {/* Products Section */}
       {showProducts && (
-        <section ref={productsSectionRef} className="py-16 bg-white">
+        <section ref={productsSectionRef} className="products-section">
           <div className="container mx-auto px-8">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-gray-800">
+              <h2 className="products-title">
                 {query ? `Resultados para "${query}"` : "Nuestros Productos"}
               </h2>
               {isSearching && (
-                <div className="flex items-center gap-2 text-blue-600">
+                <div className="products-loading">
                   <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm font-medium">Buscando productos...</span>
                 </div>
@@ -286,7 +287,7 @@ export default function IndexRoute() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
-                <p className="mt-4 text-gray-600">Cargando productos...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando productos...</p>
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -303,7 +304,7 @@ export default function IndexRoute() {
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-600 text-lg">No hay datos disponibles</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">No hay datos disponibles</p>
               </div>
             )}
           </div>

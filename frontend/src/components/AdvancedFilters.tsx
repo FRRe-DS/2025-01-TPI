@@ -49,21 +49,21 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
                           filters.precioMax !== null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">Filtros Avanzados</h3>
-        <div className="flex items-center gap-3">
+    <div className="advanced-filters-container">
+      <div className="advanced-filters-header">
+        <h3 className="advanced-filters-title">Filtros Avanzados</h3>
+        <div className="advanced-filters-actions">
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              className="advanced-filters-clear"
             >
               Limpiar filtros
             </button>
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            className="advanced-filters-toggle"
           >
             <span className="text-sm font-medium">
               {isExpanded ? 'Ocultar' : 'Mostrar'} filtros
@@ -81,16 +81,16 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
       </div>
 
       {isExpanded && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="advanced-filters-grid">
           {/* Categoría */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="advanced-filters-label">
               Categoría
             </label>
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="advanced-filters-select"
             >
               <option value="all">Todas las categorías</option>
               {categories.map(cat => (
@@ -103,13 +103,13 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
 
           {/* Marca */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="advanced-filters-label">
               Marca
             </label>
             <select
               value={filters.marca}
               onChange={(e) => handleFilterChange('marca', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="advanced-filters-select"
             >
               <option value="all">Todas las marcas</option>
               {brands.map(brand => (
@@ -122,13 +122,13 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
 
           {/* Color */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="advanced-filters-label">
               Color
             </label>
             <select
               value={filters.color}
               onChange={(e) => handleFilterChange('color', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="advanced-filters-select"
             >
               <option value="all">Todos los colores</option>
               {colors.map(color => (
@@ -141,30 +141,30 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
 
           {/* Rango de Precio */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="advanced-filters-label">
               Rango de Precio
             </label>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Mínimo</label>
+                <label className="advanced-filters-price-label">Mínimo</label>
                 <input
                   type="number"
                   placeholder={`$${priceRange.min}`}
                   value={filters.precioMin || ''}
                   onChange={(e) => handleFilterChange('precioMin', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+                  className="advanced-filters-input"
                   min={priceRange.min}
                   max={priceRange.max}
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Máximo</label>
+                <label className="advanced-filters-price-label">Máximo</label>
                 <input
                   type="number"
                   placeholder={`$${priceRange.max}`}
                   value={filters.precioMax || ''}
                   onChange={(e) => handleFilterChange('precioMax', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm"
+                  className="advanced-filters-input"
                   min={priceRange.min}
                   max={priceRange.max}
                 />
@@ -176,9 +176,9 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
 
       {/* Filtros activos */}
       {hasActiveFilters && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="advanced-filters-active">
           <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-gray-600">Filtros activos:</span>
+            <span className="advanced-filters-active-text">Filtros activos:</span>
             {filters.category !== 'all' && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                 {categories.find(c => c.id.toString() === filters.category)?.nombre}

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface ThemeToggleProps {
@@ -15,12 +15,22 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   const { theme, toggleTheme, isDark } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Debug: verificar el estado
-  console.log('isDark:', isDark, 'isHovered:', isHovered);
-  console.log('backgroundColor should be:', isDark 
-    ? (isHovered ? '#ffffff' : '#111827')
-    : (isHovered ? '#111827' : '#ffffff'));
+  // Forzar actualización de estilos
+  useEffect(() => {
+    if (buttonRef.current) {
+      const backgroundColor = isDark 
+        ? (isHovered ? '#ffffff' : '#032d70')
+        : (isHovered ? '#032d70' : '#ffffff');
+      const borderColor = isDark 
+        ? (isHovered ? '#ffffff' : '#ffffff')
+        : (isHovered ? '#ffffff' : '#000000');
+      
+      buttonRef.current.style.setProperty('background-color', backgroundColor, 'important');
+      buttonRef.current.style.setProperty('border-color', borderColor, 'important');
+    }
+  }, [isDark, isHovered]);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -44,6 +54,7 @@ export function ThemeToggle({
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Botón circular con ícono */}
       <motion.button
+        ref={buttonRef}
         onClick={toggleTheme}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -52,24 +63,7 @@ export function ThemeToggle({
           border-2 transition-all duration-400 ease-out
           flex items-center justify-center
           group overflow-hidden
-          ${isDark 
-            ? 'bg-gray-900 border-gray-700 hover:border-gray-600' 
-            : 'bg-white border-gray-200 hover:border-gray-300'
-          }
         `}
-        animate={{
-          backgroundColor: isDark 
-            ? (isHovered ? '#ffffff' : '#111827')
-            : (isHovered ? '#111827' : '#ffffff'),
-          borderColor: isDark 
-            ? (isHovered ? '#e5e7eb' : '#374151')
-            : (isHovered ? '#374151' : '#e5e7eb')
-        }}
-        transition={{ 
-          duration: 0.4, 
-          ease: [0.25, 0.46, 0.45, 0.94] 
-        }}
-        style={{ willChange: 'transform, background-color, border-color' }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         aria-label={`Cambiar a modo ${isDark ? 'día' : 'noche'}`}
@@ -78,23 +72,28 @@ export function ThemeToggle({
         <div className="relative flex items-center justify-center w-full h-full">
           {/* Sol - visible en modo día */}
           <motion.svg
-            className={`${iconSizes[size]} ${isDark ? 'text-white' : 'text-gray-900'} absolute`}
+            className={`${iconSizes[size]} absolute`}
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             viewBox="0 0 24 24"
-            style={{ willChange: 'transform, opacity' }}
+            style={{ 
+              willChange: 'transform, opacity, color',
+              color: isDark ? '#ffffff' : '#1e293b'
+            }}
             animate={{
               scale: isDark ? 0 : (isHovered ? 0 : 1),
               rotate: isDark ? 90 : (isHovered ? 45 : 0),
-              opacity: isDark ? 0 : (isHovered ? 0 : 1)
+              opacity: isDark ? 0 : (isHovered ? 0 : 1),
+              color: isDark ? '#ffffff' : '#1e293b'
             }}
             transition={{ 
               duration: 0.4, 
               ease: [0.25, 0.46, 0.45, 0.94],
               scale: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
               rotate: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-              opacity: { duration: 0.25, ease: [0.4, 0, 0.2, 1] }
+              opacity: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+              color: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
             }}
           >
             <circle cx="12" cy="12" r="5" />
@@ -103,23 +102,28 @@ export function ThemeToggle({
 
           {/* Luna - visible en modo noche */}
           <motion.svg
-            className={`${iconSizes[size]} ${isDark ? 'text-white' : 'text-gray-900'} absolute`}
+            className={`${iconSizes[size]} absolute`}
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             viewBox="0 0 24 24"
-            style={{ willChange: 'transform, opacity' }}
+            style={{ 
+              willChange: 'transform, opacity, color',
+              color: isDark ? '#ffffff' : '#032d70'
+            }}
             animate={{
               scale: isDark ? (isHovered ? 0 : 1) : 0,
               rotate: isDark ? (isHovered ? -45 : 0) : -90,
-              opacity: isDark ? (isHovered ? 0 : 1) : 0
+              opacity: isDark ? (isHovered ? 0 : 1) : 0,
+              color: isDark ? '#ffffff' : '#032d70'
             }}
             transition={{ 
               duration: 0.4, 
               ease: [0.25, 0.46, 0.45, 0.94],
               scale: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
               rotate: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-              opacity: { duration: 0.25, ease: [0.4, 0, 0.2, 1] }
+              opacity: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+              color: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
             }}
           >
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
@@ -139,7 +143,7 @@ export function ThemeToggle({
               scale: isDark && isHovered ? 1 : 0,
               rotate: isDark && isHovered ? 0 : 45,
               opacity: isDark && isHovered ? 1 : 0,
-              color: isDark && isHovered ? '#ffffff' : '#000000'
+              color: isDark && isHovered ? '#032d70' : '#ffffff'
             }}
             transition={{ 
               duration: 0.4, 
@@ -168,7 +172,7 @@ export function ThemeToggle({
               scale: !isDark && isHovered ? 1 : 0,
               rotate: !isDark && isHovered ? 0 : -45,
               opacity: !isDark && isHovered ? 1 : 0,
-              color: !isDark && isHovered ? '#000000' : '#ffffff'
+                color: !isDark && isHovered ? '#ffffff' : '#032d70'
             }}
             transition={{ 
               duration: 0.4, 
@@ -185,10 +189,11 @@ export function ThemeToggle({
 
         {/* Efecto de ripple */}
         <motion.div
-          className={`absolute inset-0 rounded-full ${
-            isDark ? 'bg-white/10' : 'bg-gray-900/10'
-          }`}
-          style={{ willChange: 'transform, opacity' }}
+          className="absolute inset-0 rounded-full"
+          style={{ 
+            willChange: 'transform, opacity',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.1)'
+          }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 0, opacity: 0 }}
           whileTap={{ scale: 1.5, opacity: [0, 0.2, 0] }}

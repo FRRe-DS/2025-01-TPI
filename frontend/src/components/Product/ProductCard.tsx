@@ -63,7 +63,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
         return (
             <div 
                 onClick={handleProductClick}
-                className="bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group flex cursor-pointer"
+                className="product-card-list"
             >
                 <div className="relative w-32 h-24 flex-shrink-0">
                     <img src={mainImage} alt={product.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -74,14 +74,14 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                     )}
                 </div>
                 <div className="p-4 flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{product.nombre}</h3>
+                    <h3 className="product-card-title">{product.nombre}</h3>
                     <div className="mt-2 space-y-1">
                         {product.precioOriginal && (
-                            <p className="text-sm text-gray-500 line-through">${product.precioOriginal.toLocaleString('es-AR')}</p>
+                            <p className="product-card-original-price">${product.precioOriginal.toLocaleString('es-AR')}</p>
                         )}
-                        <p className="text-xl font-bold text-gray-900">${product.precio.toLocaleString('es-AR')}</p>
+                        <p className="product-card-price">${product.precio.toLocaleString('es-AR')}</p>
                         {transferPrice && (
-                            <p className="text-sm text-green-600 font-medium">
+                            <p className="product-card-transfer-price">
                                 ${transferPrice.toLocaleString('es-AR')} con transferencia
                             </p>
                         )}
@@ -95,7 +95,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     return (
         <div 
             onClick={handleProductClick}
-            className="bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group cursor-pointer"
+            className="product-card-compact"
         >
             <div className="relative">
                     <img src={mainImage} alt={product.nombre} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -106,15 +106,15 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                     )}
                 </div>
                 <div className="p-1.5">
-                    <h3 className="text-xs font-medium text-gray-800 line-clamp-1 leading-tight mb-1">{product.nombre}</h3>
+                    <h3 className="product-card-compact-title">{product.nombre}</h3>
                     <div className="flex items-center justify-between">
                         {product.precioOriginal ? (
                             <div className="flex items-center gap-1">
-                                <p className="text-[10px] text-gray-500 line-through">${product.precioOriginal.toLocaleString('es-AR')}</p>
-                                <p className="text-xs font-bold text-gray-900">${product.precio.toLocaleString('es-AR')}</p>
+                                <p className="product-card-compact-original-price">${product.precioOriginal.toLocaleString('es-AR')}</p>
+                                <p className="product-card-compact-price">${product.precio.toLocaleString('es-AR')}</p>
                             </div>
                         ) : (
-                            <p className="text-xs font-bold text-gray-900">${product.precio.toLocaleString('es-AR')}</p>
+                            <p className="product-card-compact-price">${product.precio.toLocaleString('es-AR')}</p>
                         )}
                     </div>
                 </div>
@@ -126,7 +126,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     return (
         <div 
             onClick={handleProductClick}
-            className="bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group block cursor-pointer"
+            className="product-card-grid"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onKeyDown={handleKeyDown}
@@ -202,7 +202,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                                 height="14" 
                                 viewBox="0 0 24 24" 
                                 fill="none" 
-                                className="text-gray-700 transition-colors duration-200"
+                                className="text-gray-700 dark:text-gray-300 transition-colors duration-200"
                             >
                                 <path 
                                     d="M15 18L9 12L15 6" 
@@ -270,7 +270,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                                 height="14" 
                                 viewBox="0 0 24 24" 
                                 fill="none" 
-                                className="text-gray-700 transition-colors duration-200"
+                                className="text-gray-700 dark:text-gray-300 transition-colors duration-200"
                             >
                                 <path 
                                     d="M9 18L15 12L9 6" 
@@ -327,19 +327,19 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                 )}
             </div>
             <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{product.nombre}</h3>
+                <h3 className="product-card-title">{product.nombre}</h3>
                 <div className="mt-2 space-y-1">
                     {product.precioOriginal && (
-                        <p className="text-sm text-gray-500 line-through">${product.precioOriginal.toLocaleString('es-AR')}</p>
+                        <p className="product-card-original-price">${product.precioOriginal.toLocaleString('es-AR')}</p>
                     )}
-                    <p className="text-xl font-bold text-gray-900">${product.precio.toLocaleString('es-AR')}</p>
+                    <p className="product-card-price">${product.precio.toLocaleString('es-AR')}</p>
                     {transferPrice && (
-                        <p className="text-sm text-green-600 font-medium">
+                        <p className="product-card-transfer-price">
                             ${transferPrice.toLocaleString('es-AR')} con transferencia
                         </p>
                     )}
                     {product.promociones?.cuotasSinInteres && (
-                        <p className="text-xs text-blue-600">
+                        <p className="product-card-installments">
                             Hasta {product.promociones.cuotasSinInteres} cuotas sin interés
                         </p>
                     )}
