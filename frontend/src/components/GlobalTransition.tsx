@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigation } from '../contexts/NavigationContext';
+import { ThemeToggle } from './ThemeToggle';
 
 export function GlobalTransition() {
   const { isTransitioning, transitionDirection, endTransition } = useNavigation();
@@ -24,7 +25,7 @@ export function GlobalTransition() {
           }}
         >
           <motion.div
-            className="text-white text-center"
+            className="text-white text-center relative"
             initial={{ 
               x: transitionDirection === 'left' ? '-100%' : '100%', 
               opacity: 0 
@@ -48,7 +49,7 @@ export function GlobalTransition() {
             }}
           >
             <motion.div
-              className="text-7xl font-bold"
+              className="text-7xl font-bold relative"
               animate={{ 
                 scale: [1, 1.02, 1],
               }}
@@ -59,6 +60,28 @@ export function GlobalTransition() {
               }}
             >
               Shipper
+            </motion.div>
+            
+            {/* Toggle de tema al lado del logo */}
+            <motion.div
+              className="absolute -right-16 top-1/2 transform -translate-y-1/2"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                transition: { delay: 0.3, duration: 0.4 }
+              }}
+              exit={{ 
+                opacity: 0, 
+                scale: 0.8,
+                transition: { duration: 0.2 }
+              }}
+            >
+              <ThemeToggle 
+                size="lg" 
+                showLabel={true}
+                className="shadow-2xl"
+              />
             </motion.div>
           </motion.div>
         </motion.div>

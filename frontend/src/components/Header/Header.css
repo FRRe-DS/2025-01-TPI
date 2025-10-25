@@ -19,6 +19,7 @@
 .header-left {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .header-left h1 {
@@ -112,6 +113,43 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+/* Toggle de tema en el header - lado izquierdo */
+.header-theme-toggle-left {
+  z-index: 10;
+  margin-left: 0.5rem;
+}
+
+.header-theme-toggle-left button {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.header-theme-toggle-left button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.05) !important;
+}
+
+.header-theme-toggle-left button:active {
+  transform: scale(0.95) !important;
+}
+
+/* Modo oscuro para el toggle en el header */
+.dark .header-theme-toggle-left button {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .header-theme-toggle-left button:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Botón de búsqueda */

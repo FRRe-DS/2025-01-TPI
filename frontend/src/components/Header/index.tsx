@@ -3,6 +3,7 @@ import { useAuth } from "react-oidc-context";
 import { useLocation, useNavigate } from "react-router";
 import UserModal from "./UserModal";
 import ShopCartModal from "./ShopCartModal";
+import { ThemeToggle } from "../ThemeToggle";
 import "./Header.css";
 
 export default function Header() {
@@ -205,6 +206,13 @@ export default function Header() {
                                 <em>Shipper</em>
                             </h1>
                         </a>
+                        
+                        {/* Toggle de tema al lado del logo Shipper */}
+                        <ThemeToggle 
+                            size="sm" 
+                            showLabel={false}
+                            className="header-theme-toggle-left"
+                        />
                     </div>
                     
                     <div className="header-right">
