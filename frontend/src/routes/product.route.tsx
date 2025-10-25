@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
@@ -22,8 +22,11 @@ export default function ProductPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -161,9 +164,128 @@ export default function ProductPage() {
     // Aquí se implementará la lógica para comprar ahora
   };
 
+  const handleGoBack = () => {
+    setIsExiting(true);
+    // Después de que se complete la transición del texto, iniciar fade out y mostrar página destino
+    setTimeout(() => {
+      setIsFadingOut(true);
+    }, 1000);
+    // Navegar después del fade out, manteniendo el contexto de la categoría
+    setTimeout(() => {
+      // Obtener la categoría del producto actual
+      const categoryId = product?.categorias?.[0]?.id;
+      if (categoryId) {
+        navigate('/', { 
+          state: { 
+            scrollToProducts: true, 
+            selectedCategory: categoryId.toString() 
+          } 
+        });
+      } else {
+        navigate('/');
+      }
+    }, 1400);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F7F2] py-8">
+    <>
+      {/* Overlay de transición con colores de Shipper */}
+      <AnimatePresence>
+        {isExiting && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ 
+              opacity: isFadingOut ? 0 : 1 
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ 
+              duration: isFadingOut ? 0.4 : 0.3, 
+              ease: "easeInOut" 
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)'
+            }}
+          >
+            <motion.div
+              className="text-white text-center"
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ 
+                x: 0, 
+                opacity: 1,
+                transition: {
+                  duration: 0.6,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }
+              }}
+              exit={{ 
+                x: '-100%', 
+                opacity: 0,
+                transition: {
+                  duration: 0.6,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                  delay: 0.2
+                }
+              }}
+            >
+              <motion.div
+                className="text-7xl font-bold"
+                animate={{ 
+                  scale: [1, 1.02, 1],
+                }}
+                transition={{ 
+                  duration: 2, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+              >
+                Shipper
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        className="min-h-screen bg-[#F8F7F2] py-8"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ 
+          opacity: isExiting ? (isFadingOut ? 1 : 0) : 1, 
+          x: isExiting ? (isFadingOut ? 0 : -50) : 0 
+        }}
+        transition={{ 
+          duration: 0.4, 
+          ease: "easeInOut" 
+        }}
+      >
       <div className="max-w-6xl mx-auto px-4">
+        {/* Botón Volver Atrás */}
+        <div className="mb-6">
+          <button 
+            onClick={handleGoBack}
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 group"
+          >
+            <div className="p-2 rounded-full bg-white shadow-sm border border-gray-200 group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                className="text-gray-600 group-hover:text-gray-800 transition-colors duration-200"
+              >
+                <path 
+                  d="M19 12H5M12 19l-7-7 7-7" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span className="text-sm font-medium">Volver a productos</span>
+          </button>
+        </div>
+        
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Carrusel de imágenes - Estilo Apple */}
@@ -172,7 +294,7 @@ export default function ProductPage() {
                 <img 
                   src={mainImage} 
                   alt={product.nombre}
-                  className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500"
+                  className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500 ease-out"
                 />
                 
                 {/* Navegación con flechas */}
@@ -182,7 +304,7 @@ export default function ProductPage() {
                       onClick={() => setCurrentImageIndex(prev => 
                         prev === 0 ? productImages.length - 1 : prev - 1
                       )}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -193,7 +315,7 @@ export default function ProductPage() {
                       onClick={() => setCurrentImageIndex(prev => 
                         prev === productImages.length - 1 ? 0 : prev + 1
                       )}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -210,7 +332,7 @@ export default function ProductPage() {
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      className={`w-2 h-2 rounded-full transition-all duration-300 hover:scale-125 ${
                         index === currentImageIndex 
                           ? 'bg-gray-800 w-8' 
                           : 'bg-gray-300 hover:bg-gray-500'
@@ -805,6 +927,7 @@ export default function ProductPage() {
         />
       )}
 
-    </div>
+      </motion.div>
+    </>
   );
 }

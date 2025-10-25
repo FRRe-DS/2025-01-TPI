@@ -1,5 +1,6 @@
 // src/routes/index.route.tsx
 import { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router";
 import { getProducts, type PaginatedProducts } from "../services/product.service";
 import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
@@ -9,6 +10,7 @@ import ProductSorting from "../components/ProductSorting";
 import { FilterViewButton } from "../components/FilterViewButton";
 
 export default function IndexRoute() {
+  const location = useLocation();
   const [productData, setProductData] = useState<PaginatedProducts | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -153,26 +155,45 @@ export default function IndexRoute() {
     const newAutoView = !autoView;
     setAutoView(newAutoView);
     
-    // Si se activa auto-vista, actualizar el viewMode basado en la cantidad de productos
-    if (newAutoView && productData) {
-      if (productData.products.length >= 10) {
-        setViewMode('compact');
-      } else {
-        setViewMode('grid');
-      }
+    // Si se activa auto-vista, usar vista grid por defecto
+    if (newAutoView) {
+      setViewMode('grid');
     }
   };
 
   // Efecto para actualizar automáticamente la vista cuando cambia la cantidad de productos
   useEffect(() => {
     if (autoView && productData) {
-      if (productData.products.length >= 10) {
-        setViewMode('compact');
-      } else {
-        setViewMode('grid');
-      }
+      // Siempre usar vista grid por defecto
+      setViewMode('grid');
     }
   }, [productData?.products.length, autoView]);
+
+  // Manejar estado de navegación desde la página de producto
+  useEffect(() => {
+    if (location.state) {
+      const { scrollToProducts, selectedCategory } = location.state as { 
+        scrollToProducts?: boolean; 
+        selectedCategory?: string; 
+      };
+      
+      if (selectedCategory) {
+        setFilters(prev => ({ ...prev, category: selectedCategory }));
+        setQuery("");
+        setShowProducts(true);
+        
+        // Scroll a productos después de un pequeño delay
+        setTimeout(() => {
+          if (productsSectionRef.current) {
+            productsSectionRef.current.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        }, 100);
+      }
+    }
+  }, [location.state]);
 
 
   return (

@@ -23,11 +23,7 @@ export default function ProductList({ products, viewMode = 'grid', autoView = fa
   const getEffectiveViewMode = () => {
     if (!autoView) return viewMode;
     
-    // Si hay 10 o más productos, usar vista compacta
-    if (products.length >= 10) return 'compact';
-    // Si hay 4-9 productos, usar vista grid normal
-    if (products.length >= 4) return 'grid';
-    // Si hay menos de 4, usar vista grid normal
+    // Siempre usar vista grid por defecto, independientemente de la cantidad de productos
     return 'grid';
   };
 

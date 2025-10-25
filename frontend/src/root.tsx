@@ -12,6 +12,8 @@ import "./App.css";
 import Header from "./components/Header";
 import type { User } from "oidc-client-ts";
 import { CartProvider } from "./contexts/CartContext";
+import { NavigationProvider } from "./contexts/NavigationContext";
+import { GlobalTransition } from "./components/GlobalTransition";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const oidcConfig = {
@@ -45,8 +47,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <AuthProvider {...oidcConfig}>
           <CartProvider>
-            <Header/>
-            {children}
+            <NavigationProvider>
+              <Header/>
+              {children}
+              <GlobalTransition />
+            </NavigationProvider>
           </CartProvider>
         </AuthProvider>
         <ScrollRestoration />
