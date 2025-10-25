@@ -3,14 +3,13 @@ import { useEffect, useState, useRef } from "react";
 import { getProducts, type PaginatedProducts } from "../services/product.service";
 import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
-import { Pagination } from "../components/Product/Pagination";
 import CategoryCard from "../components/CategoryCard";
 import AdvancedFilters, { type FilterState } from "../components/AdvancedFilters";
 import ProductSorting from "../components/ProductSorting";
+import { FilterViewButton } from "../components/FilterViewButton";
 
 export default function IndexRoute() {
   const [productData, setProductData] = useState<PaginatedProducts | null>(null);
-  const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +23,14 @@ export default function IndexRoute() {
     precioMin: null,
     precioMax: null
   });
-  const limit = 8;
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
+  const [autoView, setAutoView] = useState(true);
+  const [showFilterButton, setShowFilterButton] = useState(false);
+  const limit = 1000; // Mostrar todos los productos sin paginación
   
   // Ref para hacer scroll a la sección de productos
   const productsSectionRef = useRef<HTMLElement>(null);
+  const filterButtonRef = useRef<HTMLDivElement>(null);
 
   // Cargar query del localStorage al montar el componente
   useEffect(() => {
@@ -40,13 +43,27 @@ export default function IndexRoute() {
     }
   }, []);
 
+  // Efecto para mostrar/ocultar el botón de filtros basado en scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (productsSectionRef.current && showProducts) {
+        const rect = productsSectionRef.current.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight * 0.3; // Mostrar cuando la sección esté 30% visible
+        setShowFilterButton(isVisible);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showProducts]);
+
   useEffect(() => {
     if (showProducts) {
       setLoading(true);
       setError(null);
       
       getProducts({ 
-        page, 
+        page: 1, 
         limit, 
         q: query, 
         categoryId: filters.category !== 'all' ? filters.category : undefined,
@@ -66,7 +83,7 @@ export default function IndexRoute() {
           setLoading(false);
         });
     }
-  }, [page, query, filters, sortBy, limit, showProducts]);
+  }, [query, filters, sortBy, limit, showProducts]);
 
   const scrollToProducts = () => {
     if (productsSectionRef.current) {
@@ -80,7 +97,6 @@ export default function IndexRoute() {
   const handleSearch = (q: string) => {
     setIsSearching(true);
     setQuery(q);
-    setPage(1);
     setShowProducts(true);
     
     // Scroll suave a la sección de productos después de un pequeño delay
@@ -94,7 +110,6 @@ export default function IndexRoute() {
     setIsSearching(true);
     setFilters(prev => ({ ...prev, category: categoryId }));
     setQuery("");
-    setPage(1);
     setShowProducts(true);
     
     // Scroll suave a la sección de productos después de un pequeño delay
@@ -106,7 +121,6 @@ export default function IndexRoute() {
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    setPage(1);
     setShowProducts(true);
     
     // Scroll suave a la sección de productos
@@ -117,9 +131,49 @@ export default function IndexRoute() {
 
   const handleSortChange = (newSortBy: string) => {
     setSortBy(newSortBy);
-    setPage(1);
     setShowProducts(true);
   };
+
+  const handleFilterButtonClick = () => {
+    // Scroll hacia arriba para mostrar los filtros
+    if (productsSectionRef.current) {
+      productsSectionRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
+  const handleViewChange = (view: 'grid' | 'list' | 'compact') => {
+    setViewMode(view);
+    setAutoView(false); // Desactivar auto-vista cuando el usuario selecciona manualmente
+  };
+
+  const toggleAutoView = () => {
+    const newAutoView = !autoView;
+    setAutoView(newAutoView);
+    
+    // Si se activa auto-vista, actualizar el viewMode basado en la cantidad de productos
+    if (newAutoView && productData) {
+      if (productData.products.length >= 10) {
+        setViewMode('compact');
+      } else {
+        setViewMode('grid');
+      }
+    }
+  };
+
+  // Efecto para actualizar automáticamente la vista cuando cambia la cantidad de productos
+  useEffect(() => {
+    if (autoView && productData) {
+      if (productData.products.length >= 10) {
+        setViewMode('compact');
+      } else {
+        setViewMode('grid');
+      }
+    }
+  }, [productData?.products.length, autoView]);
+
 
   return (
     <main className="min-h-screen">
@@ -220,16 +274,11 @@ export default function IndexRoute() {
               </div>
             ) : productData ? (
               <>
-                <ProductList products={productData.products} />
-                {productData.totalPages > 1 && (
-                  <div className="mt-12">
-                    <Pagination 
-                      currentPage={productData.currentPage} 
-                      totalPages={productData.totalPages} 
-                      onPageChange={setPage} 
-                    />
-                  </div>
-                )}
+                <ProductList 
+                  products={productData.products} 
+                  viewMode={viewMode}
+                  autoView={autoView}
+                />
               </>
             ) : (
               <div className="text-center py-12">
@@ -239,6 +288,16 @@ export default function IndexRoute() {
           </div>
         </section>
       )}
+
+      {/* Filter View Button - Fixed at bottom */}
+      <FilterViewButton
+        onFilterClick={handleFilterButtonClick}
+        onViewChange={handleViewChange}
+        currentView={viewMode}
+        isVisible={showFilterButton}
+        autoView={autoView}
+        onToggleAutoView={toggleAutoView}
+      />
     </main>
   );
 }
