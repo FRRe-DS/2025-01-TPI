@@ -26,7 +26,6 @@ export default function IndexRoute() {
     precioMax: null
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
-  const [autoView, setAutoView] = useState(true);
   const [showFilterButton, setShowFilterButton] = useState(false);
   const limit = 1000; // Mostrar todos los productos sin paginación
   
@@ -148,26 +147,7 @@ export default function IndexRoute() {
 
   const handleViewChange = (view: 'grid' | 'list' | 'compact') => {
     setViewMode(view);
-    setAutoView(false); // Desactivar auto-vista cuando el usuario selecciona manualmente
   };
-
-  const toggleAutoView = () => {
-    const newAutoView = !autoView;
-    setAutoView(newAutoView);
-    
-    // Si se activa auto-vista, usar vista grid por defecto
-    if (newAutoView) {
-      setViewMode('grid');
-    }
-  };
-
-  // Efecto para actualizar automáticamente la vista cuando cambia la cantidad de productos
-  useEffect(() => {
-    if (autoView && productData) {
-      // Siempre usar vista grid por defecto
-      setViewMode('grid');
-    }
-  }, [productData?.products.length, autoView]);
 
   // Manejar estado de navegación desde la página de producto
   useEffect(() => {
@@ -287,7 +267,7 @@ export default function IndexRoute() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando productos...</p>
+                <p className="mt-4 text-gray-600 dark:text-blue-300">Cargando productos...</p>
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -299,12 +279,11 @@ export default function IndexRoute() {
                 <ProductList 
                   products={productData.products} 
                   viewMode={viewMode}
-                  autoView={autoView}
                 />
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400 text-lg">No hay datos disponibles</p>
+                <p className="text-gray-600 dark:text-blue-300 text-lg">No hay datos disponibles</p>
               </div>
             )}
           </div>
@@ -317,8 +296,6 @@ export default function IndexRoute() {
         onViewChange={handleViewChange}
         currentView={viewMode}
         isVisible={showFilterButton}
-        autoView={autoView}
-        onToggleAutoView={toggleAutoView}
       />
     </main>
   );

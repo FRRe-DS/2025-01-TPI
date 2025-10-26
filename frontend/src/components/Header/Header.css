@@ -754,6 +754,12 @@
   animation: slideIn 0.3s ease-out;
 }
 
+/* Modo oscuro para el modal */
+.dark .profile-modal {
+  background: #1e40af;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
 /* Header del modal */
 .profile-modal-header {
   display: flex;
@@ -797,6 +803,11 @@
   padding: 2rem;
 }
 
+/* Modo oscuro para el formulario */
+.dark .profile-form {
+  background: #1e40af;
+}
+
 /* Header del perfil (avatar + nombre) */
 .profile-header {
   display: flex;
@@ -828,10 +839,18 @@
   font-weight: 700;
 }
 
+.dark .profile-name h3 {
+  color: #ffffff;
+}
+
 .profile-name p {
   margin: 0;
   color: #6b7280;
   font-size: 0.95rem;
+}
+
+.dark .profile-name p {
+  color: #93c5fd;
 }
 
 /* Secciones del formulario */
@@ -846,6 +865,11 @@
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #e5e7eb;
+}
+
+.dark .form-section h3 {
+  color: #ffffff;
+  border-bottom-color: #3b82f6;
 }
 
 /* Fila de campos */
@@ -870,6 +894,10 @@
   margin-bottom: 0.5rem;
 }
 
+.dark .form-field label {
+  color: #ffffff;
+}
+
 .form-field input {
   padding: 0.75rem;
   border: 2px solid #e5e7eb;
@@ -879,16 +907,32 @@
   background: white;
 }
 
+.dark .form-field input {
+  background: #1e40af;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
 .form-field input:focus {
   outline: none;
   border-color: #032d70;
   box-shadow: 0 0 0 3px rgba(3, 45, 112, 0.1);
 }
 
+.dark .form-field input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
 .form-field input.disabled {
   background: #f3f4f6;
   color: #6b7280;
   cursor: not-allowed;
+}
+
+.dark .form-field input.disabled {
+  background: #1e40af;
+  color: #93c5fd;
 }
 
 .field-note {
@@ -898,6 +942,10 @@
   font-style: italic;
 }
 
+.dark .field-note {
+  color: #93c5fd;
+}
+
 /* Botones de acción */
 .form-actions {
   display: flex;
@@ -905,6 +953,10 @@
   justify-content: flex-end;
   padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
+}
+
+.dark .form-actions {
+  border-top-color: #3b82f6;
 }
 
 .btn-primary,
@@ -940,9 +992,20 @@
   border: 2px solid #e5e7eb;
 }
 
+.dark .btn-secondary {
+  background: #1e40af;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
 .btn-secondary:hover:not(:disabled) {
   background: #f3f4f6;
   border-color: #032d70;
+}
+
+.dark .btn-secondary:hover:not(:disabled) {
+  background: #1e40af;
+  border-color: #60a5fa;
 }
 
 .btn-secondary:disabled {
@@ -972,6 +1035,10 @@
 .loading-spinner p {
   color: #6b7280;
   font-size: 0.95rem;
+}
+
+.dark .loading-spinner p {
+  color: #93c5fd;
 }
 
 /* Mensaje de error */

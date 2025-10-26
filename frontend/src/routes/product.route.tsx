@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
 import { useCart } from '../contexts/CartContext';
+import { useTheme } from '../contexts/ThemeContext';
 import CartAnimation from '../components/CartAnimation';
 import './product.css';
 
@@ -26,6 +27,7 @@ export default function ProductPage() {
   const [isFadingOut, setIsFadingOut] = useState(false);
   
   const { addToCart } = useCart();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,18 +97,18 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F7F2] flex items-center justify-center">
-        <div className="text-gray-600">Cargando producto...</div>
+      <div className="min-h-screen bg-[#F8F7F2] dark:bg-blue-700 flex items-center justify-center">
+        <div className="text-gray-600 dark:text-blue-300">Cargando producto...</div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#F8F7F2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F7F2] dark:bg-blue-700 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
-          <Link to="/" className="text-green-600 hover:text-green-700">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Producto no encontrado</h1>
+          <Link to="/" className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">
             Volver al inicio
           </Link>
         </div>
@@ -193,7 +195,7 @@ export default function ProductPage() {
       <AnimatePresence>
         {isExiting && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-[9999] flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ 
               opacity: isFadingOut ? 0 : 1 
@@ -247,7 +249,7 @@ export default function ProductPage() {
       </AnimatePresence>
 
       <motion.div 
-        className="min-h-screen bg-[#F8F7F2] py-8"
+        className={`min-h-screen py-8 ${isDark ? 'bg-blue-800' : 'bg-[#F8F7F2]'}`}
         initial={{ opacity: 0, x: 50 }}
         animate={{ 
           opacity: isExiting ? (isFadingOut ? 1 : 0) : 1, 
@@ -263,15 +265,15 @@ export default function ProductPage() {
         <div className="mb-6">
           <button 
             onClick={handleGoBack}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 group"
+            className={`inline-flex items-center gap-2 transition-colors duration-200 group ${isDark ? 'text-blue-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
           >
-            <div className="p-2 rounded-full bg-white shadow-sm border border-gray-200 group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
+            <div className={`p-2 rounded-full shadow-sm border group-hover:shadow-md group-hover:scale-105 transition-all duration-200 ${isDark ? 'bg-blue-800 border-blue-600' : 'bg-white border-gray-200'}`}>
               <svg 
                 width="16" 
                 height="16" 
                 viewBox="0 0 24 24" 
                 fill="none" 
-                className="text-gray-600 group-hover:text-gray-800 transition-colors duration-200"
+                className={`transition-colors duration-200 ${isDark ? 'text-blue-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-800'}`}
               >
                 <path 
                   d="M19 12H5M12 19l-7-7 7-7" 
@@ -346,22 +348,22 @@ export default function ProductPage() {
             {/* Detalles del producto */}
             <div className="space-y-8">
             {/* Marca */}
-            <div className="text-sm text-gray-600 font-medium">
+            <div className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-600'}`}>
               {product.marca}
             </div>
 
             {/* Nombre del producto */}
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
               {product.nombre}
             </h1>
 
             {/* Precio */}
             <div className="flex items-center gap-4">
-              <span className="text-2xl font-bold text-gray-800">
+              <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 ${currentPrice.toLocaleString('es-AR')}
               </span>
               {product.precioOriginal && (
-                <span className="text-lg text-gray-500 line-through">
+                <span className={`text-lg line-through ${isDark ? 'text-blue-400' : 'text-gray-500'}`}>
                   ${product.precioOriginal.toLocaleString('es-AR')}
                 </span>
               )}
@@ -415,7 +417,7 @@ export default function ProductPage() {
 
             {/* Selección de color */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-700'}`}>
                 Color
               </label>
               <div className="flex gap-3">
@@ -458,7 +460,7 @@ export default function ProductPage() {
 
             {/* Selección de tamaño */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-700'}`}>
                 Medida: {selectedSize}
               </label>
               <div className="flex gap-3">
@@ -487,7 +489,7 @@ export default function ProductPage() {
 
             {/* Selección de material */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-700'}`}>
                 Material: {selectedMaterial}
               </label>
               <div className="flex gap-3">
@@ -516,19 +518,19 @@ export default function ProductPage() {
 
             {/* Selector de cantidad y botones */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center border border-gray-300 rounded-lg bg-white min-w-[120px]">
+              <div className={`flex items-center border rounded-lg min-w-[120px] ${isDark ? 'border-blue-600 bg-blue-800' : 'border-gray-300 bg-white'}`}>
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                  className={`px-3 py-2 transition-colors ${isDark ? 'text-blue-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
                 >
                   &lt;
                 </button>
-                <span className="px-4 py-2 text-gray-800 font-medium min-w-[40px] text-center">
+                <span className={`px-4 py-2 font-medium min-w-[40px] text-center ${isDark ? 'text-white' : 'text-gray-800'}`}>
                   {quantity}
                 </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                  className={`px-3 py-2 transition-colors ${isDark ? 'text-blue-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
                 >
                   &gt;
                 </button>
@@ -579,27 +581,27 @@ export default function ProductPage() {
             <div className="space-y-3">
               {product.garantia && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Garantía</span>
-                  <span className="font-semibold text-gray-900">{product.garantia}</span>
+                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Garantía</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.garantia}</span>
                 </div>
               )}
               
               {product.tiempoFabricacion && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Tiempo de fabricación</span>
-                  <span className="font-semibold text-gray-900">{product.tiempoFabricacion}</span>
+                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Tiempo de fabricación</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.tiempoFabricacion}</span>
                 </div>
               )}
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Envío</span>
-                <span className="font-semibold text-gray-900">24-48 horas</span>
+                <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Envío</span>
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>24-48 horas</span>
               </div>
 
               {product.politicas && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Políticas</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Políticas</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {product.politicas.cambio ? 'Cambio ✓' : 'Sin cambio ✗'} • 
                     {product.politicas.devolucion ? 'Devolución ✓' : 'Sin devolución ✗'}
                   </span>
@@ -607,10 +609,10 @@ export default function ProductPage() {
               )}
 
               {/* Métodos de pago - Estilo Apple */}
-              <div className="pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className={`pt-3 border-t ${isDark ? 'border-blue-600' : 'border-gray-100'}`}>
+                <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-blue-400' : 'text-gray-500'}`}>
                   <span>Métodos de pago:</span>
-                  <span className="text-gray-600">Visa • Mastercard • Transferencia • Mercado Pago</span>
+                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Visa • Mastercard • Transferencia • Mercado Pago</span>
                 </div>
               </div>
             </div>
@@ -619,19 +621,19 @@ export default function ProductPage() {
         </div>
 
         {/* Descripción del producto */}
-        <div className="mt-12 bg-white rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Descripción</h2>
-          <p className="text-gray-600 leading-relaxed">
+        <div className={`mt-12 rounded-lg p-6 shadow-sm ${isDark ? 'bg-[#032d70]' : 'bg-white'}`}>
+          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Descripción</h2>
+          <p className={`leading-relaxed ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
             {product.descripcion}
           </p>
         </div>
 
         {/* Características */}
-        <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Características</h2>
+        <div className={`mt-6 rounded-lg p-6 shadow-sm ${isDark ? 'bg-[#032d70]' : 'bg-white'}`}>
+          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Características</h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {product.caracteristicas.map((caracteristica, index) => (
-              <li key={index} className="flex items-center gap-2 text-gray-600">
+              <li key={index} className={`flex items-center gap-2 ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
                 <span className="text-green-600">✓</span>
                 <span>{caracteristica}</span>
               </li>
@@ -641,30 +643,30 @@ export default function ProductPage() {
 
         {/* Detalles del producto */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">DETALLES DEL PRODUCTO</h2>
-          <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
+          <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>DETALLES DEL PRODUCTO</h2>
+          <div className={`space-y-0 border rounded-lg overflow-hidden ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
             {/* Acordeón 1 - Descripción Serie Classic */}
-            <div className="border-b border-gray-200">
+            <div className={`border-b ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'classic' ? null : 'classic')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
               >
-                <span className="font-semibold text-gray-800">DESCRIPCIÓN SERIE CLASSIC</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'classic' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>DESCRIPCIÓN SERIE CLASSIC</span>
+                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'classic' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'classic' && (
                   <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
+                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
+                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -688,27 +690,27 @@ export default function ProductPage() {
             </div>
 
             {/* Acordeón 2 - Descripción Serie PRO */}
-            <div className="border-b border-gray-200">
+            <div className={`border-b ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'pro' ? null : 'pro')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
               >
-                <span className="font-semibold text-gray-800">DESCRIPCIÓN SERIE PRO</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'pro' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>DESCRIPCIÓN SERIE PRO</span>
+                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'pro' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'pro' && (
                   <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
+                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
+                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -732,27 +734,27 @@ export default function ProductPage() {
             </div>
 
             {/* Acordeón 3 - Cambio y Devolución */}
-            <div className="border-b border-gray-200">
+            <div className={`border-b ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'cambio' ? null : 'cambio')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
               >
-                <span className="font-semibold text-gray-800">¿TIENEN CAMBIO O DEVOLUCIÓN?</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'cambio' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>¿TIENEN CAMBIO O DEVOLUCIÓN?</span>
+                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'cambio' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'cambio' && (
                   <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
+                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
+                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -782,24 +784,24 @@ export default function ProductPage() {
             <div>
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'fabricacion' ? null : 'fabricacion')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
               >
-                <span className="font-semibold text-gray-800">¿QUÉ DEMORA TIENEN EN FABRICARSE?</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'fabricacion' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>¿QUÉ DEMORA TIENEN EN FABRICARSE?</span>
+                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'fabricacion' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'fabricacion' && (
                   <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
+                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
+                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -821,10 +823,10 @@ export default function ProductPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">También te puede gustar</h2>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>También te puede gustar</h2>
               <div className="flex gap-2">
-                <button className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? 'bg-blue-700 hover:bg-blue-600' : 'bg-gray-200 hover:bg-gray-300'}`}>
+                  <svg className={`w-4 h-4 ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
@@ -847,7 +849,7 @@ export default function ProductPage() {
                   <Link 
                     key={relatedProduct.id}
                     to={`/product/${relatedProduct.id}`}
-                    className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
+                    className={`rounded-lg shadow-sm overflow-hidden transition-shadow group ${isDark ? 'bg-[#032d70] shadow-blue-900/20 hover:shadow-blue-900/30' : 'bg-white hover:shadow-md'}`}
                   >
                     <div className="h-48 relative overflow-hidden">
                       <img 
@@ -858,16 +860,16 @@ export default function ProductPage() {
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-800 text-sm mb-2 line-clamp-2">
+                      <h3 className={`font-semibold text-sm mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                         {relatedProduct.nombre}
                       </h3>
                       <div className="space-y-1">
                         {relatedProduct.precioOriginal && (
-                          <div className="text-xs text-gray-500 line-through">
+                          <div className={`text-xs line-through ${isDark ? 'text-blue-400' : 'text-gray-500'}`}>
                             ${relatedProduct.precioOriginal.toLocaleString('es-AR')}
                           </div>
                         )}
-                        <div className="text-sm font-bold text-gray-800">
+                        <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                           ${relatedProduct.precio.toLocaleString('es-AR')}
                         </div>
                         {transferPrice && (

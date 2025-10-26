@@ -5,17 +5,13 @@ interface FilterViewButtonProps {
   onViewChange: (view: 'grid' | 'list' | 'compact') => void;
   currentView: 'grid' | 'list' | 'compact';
   isVisible: boolean;
-  autoView?: boolean;
-  onToggleAutoView?: () => void;
 }
 
 export function FilterViewButton({ 
   onFilterClick, 
   onViewChange, 
   currentView, 
-  isVisible,
-  autoView = false,
-  onToggleAutoView
+  isVisible
 }: FilterViewButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -142,8 +138,8 @@ export function FilterViewButton({
           {/* Grid View Icon */}
           <button
             onClick={() => onViewChange('grid')}
-            className={`filter-view-icon ${currentView === 'grid' && !autoView ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
-            style={currentView === 'grid' && !autoView ? {
+            className={`filter-view-icon ${currentView === 'grid' ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
+            style={currentView === 'grid' ? {
               background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
               boxShadow: '0 2px 8px rgba(3, 45, 112, 0.3)'
             } : {}}
@@ -177,42 +173,42 @@ export function FilterViewButton({
             </svg>
           </button>
 
-          {/* Auto View Toggle */}
-          {onToggleAutoView && (
-            <button
-              onClick={onToggleAutoView}
-              className={`filter-view-icon ${autoView ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
-              style={autoView ? {
-                background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
-                boxShadow: '0 2px 8px rgba(3, 45, 112, 0.3)'
-              } : {}}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = 'scale(0.9)';
-                const svg = e.currentTarget.querySelector('svg');
-                if (svg) svg.classList.add('icon-bounce');
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              aria-label={autoView ? "Vista automática activada" : "Activar vista automática"}
-              title={autoView ? "Vista automática activada" : "Activar vista automática"}
+          {/* Compact View Icon */}
+          <button
+            onClick={() => onViewChange('compact')}
+            className={`filter-view-icon ${currentView === 'compact' ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
+            style={currentView === 'compact' ? {
+              background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
+              boxShadow: '0 2px 8px rgba(3, 45, 112, 0.3)'
+            } : {}}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'scale(0.9)';
+              e.currentTarget.classList.add('smooth-press');
+              const svg = e.currentTarget.querySelector('svg');
+              if (svg) svg.classList.add('icon-bounce');
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.classList.remove('smooth-press');
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.classList.remove('smooth-press');
+            }}
+            aria-label="Vista compacta"
+          >
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none"
+              className="transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) sm:w-[18px] sm:h-[18px]"
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none"
-                className="transition-all duration-200 sm:w-[18px] sm:h-[18px]"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-              </svg>
-            </button>
-          )}
+              <rect x="3" y="3" width="18" height="4" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="3" y="10" width="18" height="4" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="3" y="17" width="18" height="4" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+            </svg>
+          </button>
         </div>
       </div>
       </div>
