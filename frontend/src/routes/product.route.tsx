@@ -260,7 +260,7 @@ export default function ProductPage() {
           ease: "easeInOut" 
         }}
       >
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-8xl mx-auto px-16">
         {/* Botón Volver Atrás */}
         <div className="mb-6">
           <button 
@@ -288,56 +288,91 @@ export default function ProductPage() {
           </button>
         </div>
         
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            {/* Carrusel de imágenes - Estilo Apple */}
+        <div className="max-w-8xl mx-auto px-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+            {/* Galería de imágenes con miniaturas - Estilo Apple */}
             <div className="sticky top-8">
-              <div className="relative group">
-                <img 
-                  src={mainImage} 
-                  alt={product.nombre}
-                  className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500 ease-out"
-                />
-                
-                {/* Navegación con flechas */}
+              <div className="flex gap-4">
+                {/* Miniaturas verticales */}
                 {productImages.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setCurrentImageIndex(prev => 
-                        prev === 0 ? productImages.length - 1 : prev - 1
-                      )}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
-                    
-                    <button
-                      onClick={() => setCurrentImageIndex(prev => 
-                        prev === productImages.length - 1 ? 0 : prev + 1
-                      )}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </>
+                  <div className="flex flex-col gap-4 h-[500px] justify-start flex-shrink-0">
+                    {productImages.map((image, index) => {
+                      // Calcular altura dinámica para cada miniatura
+                      const thumbnailHeight = Math.floor(500 / productImages.length) - 12; // 12px para gaps
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`relative w-24 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 flex-shrink-0 ${
+                            index === currentImageIndex 
+                              ? `${isDark ? 'ring-2 ring-blue-400 shadow-lg shadow-blue-400/30 opacity-100' : 'ring-2 ring-gray-800 shadow-lg opacity-100'}`
+                              : `${isDark ? 'hover:ring-1 hover:ring-blue-300 hover:shadow-md hover:shadow-blue-300/20 opacity-40 hover:opacity-70' : 'hover:ring-1 hover:ring-gray-400 hover:shadow-md opacity-40 hover:opacity-70'}`
+                          }`}
+                          style={{ height: `${thumbnailHeight}px` }}
+                        >
+                          <img 
+                            src={image} 
+                            alt={`${product.nombre} - Vista ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Overlay sutil para la miniatura activa */}
+                          {index === currentImageIndex && (
+                            <div className={`absolute inset-0 ${isDark ? 'bg-blue-400/10' : 'bg-gray-800/10'}`}></div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
+                
+                {/* Imagen principal */}
+                <div className="flex-1 relative group min-w-0">
+                  <img 
+                    src={mainImage} 
+                    alt={product.nombre}
+                    className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500 ease-out"
+                  />
+                  
+                  {/* Navegación con flechas */}
+                  {productImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentImageIndex(prev => 
+                          prev === 0 ? productImages.length - 1 : prev - 1
+                        )}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      
+                      <button
+                        onClick={() => setCurrentImageIndex(prev => 
+                          prev === productImages.length - 1 ? 0 : prev + 1
+                        )}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               
               {/* Indicadores (puntitos) */}
               {productImages.length > 1 && (
-                <div className="flex justify-center mt-4 space-x-2">
+                <div className="flex justify-center mt-4 space-x-2 ml-20">
                   {productImages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
                       className={`w-2 h-2 rounded-full transition-all duration-300 hover:scale-125 ${
                         index === currentImageIndex 
-                          ? 'bg-gray-800 w-8' 
-                          : 'bg-gray-300 hover:bg-gray-500'
+                          ? `${isDark ? 'bg-blue-400 w-8' : 'bg-gray-800 w-8'}`
+                          : `${isDark ? 'bg-blue-600 hover:bg-blue-500' : 'bg-gray-300 hover:bg-gray-500'}`
                       }`}
                     />
                   ))}
