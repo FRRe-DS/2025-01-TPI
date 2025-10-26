@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { FavoriteModal } from './FavoriteModal';
 
 interface FavoriteIconProps {
   productId: string;
@@ -9,6 +10,20 @@ interface FavoriteIconProps {
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  product?: {
+    id: string;
+    nombre: string;
+    precio: number;
+    descripcion?: string;
+    imagen?: string;
+  };
+  existingLists?: Array<{
+    id: string;
+    nombre: string;
+    productos: string[];
+  }>;
+  onCreateList?: (nombre: string, productId: string) => Promise<void>;
+  onAddToList?: (listId: string, productId: string) => Promise<void>;
 }
 
 const FavoriteIcon: React.FC<FavoriteIconProps> = ({
@@ -18,10 +33,15 @@ const FavoriteIcon: React.FC<FavoriteIconProps> = ({
   isLoading = false,
   disabled = false,
   size = 'md',
-  className = ''
+  className = '',
+  product,
+  existingLists = [],
+  onCreateList,
+  onAddToList
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [localIsFavorite, setLocalIsFavorite] = useState(isFavorite);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -39,8 +59,14 @@ const FavoriteIcon: React.FC<FavoriteIconProps> = ({
     e.stopPropagation(); // Previene que se propague al elemento padre
     if (disabled || isLoading) return;
     
-    // Cambio visual local sin llamar a la API
-    setLocalIsFavorite(!localIsFavorite);
+    // Cambio visual local
+    const newFavoriteState = !localIsFavorite;
+    setLocalIsFavorite(newFavoriteState);
+    
+    // Si se marca como favorito Y tenemos las props del modal, abrir el modal
+    if (newFavoriteState && product && onCreateList && onAddToList) {
+      setIsModalOpen(true);
+    }
     
     // Funcionalidad deshabilitada temporalmente
     // const success = await onToggle(productId);
@@ -238,6 +264,17 @@ const FavoriteIcon: React.FC<FavoriteIconProps> = ({
         )}
       </motion.button>
 
+      {/* Modal de favoritos */}
+      {product && onCreateList && onAddToList && (
+        <FavoriteModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          product={product}
+          existingLists={existingLists}
+          onCreateList={onCreateList}
+          onAddToList={onAddToList}
+        />
+      )}
     </div>
   );
 };

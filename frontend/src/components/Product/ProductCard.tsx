@@ -175,6 +175,26 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                         isFavorite={isFavorite(product.id)}
                         onToggle={toggleFavorite}
                         size="sm"
+                        product={{
+                            id: product.id,
+                            nombre: product.nombre,
+                            precio: product.precio,
+                            descripcion: product.descripcion,
+                            imagen: images[0]?.url || mainImage
+                        }}
+                        existingLists={[
+                            { id: '1', nombre: 'My Favorites', productos: [] },
+                            { id: '2', nombre: 'Utensilios', productos: [] },
+                            { id: '3', nombre: 'Decoración', productos: [] }
+                        ]}
+                        onCreateList={async (nombre: string, productId: string) => {
+                            console.log(`Creando lista "${nombre}" con producto ${productId}`);
+                            // Aquí iría la lógica real para crear la lista
+                        }}
+                        onAddToList={async (listId: string, productId: string) => {
+                            console.log(`Agregando producto ${productId} a lista ${listId}`);
+                            // Aquí iría la lógica real para agregar a la lista
+                        }}
                     />
                 </div>
                 
