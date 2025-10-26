@@ -14,6 +14,7 @@ import type { User } from "oidc-client-ts";
 import { CartProvider } from "./contexts/CartContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { GlobalTransition } from "./components/GlobalTransition";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -49,11 +50,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <AuthProvider {...oidcConfig}>
           <CartProvider>
             <ThemeProvider>
-              <NavigationProvider>
-                <Header/>
-                {children}
-                <GlobalTransition />
-              </NavigationProvider>
+              <FavoritesProvider>
+                <NavigationProvider>
+                  <Header/>
+                  {children}
+                  <GlobalTransition />
+                </NavigationProvider>
+              </FavoritesProvider>
             </ThemeProvider>
           </CartProvider>
         </AuthProvider>

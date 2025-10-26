@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFavoritesContext } from '../contexts/FavoritesContext';
+import FavoriteIcon from '../components/FavoriteIcon';
 import CartAnimation from '../components/CartAnimation';
 import './product.css';
 
@@ -28,6 +30,7 @@ export default function ProductPage() {
   
   const { addToCart } = useCart();
   const { isDark } = useTheme();
+  const { toggleFavorite, isFavorite } = useFavoritesContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -332,6 +335,16 @@ export default function ProductPage() {
                     alt={product.nombre}
                     className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500 ease-out"
                   />
+                  
+                  {/* Ícono de favoritos */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <FavoriteIcon
+                      productId={product.id}
+                      isFavorite={isFavorite(product.id)}
+                      onToggle={toggleFavorite}
+                      size="md"
+                    />
+                  </div>
                   
                   {/* Navegación con flechas */}
                   {productImages.length > 1 && (
@@ -893,6 +906,16 @@ export default function ProductPage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
+                      
+                      {/* Ícono de favoritos */}
+                      <div className="absolute top-2 right-2 z-10">
+                        <FavoriteIcon
+                          productId={relatedProduct.id}
+                          isFavorite={isFavorite(relatedProduct.id)}
+                          onToggle={toggleFavorite}
+                          size="sm"
+                        />
+                      </div>
                     </div>
                     <div className="p-4">
                       <h3 className={`font-semibold text-sm mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>

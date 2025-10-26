@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { type Product, calculateTransferPrice } from '../../services/product.service';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useFavoritesContext } from '../../contexts/FavoritesContext';
+import FavoriteIcon from '../FavoriteIcon';
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +17,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     
     const navigate = useNavigate();
     const { startTransition } = useNavigation();
+    const { toggleFavorite, isFavorite } = useFavoritesContext();
     const images = product.imagenes || [];
     const mainImage = images.find(img => img.esPrincipal)?.url || images[0]?.url || 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
     const transferPrice = product.promociones?.transferenciaDescuento 
@@ -67,6 +70,17 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
             >
                 <div className="relative w-32 h-24 flex-shrink-0">
                     <img src={mainImage} alt={product.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    
+                    {/* Ícono de favoritos */}
+                    <div className="absolute top-1 right-1 z-10">
+                        <FavoriteIcon
+                            productId={product.id}
+                            isFavorite={isFavorite(product.id)}
+                            onToggle={toggleFavorite}
+                            size="sm"
+                        />
+                    </div>
+                    
                     {product.promociones?.transferenciaDescuento && (
                         <div className="absolute top-1 left-1 bg-green-500 text-white text-xs font-bold px-1 py-0.5 rounded">
                             -{product.promociones.transferenciaDescuento}%
@@ -99,6 +113,17 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
         >
             <div className="relative">
                     <img src={mainImage} alt={product.nombre} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
+                    
+                    {/* Ícono de favoritos */}
+                    <div className="absolute top-1 right-1 z-10">
+                        <FavoriteIcon
+                            productId={product.id}
+                            isFavorite={isFavorite(product.id)}
+                            onToggle={toggleFavorite}
+                            size="sm"
+                        />
+                    </div>
+                    
                     {product.promociones?.transferenciaDescuento && (
                         <div className="absolute top-1 left-1 bg-green-500 text-white text-xs font-bold px-1 py-0.5 rounded text-[10px]">
                             -{product.promociones.transferenciaDescuento}%
@@ -142,6 +167,16 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                         transform: 'scale(1)'
                     }}
                 />
+                
+                {/* Ícono de favoritos */}
+                <div className="absolute top-2 right-2 z-10">
+                    <FavoriteIcon
+                        productId={product.id}
+                        isFavorite={isFavorite(product.id)}
+                        onToggle={toggleFavorite}
+                        size="sm"
+                    />
+                </div>
                 
                 {/* Botones de navegación del carrusel */}
                 {images.length > 1 && (
