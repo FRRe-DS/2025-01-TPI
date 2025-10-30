@@ -5,12 +5,14 @@ import { useTheme } from '../contexts/ThemeContext';
 interface ThemeToggleProps {
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
+  labelSize?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
 export function ThemeToggle({ 
-  size = 'md', 
+  size = 'lg', 
   showLabel = false, 
+  labelSize,
   className = '' 
 }: ThemeToggleProps) {
   const { theme, toggleTheme, isDark } = useTheme();
@@ -49,6 +51,8 @@ export function ThemeToggle({
     md: 'text-sm',
     lg: 'text-base'
   };
+
+  const appliedTextSize = textSizes[labelSize ?? size];
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -205,11 +209,10 @@ export function ThemeToggle({
       {showLabel && (
         <motion.span 
           className={`
-            ${textSizes[size]} font-medium whitespace-nowrap
+            ${appliedTextSize} font-medium whitespace-nowrap
             transition-colors duration-150
-            ${isDark ? 'text-white' : 'text-gray-900'}
           `}
-          style={{ willChange: 'transform, opacity' }}
+          style={{ willChange: 'transform, opacity', color: isDark ? '#032d70' : '#1f2937' }}
           animate={{ 
             opacity: 1,
             x: 0,
@@ -226,7 +229,7 @@ export function ThemeToggle({
             ease: [0.4, 0, 1, 1]
           }}
         >
-          {isDark ? 'Night' : 'Day'}
+          {isDark ? 'Noche' : 'Día'}
         </motion.span>
       )}
     </div>

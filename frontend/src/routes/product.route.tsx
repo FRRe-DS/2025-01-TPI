@@ -25,8 +25,6 @@ export default function ProductPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
-  const [isFadingOut, setIsFadingOut] = useState(false);
   
   const { addToCart } = useCart();
   const { isDark } = useTheme();
@@ -170,98 +168,23 @@ export default function ProductPage() {
   };
 
   const handleGoBack = () => {
-    setIsExiting(true);
-    // Después de que se complete la transición del texto, iniciar fade out y mostrar página destino
-    setTimeout(() => {
-      setIsFadingOut(true);
-    }, 1000);
-    // Navegar después del fade out, manteniendo el contexto de la categoría
-    setTimeout(() => {
-      // Obtener la categoría del producto actual
-      const categoryId = product?.categorias?.[0]?.id;
-      if (categoryId) {
-        navigate('/', { 
-          state: { 
-            scrollToProducts: true, 
-            selectedCategory: categoryId.toString() 
-          } 
-        });
-      } else {
-        navigate('/');
-      }
-    }, 1400);
+    const categoryId = product?.categorias?.[0]?.id;
+    if (categoryId) {
+      navigate('/', { 
+        state: { 
+          scrollToProducts: true, 
+          selectedCategory: categoryId.toString() 
+        } 
+      });
+    } else {
+      navigate('/');
+    }
   };
 
   return (
     <>
-      {/* Overlay de transición con colores de Shipper */}
-      <AnimatePresence>
-        {isExiting && (
-          <motion.div
-            className="fixed inset-0 z-[9999] flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: isFadingOut ? 0 : 1 
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ 
-              duration: isFadingOut ? 0.4 : 0.3, 
-              ease: "easeInOut" 
-            }}
-            style={{
-              background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)'
-            }}
-          >
-            <motion.div
-              className="text-white text-center"
-              initial={{ x: '100%', opacity: 0 }}
-              animate={{ 
-                x: 0, 
-                opacity: 1,
-                transition: {
-                  duration: 0.6,
-                  ease: [0.25, 0.46, 0.45, 0.94]
-                }
-              }}
-              exit={{ 
-                x: '-100%', 
-                opacity: 0,
-                transition: {
-                  duration: 0.6,
-                  ease: [0.25, 0.46, 0.45, 0.94],
-                  delay: 0.2
-                }
-              }}
-            >
-              <motion.div
-                className="text-7xl font-bold"
-                animate={{ 
-                  scale: [1, 1.02, 1],
-                }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
-                }}
-              >
-                Shipper
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div 
+      <div 
         className={`min-h-screen py-8 ${isDark ? 'bg-blue-800' : 'bg-[#F8F7F2]'}`}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ 
-          opacity: isExiting ? (isFadingOut ? 1 : 0) : 1, 
-          x: isExiting ? (isFadingOut ? 0 : -50) : 0 
-        }}
-        transition={{ 
-          duration: 0.4, 
-          ease: "easeInOut" 
-        }}
       >
       <div className="max-w-8xl mx-auto px-16">
         {/* Botón Volver Atrás */}
@@ -1007,7 +930,7 @@ export default function ProductPage() {
         />
       )}
 
-      </motion.div>
+      </div>
     </>
   );
 }

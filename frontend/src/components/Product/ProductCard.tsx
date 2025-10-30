@@ -2,7 +2,6 @@
 import { Link, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { type Product, calculateTransferPrice } from '../../services/product.service';
-import { useNavigation } from '../../contexts/NavigationContext';
 import { useFavoritesContext } from '../../contexts/FavoritesContext';
 import FavoriteIcon from '../FavoriteIcon';
 
@@ -16,7 +15,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     const [isHovered, setIsHovered] = useState(false);
     
     const navigate = useNavigate();
-    const { startTransition } = useNavigation();
     const { toggleFavorite, isFavorite } = useFavoritesContext();
     const images = product.imagenes || [];
     const mainImage = images.find(img => img.esPrincipal)?.url || images[0]?.url || 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
@@ -54,11 +52,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     };
 
     const handleProductClick = () => {
-        startTransition('left');
-        // Navegar después de un breve delay para que la transición se inicie
-        setTimeout(() => {
-            navigate(`/product/${product.id}`);
-        }, 100);
+        navigate(`/product/${product.id}`);
     };
 
     // Renderizar según el modo de vista

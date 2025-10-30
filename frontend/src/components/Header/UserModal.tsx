@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import ProfileModal from "./ProfileModal";
+import { ThemeToggle } from "../ThemeToggle";
 
 export default function UserModal() {
   const auth = useAuth();
@@ -51,6 +52,11 @@ export default function UserModal() {
             }}
           />
           <div className="dropdown-menu">
+            <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #e5e7eb', marginBottom: '0.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <ThemeToggle size="sm" labelSize="lg" showLabel className="user-dropdown-theme-toggle" />
+              </div>
+            </div>
             <button onClick={handleProfileClick}>
               Perfil
             </button>
