@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useShopCart } from "~/context/ShopCartContext";
 
 export default function ShopCartModal() {
   const navigate = useNavigate();
+  const shopcart = useShopCart();
   const [showCart, setShowCart] = useState(false);
-  const cartItems = 0; // TODO: Integrar con el estado del carrito
+  const cartItems = shopcart.products.length;
 
   const handleViewCart = () => {
     setShowCart(false);
