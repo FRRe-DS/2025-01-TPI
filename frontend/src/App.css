@@ -120,6 +120,29 @@ html.dark {
   transform: translateZ(0); /* Optimización para animaciones */
 }
 
+/* Tamaños fijos para tarjetas de producto */
+.product-card-grid {
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+.product-card-grid > .p-4 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card-list {
+  min-height: 112px; /* ~ h-28 */
+  display: flex;
+}
+
+.product-card-compact {
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+}
+
 .product-card-list:hover,
 .product-card-compact:hover,
 .product-card-grid:hover {
@@ -149,6 +172,11 @@ html.dark {
   color: #1e293b;
   line-height: 1.4;
   margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 3.2rem; /* reservar espacio para 2 líneas */
 }
 
 .dark .product-card-title {
@@ -162,6 +190,11 @@ html.dark {
   color: #1e293b;
   line-height: 1.2;
   margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 1.8rem;
 }
 
 .dark .product-card-compact-title {

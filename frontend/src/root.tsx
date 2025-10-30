@@ -16,6 +16,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { FavoritesProvider } from "./contexts/FavoritesContext";
+import { FavoriteListsProvider } from "./contexts/FavoriteListsContext";
 import { GlobalTransition } from "./components/GlobalTransition";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -52,11 +53,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <CartProvider>
             <ThemeProvider>
               <FavoritesProvider>
+                <FavoriteListsProvider>
                 <NavigationProvider>
                   <Header/>
                   {children}
                   <GlobalTransition />
                 </NavigationProvider>
+                </FavoriteListsProvider>
               </FavoritesProvider>
             </ThemeProvider>
           </CartProvider>

@@ -22,7 +22,7 @@ interface FavoriteIconProps {
     nombre: string;
     productos: string[];
   }>;
-  onCreateList?: (nombre: string, productId: string) => Promise<void>;
+  onCreateList?: (nombre: string, productId: string) => Promise<string>;
   onAddToList?: (listId: string, productId: string) => Promise<void>;
 }
 
@@ -68,11 +68,8 @@ const FavoriteIcon: React.FC<FavoriteIconProps> = ({
       setIsModalOpen(true);
     }
     
-    // Funcionalidad deshabilitada temporalmente
-    // const success = await onToggle(productId);
-    // if (success) {
-    //   // Micro-animación de éxito
-    // }
+    // Actualizar favoritos globales (para "All Favorites")
+    await onToggle(productId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

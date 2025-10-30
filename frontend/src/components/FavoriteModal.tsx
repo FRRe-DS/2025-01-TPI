@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router';
 
 interface Product {
   id: string;
@@ -21,7 +22,7 @@ interface FavoriteModalProps {
   onClose: () => void;
   product: Product;
   existingLists: FavoriteList[];
-  onCreateList: (nombre: string, productId: string) => Promise<void>;
+  onCreateList: (nombre: string, productId: string) => Promise<string>;
   onAddToList: (listId: string, productId: string) => Promise<void>;
 }
 
@@ -33,10 +34,12 @@ export function FavoriteModal({
   onCreateList,
   onAddToList
 }: FavoriteModalProps) {
+  const navigate = useNavigate();
   const [newListName, setNewListName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isAdding, setIsAdding] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState<string | null>(null);
+  const [lists, setLists] = useState<FavoriteList[]>(existingLists || []);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -45,6 +48,16 @@ export function FavoriteModal({
       setIsCreating(false);
       setIsAdding(null);
       setShowSuccess(null);
+    }
+  }, [isOpen]);
+
+  // Al abrir, sincronizar con localStorage para tener listas al instante
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const raw = localStorage.getItem('favoriteLists');
+        if (raw) setLists(JSON.parse(raw));
+      } catch {}
     }
   }, [isOpen]);
 
@@ -72,9 +85,19 @@ export function FavoriteModal({
     
     setIsCreating(true);
     try {
-      await onCreateList(newListName.trim(), product.id);
-      setShowSuccess(`Lista "${newListName.trim()}" creada`);
+      const name = newListName.trim();
+      const id = await onCreateList(name, product.id);
+      setLists(prev => [{ id, nombre: name, productos: [String(product.id)] }, ...prev]);
+      setShowSuccess(`Lista "${name}" creada`);
       setNewListName('');
+      // Refrescar desde localStorage para asegurar consistencia inmediata
+      try {
+        const raw = localStorage.getItem('favoriteLists');
+        if (raw) setLists(JSON.parse(raw));
+      } catch {}
+      // Ir directo a la lista recién creada
+      onClose();
+      navigate(`/favorites/${id}`);
     } catch (error) {
       console.error('Error creating list:', error);
     } finally {
@@ -85,8 +108,13 @@ export function FavoriteModal({
   const handleAddToList = async (listId: string, listName: string) => {
     setIsAdding(listId);
     try {
-      await onAddToList(listId, product.id);
+      await onAddToList(listId, String(product.id));
       setShowSuccess(`Añadido a "${listName}"`);
+      // Refrescar lista local desde localStorage
+      try {
+        const raw = localStorage.getItem('favoriteLists');
+        if (raw) setLists(JSON.parse(raw));
+      } catch {}
     } catch (error) {
       console.error('Error adding to list:', error);
     } finally {
@@ -149,9 +177,7 @@ export function FavoriteModal({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <h2 className="text-xl font-semibold text-gray-900">
-            Añadir este producto a favoritos
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900">Añadir este producto a favoritos</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
@@ -209,11 +235,11 @@ export function FavoriteModal({
         >
           <h3 className="font-medium text-gray-900 mb-4">Listas existentes</h3>
           
-          {existingLists.length === 0 ? (
+          {lists.length === 0 ? (
             <p className="text-sm text-gray-500 italic">No tienes listas creadas aún</p>
           ) : (
             <div className="space-y-3">
-              {existingLists.map((list) => (
+              {lists.map((list) => (
                 <div key={list.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{list.nombre}</p>
@@ -221,17 +247,25 @@ export function FavoriteModal({
                       {list.productos.length} producto{list.productos.length !== 1 ? 's' : ''}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleAddToList(list.id, list.nombre)}
-                    disabled={isAdding === list.id}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {isAdding === list.id ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      'Añadir'
-                    )}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleAddToList(list.id, list.nombre)}
+                      disabled={isAdding === list.id}
+                      className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isAdding === list.id ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        'Añadir'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => { onClose(); navigate(`/favorites/${list.id}`); }}
+                      className="px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Ver
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

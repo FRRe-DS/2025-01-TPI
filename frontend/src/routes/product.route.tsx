@@ -6,6 +6,7 @@ import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
 import FavoriteIcon from '../components/FavoriteIcon';
+import { useFavoriteLists } from '../contexts/FavoriteListsContext';
 import CartAnimation from '../components/CartAnimation';
 import './product.css';
 
@@ -30,6 +31,7 @@ export default function ProductPage() {
   const { isDark } = useTheme();
   const { toggleFavorite, isFavorite } = useFavoritesContext();
   const navigate = useNavigate();
+  const { lists, createList, addProductToList } = useFavoriteLists();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -273,18 +275,14 @@ export default function ProductPage() {
                         descripcion: product.descripcion,
                         imagen: mainImage
                       }}
-                      existingLists={[
-                        { id: '1', nombre: 'My Favorites', productos: [] },
-                        { id: '2', nombre: 'Utensilios', productos: [] },
-                        { id: '3', nombre: 'Decoración', productos: [] }
-                      ]}
+                      existingLists={lists}
                       onCreateList={async (nombre: string, productId: string) => {
-                        console.log(`Creando lista "${nombre}" con producto ${productId}`);
-                        // Aquí iría la lógica real para crear la lista
+                        const l = createList(nombre);
+                        addProductToList(l.id, productId);
+                        return l.id;
                       }}
                       onAddToList={async (listId: string, productId: string) => {
-                        console.log(`Agregando producto ${productId} a lista ${listId}`);
-                        // Aquí iría la lógica real para agregar a la lista
+                        addProductToList(listId, String(productId));
                       }}
                     />
                   </div>
@@ -857,6 +855,22 @@ export default function ProductPage() {
                           isFavorite={isFavorite(relatedProduct.id)}
                           onToggle={toggleFavorite}
                           size="sm"
+                          product={{
+                            id: relatedProduct.id,
+                            nombre: relatedProduct.nombre,
+                            precio: relatedProduct.precio,
+                            descripcion: relatedProduct.descripcion,
+                            imagen: mainImage
+                          }}
+                          existingLists={lists}
+                          onCreateList={async (nombre: string, productId: string) => {
+                            const l = createList(nombre);
+                            addProductToList(l.id, productId);
+                            return l.id;
+                          }}
+                          onAddToList={async (listId: string, productId: string) => {
+                            addProductToList(listId, String(productId));
+                          }}
                         />
                       </div>
                     </div>
