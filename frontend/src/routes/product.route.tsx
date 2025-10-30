@@ -98,7 +98,7 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F7F2] dark:bg-blue-700 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F7F2] flex items-center justify-center">
         <div className="text-gray-600 dark:text-blue-300">Cargando producto...</div>
       </div>
     );
@@ -106,7 +106,7 @@ export default function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#F8F7F2] dark:bg-blue-700 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F7F2] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Producto no encontrado</h1>
           <Link to="/" className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">
@@ -184,7 +184,7 @@ export default function ProductPage() {
   return (
     <>
       <div 
-        className={`min-h-screen py-8 ${isDark ? 'bg-blue-800' : 'bg-[#F8F7F2]'}`}
+        className="min-h-screen py-8 bg-[#F8F7F2]"
       >
       <div className="max-w-8xl mx-auto px-16">
         {/* Botón Volver Atrás */}
