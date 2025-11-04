@@ -11,6 +11,7 @@ import type { Route } from "./+types/root";
 import "./App.css";
 import Header from "./components/Header";
 import type { User } from "oidc-client-ts";
+import { CartProvider } from "./contexts/CartContext";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const oidcConfig = {
@@ -40,8 +41,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <AuthProvider {...oidcConfig}>
-          <Header/>
-          {children}
+          <CartProvider>
+            <Header/>
+            {children}
+          </CartProvider>
         </AuthProvider>
         <ScrollRestoration />
         <Scripts />

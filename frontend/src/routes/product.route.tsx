@@ -2,10 +2,12 @@ import { useParams, Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
+import { useCart } from '../contexts/CartContext';
 import './product.css';
 
 export default function ProductPage() {
   const { id } = useParams();
+  const { addItem, items, updateQuantity, removeItem, getTotalPrice, getTotalItems } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -172,9 +174,17 @@ export default function ProductPage() {
     
     setIsAddingToCart(true);
     
-    // Simular proceso de agregar al carrito - reducido a la mitad
+    // Simular proceso de agregar al carrito
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Agregar al carrito usando el contexto
+    addItem(
+      product,
+      quantity,
+      selectedColor || undefined,
+      selectedSize || undefined,
+      selectedMaterial || undefined
+    );
     
     setIsAddingToCart(false);
     setCartAnimating(true);
@@ -369,7 +379,8 @@ export default function ProductPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setSelectedSize('90x40cm')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedSize === '90x40cm'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -379,7 +390,8 @@ export default function ProductPage() {
                 </button>
                 <button
                   onClick={() => setSelectedSize('50x40cm')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedSize === '50x40cm'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -398,7 +410,8 @@ export default function ProductPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setSelectedMaterial('Classic')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedMaterial === 'Classic'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -408,7 +421,8 @@ export default function ProductPage() {
                 </button>
                 <button
                   onClick={() => setSelectedMaterial('PRO')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedMaterial === 'PRO'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -424,7 +438,8 @@ export default function ProductPage() {
               <div className="flex items-center border border-gray-300 rounded-lg bg-white min-w-[120px]">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                  disabled={showCartSidebar}
+                  className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   &lt;
                 </button>
@@ -433,7 +448,8 @@ export default function ProductPage() {
                 </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                  disabled={showCartSidebar}
+                  className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   &gt;
                 </button>
@@ -441,7 +457,7 @@ export default function ProductPage() {
 
               <button
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || currentStock === 0}
+                disabled={isAddingToCart || currentStock === 0 || showCartSidebar}
                 className="liquid-button flex-1 min-w-[200px] bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
               >
                 {isAddingToCart ? (
@@ -460,7 +476,8 @@ export default function ProductPage() {
 
             <button
               onClick={handleBuyNow}
-              className="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 hover:shadow-lg"
+              disabled={showCartSidebar}
+              className="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
             >
               Comprar ahora
             </button>
@@ -816,7 +833,7 @@ export default function ProductPage() {
               <div className="flex-shrink-0">
                 <motion.button
                   onClick={handleAddToCart}
-                  disabled={isAddingToCart || currentStock === 0}
+                  disabled={isAddingToCart || currentStock === 0 || showCartSidebar}
                   className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-full text-sm transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
                   whileHover={!isAddingToCart && currentStock > 0 ? { 
                     scale: 1.05, 
@@ -907,7 +924,9 @@ export default function ProductPage() {
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-white">Carrito</h2>
-                <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">1</span>
+                {getTotalItems() > 0 && (
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">{getTotalItems()}</span>
+                )}
               </div>
               <button
                 onClick={() => setShowCartSidebar(false)}
@@ -929,40 +948,79 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              {/* Producto agregado */}
-              <div className="bg-gray-700 rounded-lg p-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={mainImage} 
-                    alt={product.nombre}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-white text-sm">{product.nombre}</h3>
-                    <p className="text-xs text-gray-300 mb-1">{product.marca}</p>
-                    <p className="text-xs text-gray-400">
-                      {selectedColor} / {selectedSize} / {selectedMaterial}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-white font-bold">${currentPrice.toLocaleString('es-AR')}</span>
-                      <div className="flex items-center gap-2">
-                        <button className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm">-</button>
-                        <span className="text-white text-sm w-6 text-center">{quantity}</span>
-                        <button className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm">+</button>
+              {/* Productos agregados */}
+              <div className="space-y-3 mb-4">
+                {items.map((item) => {
+                  const itemMainImage = item.product.imagenes && item.product.imagenes.length > 0
+                    ? item.product.imagenes[0].url
+                    : 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+                  
+                  return (
+                    <div key={item.id} className="bg-gray-700 rounded-lg p-4">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={itemMainImage} 
+                          alt={item.product.nombre}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-medium text-white text-sm">{item.product.nombre}</h3>
+                          <p className="text-xs text-gray-300 mb-1">{item.product.marca}</p>
+                          {(item.selectedColor || item.selectedSize || item.selectedMaterial) && (
+                            <p className="text-xs text-gray-400">
+                              {item.selectedColor && `Color: ${item.selectedColor}`}
+                              {item.selectedSize && ` | Tamaño: ${item.selectedSize}`}
+                              {item.selectedMaterial && ` | Material: ${item.selectedMaterial}`}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-white font-bold">${item.price.toLocaleString('es-AR')}</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  const currentItem = items.find(i => i.id === item.id);
+                                  if (currentItem && currentItem.quantity > 1) {
+                                    updateQuantity(item.id, currentItem.quantity - 1);
+                                  } else {
+                                    removeItem(item.id);
+                                  }
+                                }}
+                                className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+                              >
+                                -
+                              </button>
+                              <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
+                              <button
+                                onClick={() => {
+                                  const currentItem = items.find(i => i.id === item.id);
+                                  if (currentItem) {
+                                    updateQuantity(item.id, currentItem.quantity + 1);
+                                  }
+                                }}
+                                className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="text-red-400 text-xs mt-2 hover:text-red-300 transition-colors"
+                          >
+                            Quitar
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <button className="text-red-400 text-xs mt-2 hover:text-red-300">
-                      Quitar 😢
-                    </button>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
 
               {/* Información de envío */}
               <div className="space-y-4">
                 <div className="border-b border-gray-600 pb-4">
                   <h4 className="text-white font-medium mb-2">Gastos de envío</h4>
-                  <p className="text-gray-300 text-sm">🚚 Enviamos con Andreani: $6000 a sucursal o $9000 a domicilio 😎</p>
+                  <p className="text-gray-300 text-sm">Enviamos con Andreani: $6000 a sucursal o $9000 a domicilio</p>
                 </div>
 
                 <div className="border-b border-gray-600 pb-4">
@@ -976,16 +1034,20 @@ export default function ProductPage() {
             <div className="border-t border-gray-700 p-4 flex-shrink-0">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-white font-medium">Subtotal</span>
-                <span className="text-white font-bold text-lg">${(currentPrice * quantity).toLocaleString('es-AR')} ARS</span>
+                <span className="text-white font-bold text-lg">${getTotalPrice().toLocaleString('es-AR')} ARS</span>
               </div>
               
               <div className="space-y-3">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <Link
+                  to="/shopcart/checkout"
+                  onClick={() => setShowCartSidebar(false)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
-                  Finalizar pedido 🤝
-                </button>
+                  Finalizar pedido
+                </Link>
                 
                 <button
                   onClick={() => setShowCartSidebar(false)}
@@ -995,7 +1057,7 @@ export default function ProductPage() {
                 </button>
                 
                 <Link
-                  to="/cart"
+                  to="/shopcart"
                   onClick={() => setShowCartSidebar(false)}
                   className="w-full bg-gray-600 hover:bg-gray-500 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center block"
                 >
