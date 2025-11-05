@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useFavoriteLists } from '../contexts/FavoriteListsContext';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
 import { getProductById } from '../services/product.service';
@@ -13,6 +14,10 @@ export default function FavoritesOverview() {
   const [allThumbs, setAllThumbs] = useState<string[]>([]);
   const [thumbsByList, setThumbsByList] = useState<Record<string, string[]>>({});
   const favIds = getFavoriteIds();
+
+  useEffect(() => {
+    console.log('showCreate cambió a:', showCreate);
+  }, [showCreate]);
 
   const handleCreate = () => {
     if (!name.trim()) return;
@@ -56,17 +61,20 @@ export default function FavoritesOverview() {
   return (
     <div className="min-h-screen bg-[#F8F7F2]">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Favorites</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Favoritos</h1>
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {/* Create new list card */}
           <button
-            onClick={() => setShowCreate(true)}
-            className="flex flex-col items-center justify-center gap-3 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow p-8"
+            onClick={() => {
+              console.log('Click en crear lista');
+              setShowCreate(true);
+            }}
+            className="flex flex-col items-center justify-center gap-3 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow p-8 cursor-pointer"
           >
             <div className="w-14 h-14 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 text-3xl">+</div>
-            <div className="text-gray-900 font-semibold">Create New List</div>
+            <div className="text-gray-900 font-semibold">Crear una nueva lista</div>
           </button>
 
           {/* All favorites aggregate */}
@@ -86,7 +94,7 @@ export default function FavoritesOverview() {
               )}
             </div>
             <div className="flex items-center justify-between">
-              <div className="font-semibold text-gray-900 truncate">All Favorites</div>
+              <div className="font-semibold text-gray-900 truncate">Todos los favoritos</div>
               <div className="text-gray-600 text-sm">❤️ {favIds.length}</div>
             </div>
           </button>
@@ -107,7 +115,7 @@ export default function FavoritesOverview() {
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-4 text-sm text-gray-400">No products yet</div>
+                  <div className="col-span-4 text-sm text-gray-400">No hay productos en favoritos</div>
                 )}
               </div>
               <div className="flex items-center justify-between">
@@ -119,23 +127,33 @@ export default function FavoritesOverview() {
         </div>
 
         {/* Create modal */}
-        {showCreate && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowCreate(false)}>
-            <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Create a new list</h2>
+        {showCreate && createPortal(
+          <div 
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]" 
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+            onClick={() => { setShowCreate(false); setName(''); }}
+          >
+            <div 
+              className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl mx-4" 
+              onClick={(e) => e.stopPropagation()}
+              style={{ position: 'relative', zIndex: 10000 }}
+            >
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Crear una lista nueva</h2>
               <input
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="List name"
+                placeholder="Nombre de la lista"
+                autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
               />
               <div className="flex justify-end gap-3">
-                <button className="px-4 py-2 rounded-lg border border-gray-300" onClick={() => setShowCreate(false)}>Cancel</button>
-                <button className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50" onClick={handleCreate} disabled={!name.trim()}>Create</button>
+                <button className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors" onClick={() => { setShowCreate(false); setName(''); }}>Cancelar</button>
+                <button className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-700 transition-colors" onClick={handleCreate} disabled={!name.trim()}>Crear</button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
       </div>
