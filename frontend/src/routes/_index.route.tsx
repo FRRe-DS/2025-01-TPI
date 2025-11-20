@@ -20,10 +20,7 @@ export default function IndexRoute() {
   const [sortBy, setSortBy] = useState('popularidad_desc');
   const [filters, setFilters] = useState<FilterState>({
     category: 'all',
-    marca: 'all',
-    color: 'all',
-    precioMin: null,
-    precioMax: null
+    q: ''
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
   const [showFilterButton, setShowFilterButton] = useState(false);

@@ -1,6 +1,6 @@
 // src/components/AdvancedFilters.tsx
-import { useState } from 'react';
-import { getCategories, getBrands, getColors, getPriceRange } from '../services/product.service';
+import { useState, useEffect } from 'react';
+import { getCategories, type Categoria } from '../services/product.service';
 
 interface AdvancedFiltersProps {
   onFiltersChange: (filters: FilterState) => void;
@@ -9,20 +9,37 @@ interface AdvancedFiltersProps {
 
 export interface FilterState {
   category: string;
-  marca: string;
-  color: string;
-  precioMin: number | null;
-  precioMax: number | null;
+  q: string;
 }
-
-const categories = getCategories();
-const brands = getBrands();
-const colors = getColors();
-const priceRange = getPriceRange();
 
 export default function AdvancedFilters({ onFiltersChange, initialFilters }: AdvancedFiltersProps) {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [categories, setCategories] = useState<Categoria[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Cargar categorías al montar el componente
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const cats = await getCategories();
+        setCategories(cats);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        // Fallback: categorías vacías
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // Datos síncronos
+  const brands = getBrands();
+  const colors = getColors();
+  const priceRange = getPriceRange();
 
   const handleFilterChange = (key: keyof FilterState, value: string | number | null) => {
     const newFilters = { ...filters, [key]: value };
@@ -33,20 +50,13 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
   const clearFilters = () => {
     const clearedFilters = {
       category: 'all',
-      marca: 'all',
-      color: 'all',
-      precioMin: null,
-      precioMax: null
+      q: ''
     };
     setFilters(clearedFilters);
     onFiltersChange(clearedFilters);
   };
 
-  const hasActiveFilters = filters.category !== 'all' || 
-                          filters.marca !== 'all' || 
-                          filters.color !== 'all' || 
-                          filters.precioMin !== null || 
-                          filters.precioMax !== null;
+  const hasActiveFilters = filters.category !== 'all' || filters.q !== '';
 
   return (
     <div className="advanced-filters-container">
@@ -91,9 +101,12 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
               className="advanced-filters-select"
+              disabled={loadingCategories}
             >
-              <option value="all">Todas las categorías</option>
-              {categories.map(cat => (
+              <option value="all">
+                {loadingCategories ? 'Cargando categorías...' : 'Todas las categorías'}
+              </option>
+              {!loadingCategories && categories.map(cat => (
                 <option key={cat.id} value={cat.id.toString()}>
                   {cat.nombre}
                 </option>
@@ -101,75 +114,18 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
             </select>
           </div>
 
-          {/* Marca */}
+          {/* Búsqueda */}
           <div>
             <label className="advanced-filters-label">
-              Marca
+              Buscar productos
             </label>
-            <select
-              value={filters.marca}
-              onChange={(e) => handleFilterChange('marca', e.target.value)}
-              className="advanced-filters-select"
-            >
-              <option value="all">Todas las marcas</option>
-              {brands.map(brand => (
-                <option key={brand.id} value={brand.nombre}>
-                  {brand.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Color */}
-          <div>
-            <label className="advanced-filters-label">
-              Color
-            </label>
-            <select
-              value={filters.color}
-              onChange={(e) => handleFilterChange('color', e.target.value)}
-              className="advanced-filters-select"
-            >
-              <option value="all">Todos los colores</option>
-              {colors.map(color => (
-                <option key={color.id} value={color.nombre}>
-                  {color.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Rango de Precio */}
-          <div>
-            <label className="advanced-filters-label">
-              Rango de Precio
-            </label>
-            <div className="space-y-3">
-              <div>
-                <label className="advanced-filters-price-label">Mínimo</label>
-                <input
-                  type="number"
-                  placeholder={`$${priceRange.min}`}
-                  value={filters.precioMin || ''}
-                  onChange={(e) => handleFilterChange('precioMin', e.target.value ? parseInt(e.target.value) : null)}
-                  className="advanced-filters-input"
-                  min={priceRange.min}
-                  max={priceRange.max}
-                />
-              </div>
-              <div>
-                <label className="advanced-filters-price-label">Máximo</label>
-                <input
-                  type="number"
-                  placeholder={`$${priceRange.max}`}
-                  value={filters.precioMax || ''}
-                  onChange={(e) => handleFilterChange('precioMax', e.target.value ? parseInt(e.target.value) : null)}
-                  className="advanced-filters-input"
-                  min={priceRange.min}
-                  max={priceRange.max}
-                />
-              </div>
-            </div>
+            <input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={filters.q}
+              onChange={(e) => handleFilterChange('q', e.target.value)}
+              className="advanced-filters-input"
+            />
           </div>
         </div>
       )}
@@ -181,7 +137,7 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
             <span className="advanced-filters-active-text">Filtros activos:</span>
             {filters.category !== 'all' && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                {categories.find(c => c.id.toString() === filters.category)?.nombre}
+                {categories?.find(c => c.id.toString() === filters.category)?.nombre || 'Categoría'}
                 <button
                   onClick={() => handleFilterChange('category', 'all')}
                   className="ml-1 text-blue-600 hover:text-blue-800"
@@ -190,36 +146,11 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
                 </button>
               </span>
             )}
-            {filters.marca !== 'all' && (
+            {filters.q && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                {filters.marca}
+                "{filters.q}"
                 <button
-                  onClick={() => handleFilterChange('marca', 'all')}
-                  className="ml-1 text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            {filters.color !== 'all' && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                {filters.color}
-                <button
-                  onClick={() => handleFilterChange('color', 'all')}
-                  className="ml-1 text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            {(filters.precioMin !== null || filters.precioMax !== null) && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                ${filters.precioMin || priceRange.min} - ${filters.precioMax || priceRange.max}
-                <button
-                  onClick={() => {
-                    handleFilterChange('precioMin', null);
-                    handleFilterChange('precioMax', null);
-                  }}
+                  onClick={() => handleFilterChange('q', '')}
                   className="ml-1 text-blue-600 hover:text-blue-800"
                 >
                   ×

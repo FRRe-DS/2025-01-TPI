@@ -64,45 +64,72 @@ const generateProductImages = (productId: number, productName: string, category:
     `https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80&seed=${productId+200}`,
     `https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80&seed=${productId+300}`
   ];
-  
+
   return baseImages.map((url, index) => ({
     url,
     esPrincipal: index === 0
   }));
 };
 
-// (Puedes mover esto a un archivo JSON si crece mucho)
-const allMockProducts = [
-  // Tecnología
-  { 
-    id: 1, 
-    nombre: 'MacBook Pro 16"', 
-    precio: 2499, 
-    precioOriginal: 2799, 
-    stockDisponible: 8, 
-    imagenes: generateProductImages(1, 'MacBook Pro', 'Electrónica'), 
-    categorias: [{ id: 1, nombre: 'Electrónica' }], 
-    marca: 'Apple', 
-    color: 'Gris Espacial', 
-    fechaCreacion: '2024-01-15', 
-    popularidad: 95, 
-    descripcion: 'Laptop profesional con chip M3 Pro', 
-    caracteristicas: ['Chip M3 Pro', '16GB RAM', '512GB SSD', 'Pantalla Retina 16"'],
-    promociones: {
-      transferenciaDescuento: 20,
-      cuotasSinInteres: 12,
-      envioGratis: 100000
-    },
-    garantia: '1 año de garantía oficial',
-    tiempoFabricacion: 'Disponible inmediatamente',
-    politicas: {
-      cambio: true,
-      devolucion: true,
-      personalizado: false
-    }
+// Función helper para crear productos mockados con la estructura correcta
+const createMockProduct = (
+  id: number,
+  nombre: string,
+  descripcion: string,
+  precio: number,
+  stockDisponible: number,
+  pesoKg: number,
+  dimensiones: Dimensiones,
+  categoriaNombre: string
+): Product => ({
+  id,
+  nombre,
+  descripcion,
+  precio,
+  stockDisponible,
+  pesoKg,
+  dimensiones,
+  ubicacion: {
+    street: 'Av. Vélez Sársfield 123',
+    city: 'Resistencia',
+    state: 'Chaco',
+    postal_code: 'H3500ABC',
+    country: 'AR'
   },
-  { id: 2, nombre: 'Mouse Logitech MX Master 3', precio: 99, stockDisponible: 50, imagenes: generateProductImages(2, 'Mouse Logitech', 'Electrónica'), categorias: [{ id: 1, nombre: 'Electrónica' }], marca: 'Logitech', color: 'Negro', fechaCreacion: '2024-02-10', popularidad: 88, descripcion: 'Mouse ergonómico para productividad', caracteristicas: ['Sensor 4000 DPI', 'Batería 70 días', 'Conexión USB-C', 'Scroll infinito'] },
-  { id: 3, nombre: 'Teclado Mecánico Razer', precio: 149, stockDisponible: 30, imagenes: generateProductImages(3, 'Teclado Razer', 'Electrónica'), categorias: [{ id: 1, nombre: 'Electrónica' }], marca: 'Razer', color: 'Verde', fechaCreacion: '2024-01-20', popularidad: 82, descripcion: 'Teclado gaming con switches mecánicos', caracteristicas: ['Switches Razer Green', 'RGB Chroma', 'Cable desmontable', 'Reposo de muñeca'] },
+  imagenes: generateProductImages(id, nombre, categoriaNombre),
+  categorias: [{ id: categoriaNombre === 'Electrónica' ? 1 : categoriaNombre === 'Muebles' ? 2 : 3, nombre: categoriaNombre }]
+});
+
+// URL base de la API de Stock
+const STOCK_API_BASE_URL = 'https://stock.ds.frre.utn.edu.ar/v1';
+
+// Función helper para hacer requests HTTP con autenticación
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const url = `${STOCK_API_BASE_URL}${endpoint}`;
+
+  const defaultOptions: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      // Aquí irían los headers de autenticación cuando estén disponibles
+    },
+  };
+
+  const response = await fetch(url, { ...defaultOptions, ...options });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+// Funciones mockadas temporales mientras la API no está disponible
+// Productos mockados que siguen la estructura de la API de Stock
+const allMockProducts: Product[] = [
+  // Tecnología
+  createMockProduct(1, 'MacBook Pro 16"', 'Laptop profesional con chip M3 Pro', 2499, 8, 2.1, { largoCm: 35.5, anchoCm: 24.1, altoCm: 1.6 }, 'Electrónica'),
+  createMockProduct(2, 'Mouse Logitech MX Master 3', 'Mouse ergonómico para productividad', 99, 50, 0.15, { largoCm: 12.4, anchoCm: 8.4, altoCm: 5.1 }, 'Electrónica'),
+  createMockProduct(3, 'Teclado Mecánico Razer', 'Teclado gaming con switches mecánicos', 149, 30, 1.2, { largoCm: 45.0, anchoCm: 15.0, altoCm: 3.5 }, 'Electrónica'),
   { id: 5, nombre: 'Monitor Samsung 4K 27"', precio: 399, precioOriginal: 499, stockDisponible: 20, imagenes: generateProductImages(5, 'Monitor Samsung', 'Electrónica'), categorias: [{ id: 1, nombre: 'Electrónica' }], marca: 'Samsung', color: 'Negro', fechaCreacion: '2024-03-05', popularidad: 90, descripcion: 'Monitor 4K con tecnología HDR', caracteristicas: ['Resolución 4K', 'HDR10', 'Puerto USB-C', 'Altavoces integrados'] },
   { id: 7, nombre: 'AirPods Pro 2da Gen', precio: 249, stockDisponible: 40, imagenes: generateProductImages(7, 'AirPods Pro', 'Electrónica'), categorias: [{ id: 1, nombre: 'Electrónica' }], marca: 'Apple', color: 'Blanco', fechaCreacion: '2024-02-28', popularidad: 92, descripcion: 'Auriculares inalámbricos con cancelación de ruido', caracteristicas: ['Cancelación activa de ruido', 'Carga inalámbrica', 'Resistencia al agua', 'Audio espacial'] },
   { id: 8, nombre: 'Webcam Logitech C920', precio: 79, stockDisponible: 25, imagenes: generateProductImages(8, 'Webcam Logitech', 'Electrónica'), categorias: [{ id: 1, nombre: 'Electrónica' }], marca: 'Logitech', color: 'Negro', fechaCreacion: '2024-01-12', popularidad: 75, descripcion: 'Webcam HD para videoconferencias', caracteristicas: ['1080p 30fps', 'Autofocus', 'Microfono estéreo', 'Clip universal'] },
@@ -267,45 +294,90 @@ export interface ProductImage {
 export interface ProductCategory {
   id: number;
   nombre: string;
+  descripcion?: string;
 }
 
-export interface ProductVariant {
-  color: string;
-  size: string;
-  material: string;
-  precio: number;
-  precioOriginal?: number;
-  stockDisponible: number;
-  sku: string;
+export interface Dimensiones {
+  largoCm: number;
+  anchoCm: number;
+  altoCm: number;
+}
+
+export interface UbicacionAlmacen {
+  street: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
 }
 
 export interface Product {
   id: number;
   nombre: string;
+  descripcion?: string;
   precio: number;
-  precioOriginal?: number;
   stockDisponible: number;
+  pesoKg?: number;
+  dimensiones?: Dimensiones;
+  ubicacion?: UbicacionAlmacen;
   imagenes: ProductImage[];
-  categorias: ProductCategory[];
-  marca: string;
-  color: string;
+  categorias?: ProductCategory[];
+}
+
+// Interfaces para Reservas
+export interface ReservaInput {
+  idCompra: string;
+  usuarioId: number;
+  productos: Array<{
+    idProducto: number;
+    cantidad: number;
+  }>;
+}
+
+export interface ReservaOutput {
+  idReserva: number;
+  idCompra: string;
+  usuarioId: number;
+  estado: 'confirmado' | 'pendiente' | 'cancelado';
+  expiresAt: string;
   fechaCreacion: string;
-  popularidad: number;
-  descripcion: string;
-  caracteristicas: string[];
-  variantes?: ProductVariant[];
-  promociones?: {
-    transferenciaDescuento?: number;
-    cuotasSinInteres?: number;
-    envioGratis?: number;
-  };
-  garantia?: string;
-  tiempoFabricacion?: string;
-  politicas?: {
-    cambio: boolean;
-    devolucion: boolean;
-    personalizado: boolean;
-  };
+}
+
+export interface ReservaCompleta {
+  idReserva: number;
+  idCompra: string;
+  usuarioId: number;
+  estado: 'confirmado' | 'pendiente' | 'cancelado';
+  expiresAt: string;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+  productos: Array<{
+    idProducto: number;
+    nombre: string;
+    cantidad: number;
+    precioUnitario: number;
+  }>;
+}
+
+export interface ActualizarReservaInput {
+  usuarioId: number;
+  estado: 'confirmado' | 'pendiente' | 'cancelado';
+}
+
+export interface CancelacionReservaInput {
+  motivo: string;
+}
+
+// Interfaces para Categorías
+export interface Categoria {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+}
+
+export interface CategoriaInput {
+  nombre: string;
+  descripcion?: string;
 }
 
 export interface PaginatedProducts {
@@ -314,53 +386,82 @@ export interface PaginatedProducts {
   totalPages: number;
 }
 
-export function getProducts(filter: Filter): Promise<PaginatedProducts> {
-  const { 
-    page = 1, 
-    limit = 10, 
-    q = '', 
-    categoryId, 
-    marca, 
-    color, 
-    precioMin, 
-    precioMax, 
-    sortBy = 'popularidad_desc' 
+export async function getProducts(filter: Filter): Promise<PaginatedProducts> {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      q = '',
+      categoryId,
+      marca,
+      color,
+      precioMin,
+      precioMax,
+      sortBy = 'popularidad_desc'
+    } = filter;
+
+    // Construir parámetros de query
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (q) params.append('q', q);
+    if (categoryId && categoryId !== 'all') params.append('categoriaId', categoryId);
+
+    // Intentar llamada a la API real
+    try {
+      const data = await apiRequest<{ products: Product[], currentPage: number, totalPages: number }>(`/productos?${params}`);
+      return data;
+    } catch (apiError) {
+      console.warn('API not available, using mock data:', apiError);
+      // Fallback a datos mockados si la API no está disponible
+      return getProductsMock(filter);
+    }
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    // Fallback a datos mockados en caso de error
+    return getProductsMock(filter);
+  }
+}
+
+// Función mockada como fallback
+function getProductsMock(filter: Filter): Promise<PaginatedProducts> {
+  const {
+    page = 1,
+    limit = 10,
+    q = '',
+    categoryId,
+    marca,
+    color,
+    precioMin,
+    precioMax,
+    sortBy = 'popularidad_desc'
   } = filter;
 
   // 1. Filtro de búsqueda (por nombre y descripción)
   let filteredProducts = allMockProducts.filter(p =>
     p.nombre.toLowerCase().includes(q.toLowerCase()) ||
-    p.descripcion.toLowerCase().includes(q.toLowerCase())
+    (p.descripcion && p.descripcion.toLowerCase().includes(q.toLowerCase()))
   );
 
   // 2. Filtro por categoría
   if (categoryId && categoryId !== 'all') {
     const categoryIdNum = parseInt(categoryId, 10);
-    
-    const beforeFilter = filteredProducts.length;
+
     filteredProducts = filteredProducts.filter(p => {
-      const hasCategory = p.categorias.some(c => c.id === categoryIdNum);
-      if (hasCategory) {
-      }
-      return hasCategory;
+      return p.categorias && p.categorias.some(c => c.id === categoryIdNum);
     });
   }
 
-  // 3. Filtro por marca
+  // 3. Filtro por marca (nota: la API real no tiene marca, pero mantenemos compatibilidad)
   if (marca && marca !== 'all') {
     filteredProducts = filteredProducts.filter(p =>
-      p.marca.toLowerCase() === marca.toLowerCase()
+      p.marca && p.marca.toLowerCase() === marca.toLowerCase()
     );
   }
 
-  // 4. Filtro por color
-  if (color && color !== 'all') {
-    filteredProducts = filteredProducts.filter(p =>
-      p.color.toLowerCase() === color.toLowerCase()
-    );
-  }
-
-  // 5. Filtro por rango de precio
+  // 4. Filtro por rango de precio
   if (precioMin !== undefined) {
     filteredProducts = filteredProducts.filter(p => p.precio >= precioMin);
   }
@@ -368,26 +469,7 @@ export function getProducts(filter: Filter): Promise<PaginatedProducts> {
     filteredProducts = filteredProducts.filter(p => p.precio <= precioMax);
   }
 
-  // 6. Ordenamiento
-  filteredProducts.sort((a, b) => {
-    switch (sortBy) {
-      case 'precio_asc':
-        return a.precio - b.precio;
-      case 'precio_desc':
-        return b.precio - a.precio;
-      case 'nombre_asc':
-        return a.nombre.localeCompare(b.nombre);
-      case 'nombre_desc':
-        return b.nombre.localeCompare(a.nombre);
-      case 'fecha_desc':
-        return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
-      case 'popularidad_desc':
-      default:
-        return b.popularidad - a.popularidad;
-    }
-  });
-
-  // 7. Paginación
+  // 5. Paginación
   const totalProducts = filteredProducts.length;
   const totalPages = Math.ceil(totalProducts / limit);
   const startIndex = (page - 1) * limit;
@@ -401,25 +483,21 @@ export function getProducts(filter: Filter): Promise<PaginatedProducts> {
   });
 }
 
-// También simulamos la obtención de categorías para el filtro
-export function getCategories() {
-  return [
-    { id: 1, nombre: 'Electrónica' },
-    { id: 2, nombre: 'Muebles' },
-    { id: 3, nombre: 'Ropa' },
-  ];
+// Obtener categorías (ahora usa la API real con fallback a mock)
+export async function getCategories(): Promise<Categoria[]> {
+  return listarCategorias();
 }
 
-// Obtener marcas únicas
+// Obtener marcas únicas (no disponible en API del Stock, retorna vacío por ahora)
 export function getBrands() {
-  const brands = [...new Set(allMockProducts.map(p => p.marca))];
-  return brands.map((brand, index) => ({ id: index + 1, nombre: brand }));
+  // La API del Stock no incluye información de marcas
+  return [];
 }
 
-// Obtener colores únicos
+// Obtener colores únicos (no disponible en API del Stock, retorna vacío por ahora)
 export function getColors() {
-  const colors = [...new Set(allMockProducts.map(p => p.color))];
-  return colors.map((color, index) => ({ id: index + 1, nombre: color }));
+  // La API del Stock no incluye información de colores
+  return [];
 }
 
 // Obtener rango de precios
@@ -432,9 +510,17 @@ export function getPriceRange() {
 }
 
 // Obtener un producto específico por ID
-export function getProductById(id: number): Promise<Product | null> {
-  const product = allMockProducts.find(p => p.id === id);
-  return Promise.resolve(product || null);
+export async function getProductById(id: number): Promise<Product | null> {
+  try {
+    // Intentar llamada a la API real
+    const product = await apiRequest<Product>(`/productos/${id}`);
+    return product;
+  } catch (apiError) {
+    console.warn('API not available for product details, using mock data:', apiError);
+    // Fallback a datos mockados si la API no está disponible
+    const product = allMockProducts.find(p => p.id === id);
+    return Promise.resolve(product || null);
+  }
 }
 
 // Obtener variante específica de un producto
@@ -465,6 +551,142 @@ export function getRelatedProducts(productId: number, limit: number = 4): Promis
     .slice(0, limit);
   
   return Promise.resolve(related);
+}
+
+// ==================== FUNCIONES DE RESERVAS ====================
+
+export async function crearReserva(reservaInput: ReservaInput): Promise<ReservaOutput> {
+  try {
+    return await apiRequest<ReservaOutput>('/reservas', {
+      method: 'POST',
+      body: JSON.stringify(reservaInput),
+    });
+  } catch (error) {
+    console.error('Error creating reservation:', error);
+    throw error;
+  }
+}
+
+export async function listarReservas(usuarioId: number, params?: {
+  page?: number;
+  limit?: number;
+  estado?: 'confirmado' | 'pendiente' | 'cancelado';
+}): Promise<{ reservas: ReservaCompleta[], currentPage: number, totalPages: number }> {
+  try {
+    const queryParams = new URLSearchParams({
+      usuarioId: usuarioId.toString(),
+      ...(params?.page && { page: params.page.toString() }),
+      ...(params?.limit && { limit: params.limit.toString() }),
+      ...(params?.estado && { estado: params.estado }),
+    });
+
+    return await apiRequest<{ reservas: ReservaCompleta[], currentPage: number, totalPages: number }>(`/reservas?${queryParams}`);
+  } catch (error) {
+    console.error('Error listing reservations:', error);
+    throw error;
+  }
+}
+
+export async function obtenerReservaPorId(idReserva: number, usuarioId: number): Promise<ReservaCompleta> {
+  try {
+    const queryParams = new URLSearchParams({
+      usuarioId: usuarioId.toString(),
+    });
+
+    return await apiRequest<ReservaCompleta>(`/reservas/${idReserva}?${queryParams}`);
+  } catch (error) {
+    console.error('Error getting reservation:', error);
+    throw error;
+  }
+}
+
+export async function actualizarEstadoReserva(idReserva: number, input: ActualizarReservaInput): Promise<ReservaCompleta> {
+  try {
+    return await apiRequest<ReservaCompleta>(`/reservas/${idReserva}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    });
+  } catch (error) {
+    console.error('Error updating reservation:', error);
+    throw error;
+  }
+}
+
+export async function cancelarReserva(idReserva: number, input: CancelacionReservaInput): Promise<void> {
+  try {
+    await apiRequest(`/reservas/${idReserva}`, {
+      method: 'DELETE',
+      body: JSON.stringify(input),
+    });
+  } catch (error) {
+    console.error('Error canceling reservation:', error);
+    throw error;
+  }
+}
+
+// ==================== FUNCIONES DE CATEGORÍAS ====================
+
+export async function listarCategorias(): Promise<Categoria[]> {
+  try {
+    return await apiRequest<Categoria[]>('/categorias');
+  } catch (error) {
+    console.error('Error listing categories:', error);
+    // Fallback a categorías mockadas
+    return getCategoriesMock();
+  }
+}
+
+export async function crearCategoria(categoriaInput: CategoriaInput): Promise<Categoria> {
+  try {
+    return await apiRequest<Categoria>('/categorias', {
+      method: 'POST',
+      body: JSON.stringify(categoriaInput),
+    });
+  } catch (error) {
+    console.error('Error creating category:', error);
+    throw error;
+  }
+}
+
+export async function obtenerCategoriaPorId(categoriaId: number): Promise<Categoria> {
+  try {
+    return await apiRequest<Categoria>(`/categorias/${categoriaId}`);
+  } catch (error) {
+    console.error('Error getting category:', error);
+    throw error;
+  }
+}
+
+export async function actualizarCategoria(categoriaId: number, categoriaInput: CategoriaInput): Promise<Categoria> {
+  try {
+    return await apiRequest<Categoria>(`/categorias/${categoriaId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(categoriaInput),
+    });
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
+}
+
+export async function eliminarCategoria(categoriaId: number): Promise<void> {
+  try {
+    await apiRequest(`/categorias/${categoriaId}`, {
+      method: 'DELETE',
+    });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    throw error;
+  }
+}
+
+// Función mockada para categorías como fallback
+function getCategoriesMock(): Categoria[] {
+  return [
+    { id: 1, nombre: 'Electrónica', descripcion: 'Dispositivos electrónicos y accesorios' },
+    { id: 2, nombre: 'Muebles', descripcion: 'Muebles y decoración del hogar' },
+    { id: 3, nombre: 'Ropa', descripcion: 'Ropa y accesorios de vestir' },
+  ];
 }
 
 // Calcular precio con descuento por transferencia

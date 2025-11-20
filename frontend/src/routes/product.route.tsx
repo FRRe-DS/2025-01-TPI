@@ -10,15 +10,11 @@ export default function ProductPage() {
   const { addItem, items, updateQuantity, removeItem, getTotalPrice, getTotalItems } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedColor, setSelectedColor] = useState<string>('');
-  const [selectedSize, setSelectedSize] = useState<string>('');
-  const [selectedMaterial, setSelectedMaterial] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showFloatingCart, setShowFloatingCart] = useState(false);
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [currentStock, setCurrentStock] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -35,9 +31,6 @@ export default function ProductPage() {
         
         setProduct(foundProduct);
         if (foundProduct) {
-          setSelectedColor(foundProduct.color);
-          setSelectedSize('90x40cm'); // Tamaño por defecto
-          setSelectedMaterial('Classic'); // Material por defecto
           setCurrentPrice(foundProduct.precio);
           setCurrentStock(foundProduct.stockDisponible);
           
@@ -55,16 +48,6 @@ export default function ProductPage() {
     fetchProduct();
   }, [id]);
 
-  // Manejar cambios en las variantes
-  useEffect(() => {
-    if (product && product.variantes) {
-      const variant = getProductVariant(product.id, selectedColor, selectedSize, selectedMaterial);
-      if (variant) {
-        setCurrentPrice(variant.precio);
-        setCurrentStock(variant.stockDisponible);
-      }
-    }
-  }, [selectedColor, selectedSize, selectedMaterial, product]);
 
   // Detectar scroll para mostrar/ocultar el carrito flotante
   useEffect(() => {
@@ -114,7 +97,7 @@ export default function ProductPage() {
   useEffect(() => {
     if (!product) return;
     
-    const productImages = product.imagenes.length > 0 
+    const productImages = product.imagenes && product.imagenes.length > 0
       ? product.imagenes.map(img => img.url)
       : ['https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'];
     
@@ -156,7 +139,7 @@ export default function ProductPage() {
   }
 
   // Obtener todas las imágenes del producto
-  const productImages = product.imagenes.length > 0 
+  const productImages = product.imagenes && product.imagenes.length > 0
     ? product.imagenes.map(img => img.url)
     : ['https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'];
   
@@ -178,13 +161,7 @@ export default function ProductPage() {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     // Agregar al carrito usando el contexto
-    addItem(
-      product,
-      quantity,
-      selectedColor || undefined,
-      selectedSize || undefined,
-      selectedMaterial || undefined
-    );
+    addItem(product, quantity);
     
     setIsAddingToCart(false);
     setCartAnimating(true);
@@ -260,11 +237,6 @@ export default function ProductPage() {
 
             {/* Detalles del producto */}
             <div className="space-y-8">
-            {/* Marca */}
-            <div className="text-sm text-gray-600 font-medium">
-              {product.marca}
-            </div>
-
             {/* Nombre del producto */}
             <h1 className="text-3xl font-bold text-gray-800">
               {product.nombre}
@@ -275,46 +247,7 @@ export default function ProductPage() {
               <span className="text-2xl font-bold text-gray-800">
                 ${currentPrice.toLocaleString('es-AR')}
               </span>
-              {product.precioOriginal && (
-                <span className="text-lg text-gray-500 line-through">
-                  ${product.precioOriginal.toLocaleString('es-AR')}
-                </span>
-              )}
             </div>
-
-            {/* Promociones - Estilo Apple */}
-            {product.promociones && (
-              <div className="space-y-2">
-                {product.promociones.transferenciaDescuento && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      {product.promociones.transferenciaDescuento}% off con transferencia
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      ${calculateTransferPrice(currentPrice, product.promociones.transferenciaDescuento).toLocaleString('es-AR')}
-                    </span>
-                  </div>
-                )}
-                {product.promociones.cuotasSinInteres && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      Hasta {product.promociones.cuotasSinInteres} cuotas sin interés
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      ${calculateInstallmentPrice(currentPrice, product.promociones.cuotasSinInteres).toLocaleString('es-AR')} c/u
-                    </span>
-                  </div>
-                )}
-                {product.promociones.envioGratis && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      Envío gratis desde ${product.promociones.envioGratis.toLocaleString('es-AR')}
-                    </span>
-                    <span className="font-semibold text-gray-900">Gratis</span>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Stock disponible - Estilo Apple */}
             <div className="flex items-center gap-2 text-sm">
@@ -328,110 +261,6 @@ export default function ProductPage() {
               </span>
             </div>
 
-            {/* Selección de color */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">
-                Color
-              </label>
-              <div className="flex gap-3">
-                <div className="relative group">
-                  <motion.button
-                    onClick={() => setSelectedColor('Negro')}
-                    className={`w-8 h-8 rounded border-2 transition-all duration-300 ${
-                      selectedColor === 'Negro' 
-                        ? 'border-gray-800' 
-                        : 'border-gray-300 hover:border-gray-500'
-                    }`}
-                    style={{ backgroundColor: '#000000' }}
-                    whileHover={{ scale: 1.1, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  />
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap z-10">
-                    Negro
-                  </div>
-                </div>
-                <div className="relative group">
-                  <motion.button
-                    onClick={() => setSelectedColor('Blanco')}
-                    className={`w-8 h-8 rounded border-2 transition-all duration-300 ${
-                      selectedColor === 'Blanco' 
-                        ? 'border-gray-800' 
-                        : 'border-gray-300 hover:border-gray-500'
-                    }`}
-                    style={{ backgroundColor: '#FFFFFF' }}
-                    whileHover={{ scale: 1.1, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  />
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap z-10">
-                    Blanco
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Selección de tamaño */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">
-                Medida: {selectedSize}
-              </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setSelectedSize('90x40cm')}
-                  disabled={showCartSidebar}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
-                    selectedSize === '90x40cm'
-                      ? 'border-gray-800 text-gray-800 bg-white'
-                      : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  90x40cm
-                </button>
-                <button
-                  onClick={() => setSelectedSize('50x40cm')}
-                  disabled={showCartSidebar}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
-                    selectedSize === '50x40cm'
-                      ? 'border-gray-800 text-gray-800 bg-white'
-                      : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  50x40cm
-                </button>
-              </div>
-            </div>
-
-            {/* Selección de material */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">
-                Material: {selectedMaterial}
-              </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setSelectedMaterial('Classic')}
-                  disabled={showCartSidebar}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
-                    selectedMaterial === 'Classic'
-                      ? 'border-gray-800 text-gray-800 bg-white'
-                      : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  Classic
-                </button>
-                <button
-                  onClick={() => setSelectedMaterial('PRO')}
-                  disabled={showCartSidebar}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
-                    selectedMaterial === 'PRO'
-                      ? 'border-gray-800 text-gray-800 bg-white'
-                      : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  PRO
-                </button>
-              </div>
-            </div>
 
             {/* Selector de cantidad y botones */}
             <div className="flex items-center gap-4">
@@ -482,42 +311,18 @@ export default function ProductPage() {
               Comprar ahora
             </button>
 
-            {/* Información adicional - Estilo Apple */}
+            {/* Información de envío */}
             <div className="space-y-3">
-              {product.garantia && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Garantía</span>
-                  <span className="font-semibold text-gray-900">{product.garantia}</span>
-                </div>
-              )}
-              
-              {product.tiempoFabricacion && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Tiempo de fabricación</span>
-                  <span className="font-semibold text-gray-900">{product.tiempoFabricacion}</span>
-                </div>
-              )}
-
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Envío</span>
                 <span className="font-semibold text-gray-900">24-48 horas</span>
               </div>
 
-              {product.politicas && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Políticas</span>
-                  <span className="font-semibold text-gray-900">
-                    {product.politicas.cambio ? 'Cambio ✓' : 'Sin cambio ✗'} • 
-                    {product.politicas.devolucion ? 'Devolución ✓' : 'Sin devolución ✗'}
-                  </span>
-                </div>
-              )}
-
-              {/* Métodos de pago - Estilo Apple */}
+              {/* Métodos de pago */}
               <div className="pt-3 border-t border-gray-100">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span>Métodos de pago:</span>
-                  <span className="text-gray-600">Visa • Mastercard • Transferencia • Mercado Pago</span>
+                  <span className="text-gray-600">Visa • Mastercard • Transferencia</span>
                 </div>
               </div>
             </div>
@@ -533,196 +338,38 @@ export default function ProductPage() {
           </p>
         </div>
 
-        {/* Características */}
-        <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Características</h2>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {product.caracteristicas.map((caracteristica, index) => (
-              <li key={index} className="flex items-center gap-2 text-gray-600">
-                <span className="text-green-600">✓</span>
-                <span>{caracteristica}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Detalles del producto */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">DETALLES DEL PRODUCTO</h2>
-          <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
-            {/* Acordeón 1 - Descripción Serie Classic */}
-            <div className="border-b border-gray-200">
-              <button 
-                onClick={() => setExpandedAccordion(expandedAccordion === 'classic' ? null : 'classic')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <span className="font-semibold text-gray-800">DESCRIPCIÓN SERIE CLASSIC</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'classic' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-              <AnimatePresence>
-                {expandedAccordion === 'classic' && (
-                  <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                  >
-                    <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
-                      initial={{ y: -10 }}
-                      animate={{ y: 0 }}
-                      exit={{ y: -10 }}
-                      transition={{ duration: 0.2, delay: 0.1 }}
-                    >
-                      <p><strong>Tipo:</strong> Híbrido</p>
-                      <div>
-                        <p><strong>Características específicas:</strong></p>
-                        <ul className="ml-4 space-y-1">
-                          <li>• Velocidad: 50% ⚡</li>
-                          <li>• Precisión: 50% 🎯</li>
-                          <li>• Estabilidad: Buena</li>
-                        </ul>
-                      </div>
-                      <p><strong>Materiales:</strong> Base antideslizante de goma ultra resistente + superficie de poliéster premium optimizado.</p>
-                      <p><strong>Ideal para:</strong> uso diario, gaming y trabajo.</p>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Acordeón 2 - Descripción Serie PRO */}
-            <div className="border-b border-gray-200">
-              <button 
-                onClick={() => setExpandedAccordion(expandedAccordion === 'pro' ? null : 'pro')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <span className="font-semibold text-gray-800">DESCRIPCIÓN SERIE PRO</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'pro' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-              <AnimatePresence>
-                {expandedAccordion === 'pro' && (
-                  <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
-                      initial={{ y: -10 }}
-                      animate={{ y: 0 }}
-                      exit={{ y: -10 }}
-                      transition={{ duration: 0.2, delay: 0.1 }}
-                    >
-                      <p><strong>Tipo:</strong> Control</p>
-                      <div>
-                        <p><strong>Características específicas:</strong></p>
-                        <ul className="ml-4 space-y-1">
-                          <li>• Velocidad: 30% ⚡</li>
-                          <li>• Precisión: 70% 🎯</li>
-                          <li>• Estabilidad: Excelente</li>
-                        </ul>
-                      </div>
-                      <p><strong>Materiales:</strong> Base antideslizante de caucho, 100% natural + superficie de poliéster premium ultralisa.</p>
-                      <p><strong>Ideal para:</strong> enfocada al gaming.</p>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Acordeón 3 - Cambio y Devolución */}
-            <div className="border-b border-gray-200">
-              <button 
-                onClick={() => setExpandedAccordion(expandedAccordion === 'cambio' ? null : 'cambio')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <span className="font-semibold text-gray-800">¿TIENEN CAMBIO O DEVOLUCIÓN?</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'cambio' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-              <AnimatePresence>
-                {expandedAccordion === 'cambio' && (
-                  <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
-                      initial={{ y: -10 }}
-                      animate={{ y: 0 }}
-                      exit={{ y: -10 }}
-                      transition={{ duration: 0.2, delay: 0.1 }}
-                    >
-                      {product.politicas?.personalizado ? (
-                        <div>
-                          <p className="font-semibold text-red-600">Los productos personalizados NO tienen cambio ni devolución.</p>
-                          <p>Por eso, asegurate de tomar bien las medidas antes de comprar y consultanos si tenés dudas sobre la calidad de la imagen que nos envíes.</p>
-                          <p className="font-semibold">Importante:</p>
-                          <p>El cliente es responsable de la calidad de la imagen enviada. Nosotros imprimimos en máxima calidad y fidelidad; si el archivo es de baja resolución, pixelado o tiene errores, estos se verán reflejados en el producto final.</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p>✅ <strong>Cambio:</strong> {product.politicas?.cambio ? 'Sí' : 'No'}</p>
-                          <p>✅ <strong>Devolución:</strong> {product.politicas?.devolucion ? 'Sí' : 'No'}</p>
-                          <p>Los productos estándar tienen 30 días para cambio o devolución en perfecto estado.</p>
-                        </div>
-                      )}
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Acordeón 4 - Tiempo de fabricación */}
-            <div>
-              <button 
-                onClick={() => setExpandedAccordion(expandedAccordion === 'fabricacion' ? null : 'fabricacion')}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <span className="font-semibold text-gray-800">¿QUÉ DEMORA TIENEN EN FABRICARSE?</span>
-                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'fabricacion' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-              <AnimatePresence>
-                {expandedAccordion === 'fabricacion' && (
-                  <motion.div 
-                    className="px-6 pb-4 bg-gray-50"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    <motion.div 
-                      className="space-y-3 text-sm text-gray-700"
-                      initial={{ y: -10 }}
-                      animate={{ y: 0 }}
-                      exit={{ y: -10 }}
-                      transition={{ duration: 0.2, delay: 0.1 }}
-                    >
-                      <p><strong>Tiempo de fabricación:</strong> {product.tiempoFabricacion || '5-7 días hábiles'}</p>
-                      <p>Todos nuestros productos se fabrican por encargo. Una vez recibido el pago, tu pedido entra en proceso de producción y demora entre 3 a 7 días hábiles en ser despachado. Recordá que los días hábiles no incluyen fines de semana ni feriados.</p>
-                      <p>Apenas lo enviamos, te llega un mail con el código de seguimiento para que puedas ver el estado del envío.</p>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+        {/* Información adicional del producto */}
+        {product.dimensiones && (
+          <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Especificaciones</h2>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-semibold text-gray-600">Dimensiones:</span>
+                <p className="text-gray-800">{product.dimensiones.largoCm} x {product.dimensiones.anchoCm} x {product.dimensiones.altoCm} cm</p>
+              </div>
+              {product.pesoKg && (
+                <div>
+                  <span className="font-semibold text-gray-600">Peso:</span>
+                  <p className="text-gray-800">{product.pesoKg} kg</p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
+        {/* Categorías */}
+        {product.categorias && product.categorias.length > 0 && (
+          <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Categorías</h2>
+            <div className="flex flex-wrap gap-2">
+              {product.categorias.map((categoria) => (
+                <span key={categoria.id} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                  {categoria.nombre}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* También te puede gustar */}
         {relatedProducts.length > 0 && (
@@ -744,7 +391,7 @@ export default function ProductPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => {
+              {relatedProducts && relatedProducts.length > 0 ? relatedProducts.map((relatedProduct) => {
                 const mainImage = relatedProduct.imagenes.find(img => img.esPrincipal)?.url || 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
                 const transferPrice = relatedProduct.promociones?.transferenciaDescuento 
                   ? calculateTransferPrice(relatedProduct.precio, relatedProduct.promociones.transferenciaDescuento)
@@ -791,7 +438,11 @@ export default function ProductPage() {
                     </div>
                   </Link>
                 );
-              })}
+              }) : (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  <p>No hay productos relacionados disponibles</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -822,7 +473,7 @@ export default function ProductPage() {
                   <span className="text-gray-600 text-xs">| {product.marca}</span>
                 </div>
                 <div className="text-xs text-gray-600 mb-1">
-                  {selectedColor} / {selectedSize} / {selectedMaterial}
+    {product.nombre}
                 </div>
                 <div className="text-sm font-semibold text-gray-800">
                   ${currentPrice.toLocaleString('es-AR')}
@@ -950,7 +601,7 @@ export default function ProductPage() {
 
               {/* Productos agregados */}
               <div className="space-y-3 mb-4">
-                {items.map((item) => {
+                {items && items.length > 0 ? items.map((item) => {
                   const itemMainImage = item.product.imagenes && item.product.imagenes.length > 0
                     ? item.product.imagenes[0].url
                     : 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
@@ -965,14 +616,6 @@ export default function ProductPage() {
                         />
                         <div className="flex-1">
                           <h3 className="font-medium text-white text-sm">{item.product.nombre}</h3>
-                          <p className="text-xs text-gray-300 mb-1">{item.product.marca}</p>
-                          {(item.selectedColor || item.selectedSize || item.selectedMaterial) && (
-                            <p className="text-xs text-gray-400">
-                              {item.selectedColor && `Color: ${item.selectedColor}`}
-                              {item.selectedSize && ` | Tamaño: ${item.selectedSize}`}
-                              {item.selectedMaterial && ` | Material: ${item.selectedMaterial}`}
-                            </p>
-                          )}
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-white font-bold">${item.price.toLocaleString('es-AR')}</span>
                             <div className="flex items-center gap-2">
@@ -1013,7 +656,11 @@ export default function ProductPage() {
                       </div>
                     </div>
                   );
-                })}
+                }) : (
+                  <div className="text-center py-4 text-gray-400">
+                    <p>No hay productos en el carrito</p>
+                  </div>
+                )}
               </div>
 
               {/* Información de envío */}
