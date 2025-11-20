@@ -22,8 +22,8 @@ export default function ProductList({ products }: ProductListProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-semibold text-gray-600 dark:text-blue-300">No se encontraron productos</h2>
-        <p className="text-gray-500 dark:text-blue-400 mt-2">Intenta ajustar tus filtros de búsqueda.</p>
+        <h2 className="text-2xl font-semibold text-gray-600 dark:text-gray-300">No se encontraron productos</h2>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">Intenta ajustar tus filtros de búsqueda.</p>
       </div>
     );
   }

@@ -14,7 +14,7 @@ import Header from "./components/Header";
 import type { User } from "oidc-client-ts";
 import { CartProvider } from "./contexts/CartContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { GlobalTransition } from "./components/GlobalTransition";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -69,7 +69,9 @@ export default function App() {
   return <Outlet />;
 }
 
-export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+function ErrorBoundaryContent({ error }: Route.ErrorBoundaryProps) {
+  const { isDark } = useTheme();
+
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
@@ -86,14 +88,22 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto bg-white dark:bg-blue-700 min-h-screen">
+    <main className={`pt-16 p-4 container mx-auto min-h-screen ${isDark ? 'bg-gradient-to-br from-blue-950 via-slate-800 to-slate-900' : 'bg-white'}`}>
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">{message}</h1>
       <p className="text-gray-600 dark:text-blue-300 mb-4">{details}</p>
       {stack && (
-        <pre className="w-full p-4 overflow-x-auto bg-gray-100 dark:bg-blue-700 text-gray-800 dark:text-white rounded">
+        <pre className={`w-full p-4 overflow-x-auto rounded ${isDark ? 'bg-blue-700 text-white' : 'bg-gray-100 text-gray-800'}`}>
           <code>{stack}</code>
         </pre>
       )}
     </main>
+  );
+}
+
+export function ErrorBoundary(props: Route.ErrorBoundaryProps) {
+  return (
+    <ThemeProvider>
+      <ErrorBoundaryContent {...props} />
+    </ThemeProvider>
   );
 }

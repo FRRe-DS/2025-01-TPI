@@ -6,9 +6,11 @@ import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import AdvancedFilters, { FilterBar, type FilterState } from "../components/AdvancedFilters";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function IndexRoute() {
   const location = useLocation();
+  const { isDark } = useTheme();
   const [productData, setProductData] = useState<PaginatedProducts | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -152,15 +154,15 @@ export default function IndexRoute() {
 
 
   return (
-    <main className="min-h-screen">
+    <main className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-black via-slate-900 to-slate-950' : 'bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700'}`}>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20">
+      <section className="text-white py-20">
         <div className="container mx-auto px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Bienvenido a <span className="text-blue-200 shipper-animated">Shipper</span>
+            Bienvenido a <span className="text-blue-300 shipper-animated">Shipper</span>
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-gray-100 mb-12 max-w-3xl mx-auto">
             Todos tus productos en un solo lugar
           </p>
           
@@ -243,9 +245,9 @@ export default function IndexRoute() {
 
             {/* Mostrando productos - Texto informativo sin ordenamiento */}
             {productData && (
-              <div className="mt-8 pt-6 pb-6 border-t border-gray-200/50 dark:border-gray-700/50">
+              <div className="mt-8 pt-6 pb-6 border-t border-gray-200/50 dark:border-gray-600/50">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 dark:text-blue-300">
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-600'}`}>
                     Mostrando {productData.products.length} producto{productData.products.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -255,7 +257,7 @@ export default function IndexRoute() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
-                <p className="mt-4 text-gray-600 dark:text-blue-300">Cargando productos...</p>
+                <p className={`mt-4 ${isDark ? 'text-white' : 'text-gray-600'}`}>Cargando productos...</p>
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -270,7 +272,7 @@ export default function IndexRoute() {
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-blue-300 text-lg">No hay datos disponibles</p>
+                <p className={`${isDark ? 'text-white' : 'text-gray-600'} text-lg`}>No hay datos disponibles</p>
               </div>
             )}
           </div>

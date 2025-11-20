@@ -119,6 +119,16 @@ html.dark {
     color-scheme: dark;
 }
 
+/* Fondo de la aplicación en modo oscuro Apple */
+html.dark body {
+    background-color: #000000 !important;
+}
+
+/* Fondo gradiente en páginas de producto en modo oscuro - Comentado para usar gradientes personalizados */
+/* html.dark [data-theme-aware] {
+    background-color: #000000 !important;
+} */
+
 
 /* Apple Store Product Cards - Ultra minimalista */
 /* Los estilos específicos se manejan en el componente con Tailwind */
@@ -141,8 +151,9 @@ html.dark {
 }
 
 .dark .search-bar-container {
-  background: #1e40af;
-  border-color: rgba(59, 130, 246, 0.3);
+  background: linear-gradient(to bottom right, rgb(0 0 0), rgb(15 23 42), rgb(3 7 18));
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
 }
 
 @media (min-width: 768px) {
@@ -174,17 +185,18 @@ html.dark {
 
 .dark .search-bar-input {
   color: #ffffff;
-  background: #1e40af;
-  border-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
 }
 
 .dark .search-bar-input::placeholder {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .dark .search-bar-input:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
 
 .search-bar-button {
@@ -217,14 +229,19 @@ html.dark {
   opacity: 0.75;
 }
 
+.dark .search-bar-button-loading {
+  background: #cccccc;
+}
+
 .dark .search-bar-button {
-  background: #032d70;
-  box-shadow: 0 4px 14px rgba(3, 45, 112, 0.3);
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
 }
 
 .dark .search-bar-button:hover:not(:disabled) {
-  background: #1e40af;
-  box-shadow: 0 6px 20px rgba(3, 45, 112, 0.4);
+  background: #f0f0f0;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
 }
 
 /* Estilos para AdvancedFilters con colores de Shipper */
@@ -523,7 +540,7 @@ html.dark {
 }
 
 .dark .categories-section {
-  background: #1e40af;
+  background: transparent;
 }
 
 .categories-title {
@@ -551,7 +568,7 @@ html.dark {
 }
 
 .dark .products-section {
-  background: #1e40af;
+  background: transparent;
 }
 
 .products-title {
