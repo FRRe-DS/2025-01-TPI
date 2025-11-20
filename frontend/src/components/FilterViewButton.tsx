@@ -2,15 +2,15 @@ import { useState, useRef } from 'react';
 
 interface FilterViewButtonProps {
   onFilterClick: () => void;
-  onViewChange: (view: 'grid' | 'list' | 'compact') => void;
-  currentView: 'grid' | 'list' | 'compact';
+  onViewChange: (density: 'comfortable' | 'compact') => void;
+  currentView: 'comfortable' | 'compact';
   isVisible: boolean;
 }
 
-export function FilterViewButton({ 
-  onFilterClick, 
-  onViewChange, 
-  currentView, 
+export function FilterViewButton({
+  onFilterClick,
+  onViewChange,
+  currentView,
   isVisible
 }: FilterViewButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -34,28 +34,131 @@ export function FilterViewButton({
               opacity: 0;
             }
           }
-          
+
           @keyframes iconBounce {
-            0%, 100% { 
-              transform: scale(1); 
+            0%, 100% {
+              transform: scale(1);
             }
-            50% { 
-              transform: scale(1.15); 
+            50% {
+              transform: scale(1.15);
             }
           }
-          
+
           @keyframes smoothPress {
             0% { transform: scale(1); }
             50% { transform: scale(0.95); }
             100% { transform: scale(1); }
           }
-          
+
+          /* Container principal */
+          .filter-view-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #032d70 0%, #02244f 100%);
+            border-radius: 24px;
+            padding: 8px;
+            box-shadow: 0 8px 32px rgba(3, 45, 112, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          /* Botón principal de filtrar */
+          .filter-view-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+          }
+
+          .filter-view-button-text {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+          }
+
+          /* Contenedor de iconos de vista */
+          .filter-view-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          /* Iconos individuales */
+          .filter-view-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          .filter-view-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(3, 45, 112, 0.3);
+          }
+
+          .filter-view-icon-active {
+            background: linear-gradient(135deg, #032d70 0%, #02244f 100%) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(3, 45, 112, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          }
+
+          .filter-view-icon-inactive {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+          }
+
           .icon-bounce {
             animation: iconBounce 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
           }
-          
+
           .smooth-press {
             animation: smoothPress 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          /* Responsive */
+          @media (max-width: 640px) {
+            .filter-view-container {
+              padding: 6px;
+              gap: 8px;
+            }
+
+            .filter-view-button {
+              padding: 10px 16px;
+              font-size: 13px;
+            }
+
+            .filter-view-button-text {
+              display: none;
+            }
+
+            .filter-view-icon {
+              width: 40px;
+              height: 40px;
+            }
           }
         `}
       </style>
@@ -133,13 +236,13 @@ export function FilterViewButton({
           <span className="filter-view-button-text">Filtrar</span>
         </button>
 
-        {/* View Icons */}
+        {/* View Density Icons */}
         <div className="filter-view-icons">
-          {/* Grid View Icon */}
+          {/* Comfortable View (Espaciado amplio) */}
           <button
-            onClick={() => onViewChange('grid')}
-            className={`filter-view-icon ${currentView === 'grid' ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
-            style={currentView === 'grid' ? {
+            onClick={() => onViewChange('comfortable')}
+            className={`filter-view-icon ${currentView === 'comfortable' ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
+            style={currentView === 'comfortable' ? {
               background: 'linear-gradient(135deg, #032d70 0%, #02244f 100%)',
               boxShadow: '0 2px 8px rgba(3, 45, 112, 0.3)'
             } : {}}
@@ -157,23 +260,23 @@ export function FilterViewButton({
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.classList.remove('smooth-press');
             }}
-            aria-label="Vista en cuadrícula"
+            aria-label="Vista cómoda (4 productos por fila)"
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
               fill="none"
               className="transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) sm:w-[18px] sm:h-[18px]"
             >
-              <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5" rx="1"/>
-              <rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="1.5" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5" rx="1"/>
-              <rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="3" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="15" y="3" width="6" height="6" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="3" y="15" width="6" height="6" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="15" y="15" width="6" height="6" stroke="currentColor" strokeWidth="1.5" rx="1"/>
             </svg>
           </button>
 
-          {/* Compact View Icon */}
+          {/* Compact View (Más productos) */}
           <button
             onClick={() => onViewChange('compact')}
             className={`filter-view-icon ${currentView === 'compact' ? 'filter-view-icon-active' : 'filter-view-icon-inactive'}`}
@@ -195,18 +298,19 @@ export function FilterViewButton({
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.classList.remove('smooth-press');
             }}
-            aria-label="Vista compacta"
+            aria-label="Vista compacta (más productos por fila)"
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
               fill="none"
               className="transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) sm:w-[18px] sm:h-[18px]"
             >
-              <rect x="3" y="3" width="18" height="4" stroke="currentColor" strokeWidth="1.5" rx="1"/>
-              <rect x="3" y="10" width="18" height="4" stroke="currentColor" strokeWidth="1.5" rx="1"/>
-              <rect x="3" y="17" width="18" height="4" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="2" y="2" width="8" height="8" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="14" y="2" width="8" height="8" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="2" y="14" width="8" height="8" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+              <rect x="14" y="14" width="8" height="8" stroke="currentColor" strokeWidth="1.5" rx="1"/>
             </svg>
           </button>
         </div>

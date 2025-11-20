@@ -6,7 +6,6 @@ import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import AdvancedFilters, { FilterBar, type FilterState } from "../components/AdvancedFilters";
-import { FilterViewButton } from "../components/FilterViewButton";
 
 export default function IndexRoute() {
   const location = useLocation();
@@ -20,8 +19,6 @@ export default function IndexRoute() {
     category: 'all',
     q: ''
   });
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
-  const [showFilterButton, setShowFilterButton] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const limit = 1000; // Mostrar todos los productos sin paginación
   
@@ -45,8 +42,7 @@ export default function IndexRoute() {
     const handleScroll = () => {
       if (productsSectionRef.current && showProducts) {
         const rect = productsSectionRef.current.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight * 0.3; // Mostrar cuando la sección esté 30% visible
-        setShowFilterButton(isVisible);
+        // Lógica de visibilidad eliminada junto con el modal
       }
     };
 
@@ -127,19 +123,6 @@ export default function IndexRoute() {
   };
 
 
-  const handleFilterButtonClick = () => {
-    // Scroll hacia arriba para mostrar los filtros
-    if (productsSectionRef.current) {
-      productsSectionRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  };
-
-  const handleViewChange = (view: 'grid' | 'list' | 'compact') => {
-    setViewMode(view);
-  };
 
   // Manejar estado de navegación desde la página de producto
   useEffect(() => {
@@ -281,9 +264,8 @@ export default function IndexRoute() {
               </div>
             ) : productData ? (
               <>
-                <ProductList 
-                  products={productData.products} 
-                  viewMode={viewMode}
+                <ProductList
+                  products={productData.products}
                 />
               </>
             ) : (
@@ -295,13 +277,6 @@ export default function IndexRoute() {
         </section>
       )}
 
-      {/* Filter View Button - Fixed at bottom */}
-      <FilterViewButton
-        onFilterClick={handleFilterButtonClick}
-        onViewChange={handleViewChange}
-        currentView={viewMode}
-        isVisible={showFilterButton}
-      />
     </main>
   );
 }

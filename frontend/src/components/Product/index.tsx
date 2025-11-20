@@ -4,21 +4,20 @@ import { useState, useEffect } from 'react';
 
 interface ProductListProps {
   products: Product[];
-  viewMode?: 'grid' | 'list' | 'compact';
 }
 
-export default function ProductList({ products, viewMode = 'grid' }: ProductListProps) {
+export default function ProductList({ products }: ProductListProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   
-  // Efecto para manejar la transición cuando cambia el modo de vista
+  // Efecto para manejar la transición (simplificado)
   useEffect(() => {
     setIsTransitioning(true);
     const timer = setTimeout(() => {
       setIsTransitioning(false);
     }, 500);
-    
+
     return () => clearTimeout(timer);
-  }, [viewMode]);
+  }, []);
   
   if (products.length === 0) {
     return (
@@ -29,7 +28,7 @@ export default function ProductList({ products, viewMode = 'grid' }: ProductList
     );
   }
 
-  // Apple Store grid layout - Solo vista grid premium
+  // Apple Store grid layout - Vista cómoda fija
   const getGridClasses = () => {
     return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 lg:gap-10 xl:gap-12';
   };
