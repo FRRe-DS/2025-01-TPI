@@ -36,11 +36,6 @@ export default function AdvancedFilters({ onFiltersChange, initialFilters }: Adv
     loadCategories();
   }, []);
 
-  // Datos síncronos
-  const brands = getBrands();
-  const colors = getColors();
-  const priceRange = getPriceRange();
-
   const handleFilterChange = (key: keyof FilterState, value: string | number | null) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
