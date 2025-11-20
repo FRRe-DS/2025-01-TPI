@@ -3,10 +3,10 @@ import axios from 'axios';
 
 @Injectable()
 export class KeycloakService {
-  private readonly keycloakUrl = 'http://localhost:8080';
-  private readonly realm = 'ds-2025-realm';
-  private readonly adminUsername = 'admin';
-  private readonly adminPassword = 'ds2025';
+  private readonly keycloakUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
+  private readonly realm = process.env.KEYCLOAK_REALM || 'ds-2025-realm';
+  private readonly adminUsername = process.env.KEYCLOAK_ADMIN_USER || 'admin';
+  private readonly adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || 'ds2025';
 
   private async getAdminToken(): Promise<string> {
     try {
