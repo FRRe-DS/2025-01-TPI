@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
+import { motion } from "framer-motion";
 import { useCart } from "../../contexts/CartContext";
 
 export default function ShopCartModal() {
@@ -142,8 +143,7 @@ export default function ShopCartModal() {
             {totalItems}
           </span>
         )}
-      </div>
-      
+
       {showCart && (
         <div 
           ref={modalRef}

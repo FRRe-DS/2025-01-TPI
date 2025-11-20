@@ -3,7 +3,6 @@ import { useAuth } from "react-oidc-context";
 import { useLocation, useNavigate } from "react-router";
 import UserModal from "./UserModal";
 import ShopCartModal from "./ShopCartModal";
-import FavoritesModal from "./FavoritesModal";
 import "./Header.css";
 
 export default function Header() {
@@ -238,7 +237,6 @@ export default function Header() {
                         ) : (
                             <>
                                 <ShopCartModal />
-                                <FavoritesModal />
                                 <UserModal />
                             </>
                         )}
