@@ -562,61 +562,66 @@ export default function ProductPage() {
         )}
       </div>
 
-      {/* Carrito flotante */}
+      {/* Carrito flotante - Diseño horizontal alargado */}
       {showFloatingCart && product && (
         <div className={`fixed bottom-6 right-6 z-50 ${isCartAnimating ? 'floating-cart-enter' : ''}`}>
-          <div className="bg-[#F8F7F2] border border-gray-300 rounded-2xl p-4 shadow-2xl max-w-sm">
+          <div className="bg-white border border-gray-100/60 rounded-2xl p-4 shadow-2xl max-w-lg">
             <div className="flex items-center gap-4">
               {/* Imagen del producto */}
               <div className="flex-shrink-0">
-                <img 
-                  src={mainImage} 
+                <img
+                  src={mainImage}
                   alt={product.nombre}
-                  className="w-16 h-16 object-cover rounded-lg shadow-md"
+                  className="w-16 h-16 object-cover rounded-lg shadow-sm"
                   onError={handleImageError}
                   onLoad={handleImageLoad}
                 />
               </div>
-              
-              {/* Detalles del producto */}
+
+              {/* Información del producto */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-800 text-sm truncate">
-                    {product.nombre}
-                  </h3>
-                  <span className="text-gray-600 text-xs">| {product.marca}</span>
+                <h3 className="font-semibold text-gray-900 text-sm leading-tight mb-1 line-clamp-2">
+                  {product.nombre}
+                </h3>
+                <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                  <span>{product.marca}</span>
+                  {currentStock > 0 && currentStock <= 5 && (
+                    <span className="text-orange-600">• Solo {currentStock} disponibles</span>
+                  )}
                 </div>
-                <div className="text-xs text-gray-600 mb-1">
-    {product.nombre}
-                </div>
-                <div className="text-sm font-semibold text-gray-800">
+                <div className="text-lg font-bold text-gray-900">
                   ${currentPrice.toLocaleString('es-AR')}
                 </div>
               </div>
-              
-              {/* Botón de agregar al carrito */}
+
+              {/* Botón de acción */}
               <div className="flex-shrink-0">
                 <motion.button
                   onClick={handleAddToCart}
                   disabled={isAddingToCart || currentStock === 0 || showCartSidebar}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-full text-sm transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
-                  whileHover={!isAddingToCart && currentStock > 0 ? { 
-                    scale: 1.05, 
-                    boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.3), 0 10px 10px -5px rgba(59, 130, 246, 0.1)" 
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 disabled:hover:translate-y-0 flex items-center gap-2"
+                  whileHover={!isAddingToCart && currentStock > 0 ? {
+                    scale: 1.02,
+                    boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4), 0 8px 10px -5px rgba(59, 130, 246, 0.1)"
                   } : {}}
-                  whileTap={!isAddingToCart && currentStock > 0 ? { scale: 0.95 } : {}}
+                  whileTap={!isAddingToCart && currentStock > 0 ? { scale: 0.98 } : {}}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   {isAddingToCart ? (
                     <>
-                      <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Agregando...
                     </>
                   ) : (
-                    'Agregar al carrito'
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      Agregar
+                    </>
                   )}
                 </motion.button>
               </div>
