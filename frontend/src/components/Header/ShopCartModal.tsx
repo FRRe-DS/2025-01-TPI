@@ -74,62 +74,81 @@ export default function ShopCartModal() {
         className="cart-icon"
         onClick={() => setShowCart(!showCart)}
         title="Carrito de compras"
-        style={{ position: 'relative', cursor: 'pointer' }}
+        style={{
+          position: 'relative',
+          cursor: 'pointer',
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          backgroundColor: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(0, 0, 0, 0.1)'
+        }}
+        whileHover={{
+          scale: 1.05,
+          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)'
+        }}
+        whileTap={{ scale: 0.95 }}
       >
-        {/* Efecto de llenado con degradado exacto como SHIPPER */}
+        {/* Animación de gradiente dinámico como Shipper */}
         {isAnimating && (
           <motion.div
-            key={isAnimating ? 'animate' : 'static'}
+            key={`gradient-${Date.now()}`} // Key única para forzar re-render
             style={{
               position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(90deg, #ffffff, #3b82f6, #ffffff)',
-              backgroundSize: '300% 100%',
+              background: 'linear-gradient(90deg, transparent 0%, rgba(37, 99, 235, 0.3) 25%, rgba(59, 130, 246, 0.5) 50%, rgba(37, 99, 235, 0.3) 75%, transparent 100%)',
+              backgroundSize: '200% 100%',
               borderRadius: '50%',
-              opacity: 1,
-              zIndex: 1
+              zIndex: 0
             }}
             initial={{
-              backgroundPosition: '0% 50%',
-              scale: 0.8,
-              opacity: 0
+              backgroundPosition: '-100% 0%'
             }}
             animate={{
-              backgroundPosition: ['0% 50%', '100% 50%'],
-              scale: [0.8, 1.1],
-              opacity: [0, 1]
+              backgroundPosition: ['-100% 0%', '100% 0%']
             }}
             transition={{
-              duration: 3.0,
-              ease: "easeInOut"
-            }}
-            onAnimationComplete={() => {
-              // La animación se completa automáticamente
+              duration: 1.5,
+              ease: "easeInOut",
+              repeat: 1,
+              repeatType: "reverse"
             }}
           />
         )}
-        
-        <svg 
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24" 
-          fill="none" 
+
+        {/* Icono del carrito */}
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ position: 'relative', zIndex: 2 }}
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            color: '#032d70'
+          }}
         >
           <path d="M7 18C5.9 18 5.01 18.9 5.01 20C5.01 21.1 5.9 22 7 22C8.1 22 9 21.1 9 20C9 18.9 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5.48C20.96 5.34 21 5.17 21 5C21 4.45 20.55 4 20 4H5.21L4.27 2H1ZM17 18C15.9 18 15.01 18.9 15.01 20C15.01 21.1 15.9 22 17 22C18.1 22 19 21.1 19 20C19 18.9 18.1 18 17 18Z" fill="currentColor"/>
         </svg>
       </motion.div>
-      
-        {totalItems > 0 && (
-          <span style={{
+
+      {/* Contador de items - Fuera del círculo */}
+      {totalItems > 0 && (
+        <motion.div
+          style={{
             position: 'absolute',
-            top: '-5px',
-            right: '-5px',
-            background: '#ff4444',
+            top: '-4px',
+            right: '-4px',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
             color: 'white',
             borderRadius: '50%',
             width: '20px',
@@ -137,12 +156,22 @@ export default function ShopCartModal() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '0.7rem',
-            fontWeight: 'bold'
-          }}>
-            {totalItems}
-          </span>
-        )}
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            border: '2px solid white',
+            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+          }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 500,
+            damping: 25
+          }}
+        >
+          {totalItems > 99 ? '99+' : totalItems}
+        </motion.div>
+      )}
 
       {showCart && (
         <div 
