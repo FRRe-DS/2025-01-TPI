@@ -1,5 +1,5 @@
 // Servicio para gestionar datos de usuario con Keycloak
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8081';
 
 export interface UserProfile {
   success: boolean;
