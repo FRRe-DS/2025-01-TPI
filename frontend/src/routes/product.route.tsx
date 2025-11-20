@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
 import { useCart } from '../contexts/CartContext';
 import './product.css';
@@ -8,29 +9,8 @@ import './product.css';
 export default function ProductPage() {
   const { id } = useParams();
   const { addItem, items, updateQuantity, removeItem, getTotalPrice, getTotalItems } = useCart();
+  const { isDark } = useTheme();
 
-  // Verificar modo oscuro
-  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
-
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const dark = document.documentElement.classList.contains('dark');
-      setIsDarkMode(dark);
-      console.log('🛒 ProductPage - Modo oscuro actualizado:', dark);
-    };
-
-    // Verificar inicialmente
-    checkDarkMode();
-
-    // Observar cambios en la clase del html
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -222,7 +202,7 @@ export default function ProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black py-12" data-theme-aware>
+    <div className={`min-h-screen py-12 ${isDark ? 'bg-gradient-to-br from-black via-slate-900 to-slate-950' : 'bg-white'}`} data-theme-aware>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             {/* Carrusel de imágenes - Mantener intacto */}
@@ -284,13 +264,13 @@ export default function ProductPage() {
             <div className="space-y-10">
               {/* Nombre del producto - SF Pro Display */}
               <div className="space-y-4">
-                <h1 className="text-4xl lg:text-5xl font-semibold text-gray-900 dark:text-white leading-tight tracking-tight" style={{ color: isDarkMode ? '#ffffff' : undefined }}>
+                <h1 className="text-4xl lg:text-5xl font-semibold text-gray-900 dark:text-white leading-tight tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>
                   {product.nombre}
                 </h1>
 
                 {/* Precio - Elegante y destacado */}
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight" style={{ color: isDarkMode ? '#ffffff' : undefined }}>
+                  <span className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>
                     ${currentPrice.toLocaleString('es-AR')}
                   </span>
                 </div>
@@ -319,7 +299,7 @@ export default function ProductPage() {
             <div className="space-y-6">
               {/* Selector de cantidad - Limpio y minimalista */}
               <div className="flex items-center gap-4">
-                <label className="text-sm font-medium text-gray-700" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Cantidad:</label>
+                <label className="text-sm font-medium text-gray-700" style={{ color: isDark ? '#ffffff' : undefined }}>Cantidad:</label>
                 <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-600">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -384,21 +364,21 @@ export default function ProductPage() {
             </div>
 
             {/* Información de envío y pagos - Estilo Apple limpio */}
-            <div className="bg-gray-50/50 dark:bg-black rounded-2xl p-8 space-y-6 border border-gray-100/60 dark:border-gray-600/60" style={{ backgroundColor: isDarkMode ? '#000000' : undefined }}>
+            <div className="rounded-2xl p-8 space-y-6 border border-gray-100/60 dark:border-gray-600/60 bg-gray-50/50 dark:bg-white/5">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 font-medium" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Envío</span>
-                  <span className="text-gray-900 dark:text-white font-semibold" style={{ color: isDarkMode ? '#ffffff' : undefined }}>24-48 horas</span>
+                  <span className="text-gray-600 font-medium" style={{ color: isDark ? '#ffffff' : undefined }}>Envío</span>
+                  <span className="text-gray-900 dark:text-white font-semibold" style={{ color: isDark ? '#ffffff' : undefined }}>24-48 horas</span>
                 </div>
 
                 <div className="border-t border-gray-200/60 dark:border-gray-600/60 pt-4">
                   <div className="space-y-2">
-                    <span className="text-gray-600 text-sm font-medium" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Métodos de pago</span>
-                    <div className="flex items-center gap-3 text-gray-700" style={{ color: isDarkMode ? '#ffffff' : undefined }}>
+                    <span className="text-gray-600 text-sm font-medium" style={{ color: isDark ? '#ffffff' : undefined }}>Métodos de pago</span>
+                    <div className="flex items-center gap-3 text-gray-700" style={{ color: isDark ? '#ffffff' : undefined }}>
                       <span className="text-sm">Visa</span>
-                      <span className="text-gray-400" style={{ color: isDarkMode ? '#9ca3af' : undefined }}>•</span>
+                      <span className="text-gray-400" style={{ color: isDark ? '#9ca3af' : undefined }}>•</span>
                       <span className="text-sm">Mastercard</span>
-                      <span className="text-gray-400" style={{ color: isDarkMode ? '#9ca3af' : undefined }}>•</span>
+                      <span className="text-gray-400" style={{ color: isDark ? '#9ca3af' : undefined }}>•</span>
                       <span className="text-sm">Transferencia</span>
                     </div>
                   </div>
@@ -410,13 +390,13 @@ export default function ProductPage() {
 
         {/* Información detallada del producto - Flujo vertical completo */}
         <div className="mt-16">
-          <section className="bg-gray-50/30 dark:bg-gray-800/30 rounded-3xl p-12 border border-gray-100/60 dark:border-gray-600/60 shadow-sm dark:shadow-gray-900/50" style={{ backgroundColor: isDarkMode ? '#000000' : undefined }}>
+          <section className="rounded-3xl p-12 border border-gray-100/60 dark:border-gray-600/60 shadow-sm dark:shadow-gray-900/50 bg-gray-50/30 dark:bg-white/3">
             <div className="max-w-4xl space-y-12">
               {/* Descripción principal */}
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 tracking-tight" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Descripción del producto</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>Descripción del producto</h2>
                 <div className="prose prose-lg prose-gray dark:prose-invert max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg" style={{ color: isDarkMode ? '#ffffff' : undefined }}>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg" style={{ color: isDark ? '#ffffff' : undefined }}>
                     {product.descripcion}
                   </p>
                 </div>
@@ -425,18 +405,18 @@ export default function ProductPage() {
               {/* Especificaciones técnicas - Integradas */}
               {product.dimensiones && (
                 <div className="pt-8 border-t border-gray-200/40 dark:border-gray-600/40">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 tracking-tight" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Especificaciones técnicas</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>Especificaciones técnicas</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
-                      <span className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Dimensiones</span>
-                      <p className="text-gray-900 dark:text-white text-xl font-medium" style={{ color: isDarkMode ? '#ffffff' : undefined }}>
+                      <span className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider" style={{ color: isDark ? '#ffffff' : undefined }}>Dimensiones</span>
+                      <p className="text-gray-900 dark:text-white text-xl font-medium" style={{ color: isDark ? '#ffffff' : undefined }}>
                         {product.dimensiones.largoCm} × {product.dimensiones.anchoCm} × {product.dimensiones.altoCm} cm
                       </p>
                     </div>
                     {product.pesoKg && (
                       <div className="space-y-3">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Peso neto</span>
-                        <p className="text-gray-900 dark:text-white text-xl font-medium" style={{ color: isDarkMode ? '#ffffff' : undefined }}>{product.pesoKg} kg</p>
+                        <span className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider" style={{ color: isDark ? '#ffffff' : undefined }}>Peso neto</span>
+                        <p className="text-gray-900 dark:text-white text-xl font-medium" style={{ color: isDark ? '#ffffff' : undefined }}>{product.pesoKg} kg</p>
                       </div>
                     )}
                   </div>
@@ -446,7 +426,7 @@ export default function ProductPage() {
               {/* Categorías - Chips integrados */}
               {product.categorias && product.categorias.length > 0 && (
                 <div className="pt-8 border-t border-gray-200/40 dark:border-gray-600/40">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 tracking-tight" style={{ color: isDarkMode ? '#ffffff' : undefined }}>Categoría</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>Categoría</h3>
                   <div className="flex flex-wrap gap-4">
                     {product.categorias.map((categoria) => (
                       <span
@@ -467,7 +447,7 @@ export default function ProductPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-20 pb-32">
             <div className="flex items-center justify-between mb-12">
-              <h2 className="text-3xl font-semibold text-gray-900 dark:text-white tracking-tight" style={{ color: isDarkMode ? '#ffffff' : undefined }}>También te puede gustar</h2>
+              <h2 className="text-3xl font-semibold text-gray-900 dark:text-white tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>También te puede gustar</h2>
               <div className="flex items-center gap-4">
                 {/* Indicadores de página */}
                 {totalPages > 1 && relatedProducts.length > PRODUCTS_PER_PAGE && (
@@ -685,7 +665,7 @@ export default function ProductPage() {
       <AnimatePresence>
         {showCartSidebar && (
           <motion.div 
-            className="fixed top-16 right-4 h-[calc(100vh-5rem)] w-96 bg-gray-800 dark:bg-gray-900 z-50 shadow-2xl flex flex-col rounded-lg"
+            className={`fixed top-16 right-4 h-[calc(100vh-5rem)] w-96 z-50 shadow-2xl flex flex-col rounded-lg ${isDark ? 'bg-gradient-to-br from-blue-950 via-slate-800 to-slate-900' : 'bg-gray-800'}`}
             initial={{ 
               scale: 0.1, 
               opacity: 0, 

@@ -48,20 +48,20 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
   // Aplicar el tema al documento
   useEffect(() => {
-    
+
     // Remover todas las clases de tema
     document.documentElement.classList.remove('light', 'dark');
-    
+
     // Agregar la clase del tema actual
     document.documentElement.classList.add(theme);
-    
+
     // También agregar la clase al body para mayor compatibilidad
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
-    
+
     console.log('Clases del html:', document.documentElement.classList.toString());
     console.log('Clases del body:', document.body.classList.toString());
-    
+
     // Guardar en localStorage solo en el cliente
     if (typeof window !== 'undefined') {
       localStorage.setItem('shipper-theme', theme);

@@ -3,10 +3,12 @@ import { useNavigate, Link } from "react-router";
 import { useCart } from "../contexts/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 function CartRoute() {
   const navigate = useNavigate();
   const { items, updateQuantity, removeItem, getTotalPrice, clearCart } = useCart();
+  const { isDark } = useTheme();
   const total = getTotalPrice();
   const [isClearing, setIsClearing] = useState(false);
 
@@ -40,8 +42,8 @@ function CartRoute() {
   };
 
   return (
-    <motion.main 
-      className="container mx-auto p-8 max-w-6xl"
+    <motion.main
+      className={`container mx-auto p-8 max-w-6xl min-h-screen ${isDark ? 'bg-gradient-to-br from-black via-slate-900 to-slate-950' : 'bg-gray-50'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -52,7 +54,7 @@ function CartRoute() {
 
       {items.length === 0 ? (
         <motion.div 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900 p-12 text-center"
+          className="rounded-lg shadow-lg p-12 text-center bg-white dark:bg-white/5"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -90,7 +92,7 @@ function CartRoute() {
               return (
                 <motion.div
                   key={item.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 p-6 flex gap-4 items-center"
+                  className="rounded-lg shadow p-6 flex gap-4 items-center bg-white dark:bg-white/5"
                   initial={{ opacity: 0, x: -20, height: 0 }}
                   animate={{ opacity: 1, x: 0, height: 'auto' }}
                   exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
@@ -173,7 +175,7 @@ function CartRoute() {
           </motion.div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900 p-6 sticky top-8">
+            <div className="rounded-lg shadow-lg p-6 sticky top-8 bg-white dark:bg-white/5">
               <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Resumen del Pedido</h2>
               <div className="space-y-2 mb-4 pb-4 border-b">
                 <div className="flex justify-between">
