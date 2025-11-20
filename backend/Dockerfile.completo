@@ -16,13 +16,9 @@ RUN npm run build
 FROM node:22-alpine
 
 # Instalar PostgreSQL desde repositorios de Alpine
-RUN apk add --no-cache postgresql postgresql-client bash shadow
+RUN apk add --no-cache postgresql postgresql-client bash
 
-# Crear usuario y grupo postgres
-RUN addgroup -g 70 postgres && \
-    adduser -D -u 70 -G postgres postgres
-
-# Crear directorio para datos de PostgreSQL
+# Crear directorio para datos de PostgreSQL (postgres user se crea automáticamente con el paquete)
 RUN mkdir -p /var/lib/postgresql/data && \
     chown -R postgres:postgres /var/lib/postgresql
 
