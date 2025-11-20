@@ -6,7 +6,6 @@ import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import AdvancedFilters, { FilterBar, type FilterState } from "../components/AdvancedFilters";
-import ProductSorting from "../components/ProductSorting";
 import { FilterViewButton } from "../components/FilterViewButton";
 
 export default function IndexRoute() {
@@ -17,7 +16,6 @@ export default function IndexRoute() {
   const [error, setError] = useState<string | null>(null);
   const [showProducts, setShowProducts] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [sortBy, setSortBy] = useState('popularidad_desc');
   const [filters, setFilters] = useState<FilterState>({
     category: 'all',
     q: ''
@@ -70,7 +68,7 @@ export default function IndexRoute() {
         color: filters.color !== 'all' ? filters.color : undefined,
         precioMin: filters.precioMin || undefined,
         precioMax: filters.precioMax || undefined,
-        sortBy: sortBy as any
+        sortBy: (filters.orden || 'popularidad_desc') as any
       })
         .then(data => {
           setProductData(data);
@@ -82,7 +80,7 @@ export default function IndexRoute() {
           setLoading(false);
         });
     }
-  }, [query, filters, sortBy, limit, showProducts]);
+  }, [query, filters, limit, showProducts]);
 
   const scrollToProducts = () => {
     if (productsSectionRef.current) {
@@ -128,10 +126,6 @@ export default function IndexRoute() {
     }, 100);
   };
 
-  const handleSortChange = (newSortBy: string) => {
-    setSortBy(newSortBy);
-    setShowProducts(true);
-  };
 
   const handleFilterButtonClick = () => {
     // Scroll hacia arriba para mostrar los filtros
@@ -264,14 +258,14 @@ export default function IndexRoute() {
               </div>
             )}
 
-            {/* Ordenamiento - Separado con espaciado Apple premium */}
+            {/* Mostrando productos - Texto informativo sin ordenamiento */}
             {productData && (
-              <div className="mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
-                <ProductSorting
-                  currentSort={sortBy}
-                  onSortChange={handleSortChange}
-                  totalProducts={productData.products.length}
-                />
+              <div className="mt-8 pt-6 pb-6 border-t border-gray-200/50 dark:border-gray-700/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-blue-300">
+                    Mostrando {productData.products.length} producto{productData.products.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
               </div>
             )}
             
