@@ -419,7 +419,7 @@ export default function ProductPage() {
 
         {/* También te puede gustar - Apple premium */}
         {relatedProducts.length > 0 && (
-          <div className="mt-20">
+          <div className="mt-20 pb-32">
             <div className="flex items-center justify-between mb-12">
               <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">También te puede gustar</h2>
               <div className="flex gap-3">
