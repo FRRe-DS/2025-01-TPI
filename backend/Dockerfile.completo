@@ -38,52 +38,48 @@ COPY --from=builder /app/prisma ./prisma
 # Instalar Prisma CLI para migraciones
 RUN npm install -g prisma@^6.18.0
 
-# Crear script de inicio
-RUN cat > /start.sh << 'EOF'
-#!/bin/sh
-set -e
-
-echo "🚀 Starting PostgreSQL..."
-
-# Inicializar PostgreSQL si no está inicializado
-if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then
-    echo "📦 Initializing PostgreSQL database..."
-    su postgres -c "initdb -D /var/lib/postgresql/data"
-    echo "host all all 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg_hba.conf
-    echo "listen_addresses = '*'" >> /var/lib/postgresql/data/postgresql.conf
-fi
-
-# Iniciar PostgreSQL en background
-su postgres -c "/usr/bin/postgres -D /var/lib/postgresql/data" &
-POSTGRES_PID=$!
-
-echo "⏳ Waiting for PostgreSQL to be ready..."
-sleep 5
-
-# Esperar a que PostgreSQL esté listo
-until pg_isready -h localhost -U postgres; do
-  sleep 1
-done
-
-echo "✅ PostgreSQL is ready!"
-
-# Crear base de datos si no existe
-psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='ds_db'" | grep -q 1 || \
-psql -U postgres -c "CREATE DATABASE ds_db;"
-
-echo "📦 Running migrations..."
-cd /app
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ds_db?schema=public"
-npx prisma migrate deploy || echo "Migrations failed or already applied"
-
-echo "🚀 Starting backend..."
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ds_db?schema=public"
-export PORT=8081
-export HOST=0.0.0.0
-exec node dist/src/main.js
-EOF
-
-RUN chmod +x /start.sh
+# Crear script de inicio usando printf para evitar problemas con heredoc
+RUN printf '#!/bin/sh\n\
+set -e\n\
+\n\
+echo "🚀 Starting PostgreSQL..."\n\
+\n\
+# Inicializar PostgreSQL si no está inicializado\n\
+if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then\n\
+    echo "📦 Initializing PostgreSQL database..."\n\
+    su postgres -c "initdb -D /var/lib/postgresql/data"\n\
+    echo "host all all 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg_hba.conf\n\
+    echo "listen_addresses = '"'"'*'"'"'" >> /var/lib/postgresql/data/postgresql.conf\n\
+fi\n\
+\n\
+# Iniciar PostgreSQL en background\n\
+su postgres -c "/usr/bin/postgres -D /var/lib/postgresql/data" &\n\
+POSTGRES_PID=$!\n\
+\n\
+echo "⏳ Waiting for PostgreSQL to be ready..."\n\
+sleep 5\n\
+\n\
+# Esperar a que PostgreSQL esté listo\n\
+until pg_isready -h localhost -U postgres; do\n\
+  sleep 1\n\
+done\n\
+\n\
+echo "✅ PostgreSQL is ready!"\n\
+\n\
+# Crear base de datos si no existe\n\
+psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='"'"'ds_db'"'"'" | grep -q 1 || \\\n\
+psql -U postgres -c "CREATE DATABASE ds_db;"\n\
+\n\
+echo "📦 Running migrations..."\n\
+cd /app\n\
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ds_db?schema=public"\n\
+npx prisma migrate deploy || echo "Migrations failed or already applied"\n\
+\n\
+echo "🚀 Starting backend..."\n\
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ds_db?schema=public"\n\
+export PORT=8081\n\
+export HOST=0.0.0.0\n\
+exec node dist/src/main.js\n' > /start.sh && chmod +x /start.sh
 
 # Variables de entorno
 ENV NODE_ENV=production
