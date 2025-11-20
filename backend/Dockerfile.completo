@@ -1,0 +1,91 @@
+# Multi-stage build para imagen completa con PostgreSQL + Backend
+# Para pruebas académicas: incluye todo en una sola imagen
+
+# Stage 1: Build del backend
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+
+# Stage 2: Imagen final con PostgreSQL + Backend
+FROM node:22-alpine
+
+# Instalar PostgreSQL desde repositorios de Alpine
+RUN apk add --no-cache postgresql postgresql-client bash
+
+# Inicializar base de datos PostgreSQL
+RUN mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql && \
+    su postgres -c "initdb -D /var/lib/postgresql/data"
+
+# Copiar archivos del backend desde builder
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
+
+# Instalar Prisma CLI para migraciones
+RUN npm install -g prisma@^6.18.0
+
+# Crear script de inicio
+RUN cat > /start.sh << 'EOF'
+#!/bin/sh
+set -e
+
+echo "🚀 Starting PostgreSQL..."
+su postgres -c "/usr/bin/postgres -D /var/lib/postgresql/data" &
+POSTGRES_PID=$!
+
+echo "⏳ Waiting for PostgreSQL to be ready..."
+sleep 5
+
+# Crear base de datos si no existe
+until pg_isready -h localhost -U postgres; do
+  sleep 1
+done
+
+psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='ds_db'" | grep -q 1 || \
+psql -U postgres -c "CREATE DATABASE ds_db;"
+
+echo "✅ PostgreSQL is ready!"
+
+echo "📦 Running migrations..."
+cd /app
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ds_db?schema=public"
+npx prisma migrate deploy || echo "Migrations failed or already applied"
+
+echo "🚀 Starting backend..."
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ds_db?schema=public"
+export PORT=8081
+export HOST=0.0.0.0
+exec node dist/src/main.js
+EOF
+
+RUN chmod +x /start.sh
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV PORT=8081
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ds_db?schema=public
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
+ENV POSTGRES_DB=ds_db
+ENV PGDATA=/var/lib/postgresql/data
+
+# Exponer puertos
+EXPOSE 8081 5432
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8081/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
+
+# Comando de inicio
+CMD ["/start.sh"]
