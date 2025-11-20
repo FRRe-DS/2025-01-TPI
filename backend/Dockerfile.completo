@@ -18,9 +18,9 @@ FROM node:22-alpine
 # Instalar PostgreSQL desde repositorios de Alpine
 RUN apk add --no-cache postgresql postgresql-client bash
 
-# Crear directorio para datos de PostgreSQL (postgres user se crea automáticamente con el paquete)
-RUN mkdir -p /var/lib/postgresql/data && \
-    chown -R postgres:postgres /var/lib/postgresql
+# Crear directorios necesarios para PostgreSQL (postgres user se crea automáticamente con el paquete)
+RUN mkdir -p /var/lib/postgresql/data /run/postgresql && \
+    chown -R postgres:postgres /var/lib/postgresql /run/postgresql
 
 # Copiar archivos del backend desde builder
 WORKDIR /app
@@ -40,12 +40,17 @@ set -e\n\
 \n\
 echo "🚀 Starting PostgreSQL..."\n\
 \n\
+# Crear directorio de runtime si no existe\n\
+mkdir -p /run/postgresql\n\
+chown -R postgres:postgres /run/postgresql\n\
+\n\
 # Inicializar PostgreSQL si no está inicializado\n\
 if [ ! -f /var/lib/postgresql/data/PG_VERSION ]; then\n\
     echo "📦 Initializing PostgreSQL database..."\n\
     su postgres -c "initdb -D /var/lib/postgresql/data"\n\
     echo "host all all 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg_hba.conf\n\
     echo "listen_addresses = '"'"'*'"'"'" >> /var/lib/postgresql/data/postgresql.conf\n\
+    echo "unix_socket_directories = '"'"'/run/postgresql'"'"'" >> /var/lib/postgresql/data/postgresql.conf\n\
 fi\n\
 \n\
 # Iniciar PostgreSQL en background\n\
