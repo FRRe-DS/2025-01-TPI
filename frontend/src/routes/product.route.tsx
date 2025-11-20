@@ -21,22 +21,24 @@ export default function ProductPage() {
   const [showCartSidebar, setShowCartSidebar] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartAnimating, setCartAnimating] = useState(false);
+  const [relatedProductsPage, setRelatedProductsPage] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const productId = parseInt(id || '0');
-        
+
         const foundProduct = await getProductById(productId);
-        
+
         setProduct(foundProduct);
         if (foundProduct) {
           setCurrentPrice(foundProduct.precio);
           setCurrentStock(foundProduct.stockDisponible);
-          
-          // Cargar productos relacionados
-          const related = await getRelatedProducts(productId, 4);
+
+          // Cargar productos relacionados y resetear página
+          const related = await getRelatedProducts(productId, 12); // Cargar más productos para paginación
           setRelatedProducts(related);
+          setRelatedProductsPage(0); // Resetear a primera página
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -173,6 +175,26 @@ export default function ProductPage() {
 
   const handleBuyNow = () => {
     // Aquí se implementará la lógica para comprar ahora
+  };
+
+  // Navegación de productos relacionados
+  const PRODUCTS_PER_PAGE = 4;
+  const totalPages = Math.ceil(relatedProducts.length / PRODUCTS_PER_PAGE);
+
+
+  const nextRelatedProducts = () => {
+    setRelatedProductsPage((prev) => (prev + 1) % totalPages);
+  };
+
+  const prevRelatedProducts = () => {
+    setRelatedProductsPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+  // Obtener productos de la página actual
+  const getCurrentPageProducts = () => {
+    const start = relatedProductsPage * PRODUCTS_PER_PAGE;
+    const end = start + PRODUCTS_PER_PAGE;
+    return relatedProducts.slice(start, end);
   };
 
   return (
@@ -422,22 +444,59 @@ export default function ProductPage() {
           <div className="mt-20 pb-32">
             <div className="flex items-center justify-between mb-12">
               <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">También te puede gustar</h2>
-              <div className="flex gap-3">
-                <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-200 hover:shadow-md hover:scale-105">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button className="w-12 h-12 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all duration-200 hover:shadow-md hover:scale-105">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+              <div className="flex items-center gap-4">
+                {/* Indicadores de página */}
+                {totalPages > 1 && relatedProducts.length > PRODUCTS_PER_PAGE && (
+                  <div className="flex items-center gap-2 mr-2">
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setRelatedProductsPage(i)}
+                        className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                          i === relatedProductsPage
+                            ? 'bg-green-600 w-6'
+                            : 'bg-gray-300 hover:bg-gray-400'
+                        }`}
+                        aria-label={`Ir a página ${i + 1} de productos relacionados`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Botones de navegación */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={prevRelatedProducts}
+                    disabled={totalPages <= 1}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:shadow-md hover:scale-105 ${
+                      totalPages <= 1
+                        ? 'bg-gray-50 cursor-not-allowed opacity-50'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    <svg className="w-5 h-5 text-gray-600 disabled:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={nextRelatedProducts}
+                    disabled={totalPages <= 1}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 hover:shadow-md hover:scale-105 ${
+                      totalPages <= 1
+                        ? 'bg-green-400 cursor-not-allowed opacity-50'
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                  >
+                    <svg className="w-5 h-5 text-white disabled:text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {relatedProducts && relatedProducts.length > 0 ? relatedProducts.map((relatedProduct) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 auto-rows-fr">
+              {getCurrentPageProducts().length > 0 ? getCurrentPageProducts().map((relatedProduct) => {
                 const mainImage = relatedProduct.imagenes?.find(img => img.esPrincipal)?.url ||
                   relatedProduct.imagenes?.[0]?.url ||
                   'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
@@ -449,9 +508,9 @@ export default function ProductPage() {
                   <Link
                     key={relatedProduct.id}
                     to={`/product/${relatedProduct.id}`}
-                    className="group bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden hover:shadow-lg hover:shadow-gray-200/30 hover:-translate-y-1 transition-all duration-300 will-change-transform"
+                    className="group bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden hover:shadow-lg hover:shadow-gray-200/30 hover:-translate-y-1 transition-all duration-300 will-change-transform h-full flex flex-col"
                   >
-                    <div className="aspect-[4/3] relative overflow-hidden">
+                    <div className="relative overflow-hidden rounded-t-2xl flex-shrink-0 h-48">
                       <img
                         src={mainImage}
                         alt={relatedProduct.nombre}
@@ -459,29 +518,36 @@ export default function ProductPage() {
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
                     </div>
-                    <div className="p-6">
-                      <h3 className="font-semibold text-gray-900 text-base mb-3 line-clamp-2 leading-tight">
-                        {relatedProduct.nombre}
-                      </h3>
-                      <div className="space-y-2">
-                        {relatedProduct.precioOriginal && (
-                          <p className="text-sm text-gray-500 line-through">
-                            ${relatedProduct.precioOriginal.toLocaleString('es-AR')}
+                    <div className="p-6 flex flex-col flex-1">
+                      {/* Título - ocupa espacio disponible */}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-base line-clamp-2 leading-tight min-h-[3rem]">
+                          {relatedProduct.nombre}
+                        </h3>
+                      </div>
+
+                      {/* Precios - siempre al final para alineación */}
+                      <div className="mt-auto">
+                        <div className="space-y-1">
+                          {relatedProduct.precioOriginal && (
+                            <p className="text-sm text-gray-500 line-through">
+                              ${relatedProduct.precioOriginal.toLocaleString('es-AR')}
+                            </p>
+                          )}
+                          <p className="text-xl font-bold text-gray-900">
+                            ${relatedProduct.precio.toLocaleString('es-AR')}
                           </p>
-                        )}
-                        <p className="text-xl font-bold text-gray-900">
-                          ${relatedProduct.precio.toLocaleString('es-AR')}
-                        </p>
-                        {transferPrice && (
-                          <p className="text-sm text-green-600 font-medium">
-                            ${transferPrice.toLocaleString('es-AR')} con transferencia
-                          </p>
-                        )}
-                        {relatedProduct.promociones?.cuotasSinInteres && (
-                          <p className="text-sm text-blue-600 font-medium">
-                            Hasta {relatedProduct.promociones.cuotasSinInteres} cuotas sin interés
-                          </p>
-                        )}
+                          {transferPrice && (
+                            <p className="text-sm text-green-600 font-medium">
+                              ${transferPrice.toLocaleString('es-AR')} con transferencia
+                            </p>
+                          )}
+                          {relatedProduct.promociones?.cuotasSinInteres && (
+                            <p className="text-sm text-blue-600 font-medium">
+                              Hasta {relatedProduct.promociones.cuotasSinInteres} cuotas sin interés
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Link>
