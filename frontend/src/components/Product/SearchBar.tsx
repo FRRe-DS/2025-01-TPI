@@ -16,23 +16,20 @@ export function SearchBar({ initialQuery, onSearch, isSearching = false }: Searc
     return (
         <form 
         onSubmit={handleSubmit} 
-        className="flex flex-col md:flex-row gap-4 p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"
+        className="search-bar-container"
+        data-search-bar
         >
         <input
             type="text"
             name="q"
             defaultValue={initialQuery}
             placeholder="Buscar productos, marcas, descripciones..."
-            className="flex-grow p-4 border-2 border-gray-200 rounded-xl text-gray-800 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 text-lg"
+            className="search-bar-input"
         />
         <button 
             type="submit" 
             disabled={isSearching}
-            className={`px-8 py-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                isSearching 
-                    ? 'bg-blue-600 text-white cursor-not-allowed opacity-75' 
-                    : 'bg-blue-900 text-white hover:bg-blue-800'
-            }`}
+            className={`search-bar-button ${isSearching ? 'search-bar-button-loading' : ''}`}
         >
             {isSearching ? (
                 <div className="flex items-center gap-2">

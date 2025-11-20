@@ -2,12 +2,10 @@
 .header {
   width: 100%;
   background: #032d70;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.75rem 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 .header-container {
@@ -21,6 +19,7 @@
 .header-left {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .header-left h1 {
@@ -32,12 +31,76 @@
   align-items: center;
   gap: 0.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+
+.header-left h1:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .header-logo {
   height: 28px;
   width: auto;
   vertical-align: middle;
+  transition: all 0.3s ease;
+  transform-origin: center;
+  animation: truckArrival 2s ease-out;
+  animation-fill-mode: forwards;
+}
+
+.header-logo.arrived {
+  animation: none;
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+/* Animación de llegada del camión */
+@keyframes truckArrival {
+  0% {
+    transform: translateX(-100px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-20px) scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Estado final del camión después de la llegada */
+.header-logo.arrived {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+.header-left h1:hover .header-logo.arrived {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Animación del camión arrancando */
+@keyframes truckStart {
+  0% {
+    transform: scale(1) translateX(0);
+  }
+  25% {
+    transform: scale(1.05) translateX(-2px);
+  }
+  50% {
+    transform: scale(1.1) translateX(2px);
+  }
+  75% {
+    transform: scale(1.05) translateX(-1px);
+  }
+  100% {
+    transform: scale(1.1) translateX(0);
+  }
 }
 
 .header-left p {
@@ -51,6 +114,110 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+/* Toggle de tema en el header - lado izquierdo */
+.header-theme-toggle-left {
+  z-index: 10;
+  margin-left: 0.5rem;
+}
+
+.header-theme-toggle-left button {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.header-theme-toggle-left button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.05) !important;
+}
+
+.header-theme-toggle-left button:active {
+  transform: scale(0.95) !important;
+}
+
+/* Modo oscuro para el toggle en el header */
+.dark .header-theme-toggle-left button {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .header-theme-toggle-left button:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Botón de búsqueda */
+.search-button {
+  background: rgba(255, 255, 255, 0.95);
+  color: #032d70;
+  border: 2px solid transparent;
+  padding: 0.6rem;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+/* Estados de animación */
+.search-button.entering {
+  animation: searchButtonFadeIn 0.3s ease-out;
+}
+
+.search-button.leaving {
+  animation: searchButtonFadeOut 0.3s ease-in;
+}
+
+.search-button:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.search-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Animación de aparición del botón */
+@keyframes searchButtonFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animación de desaparición del botón */
+@keyframes searchButtonFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
 }
 
 .user-menu {
@@ -90,6 +257,63 @@
   overflow: hidden;
   animation: fadeIn 0.2s ease-in-out;
   z-index: 100;
+}
+
+/* Modal específico del carrito - más ancho */
+.cart-dropdown {
+  width: 420px !important;
+  min-width: 420px !important;
+  max-width: 90vw;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e5e7eb;
+}
+
+/* Botón de cerrar del modal del carrito */
+.cart-close-button {
+  transition: all 0.2s ease;
+}
+
+.cart-close-button:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: #333 !important;
+  transform: rotate(90deg);
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Botón de eliminar mejorado */
+.remove-item-btn {
+  transition: all 0.2s ease !important;
+}
+
+.remove-item-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  transform: scale(1.02);
+}
+
+.remove-item-btn:active {
+  transform: scale(0.98);
+}
+
+/* Botón de eliminar en la página del carrito */
+.remove-item-btn-cart:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  transform: scale(1.02);
+}
+
+.remove-item-btn-cart:active {
+  transform: scale(0.98);
 }
 
 
@@ -156,6 +380,19 @@
 
   .header-logo {
     height: 24px;
+    animation: truckArrival 1.8s ease-out;
+    animation-fill-mode: forwards;
+  }
+  
+  .header-logo.arrived {
+    animation: none;
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  
+  .header-left h1:hover .header-logo.arrived {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
   }
   
   .header-left p {
@@ -165,6 +402,17 @@
   .user-icon {
     width: 38px;
     height: 38px;
+  }
+
+  .search-button {
+    width: 36px;
+    height: 36px;
+    padding: 0.5rem;
+  }
+
+  .search-button svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -184,6 +432,19 @@
 
   .header-logo {
     height: 20px;
+    animation: truckArrival 1.5s ease-out;
+    animation-fill-mode: forwards;
+  }
+  
+  .header-logo.arrived {
+    animation: none;
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  
+  .header-left h1:hover .header-logo.arrived {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
   }
   
   .header-left p {
@@ -195,8 +456,323 @@
     height: 35px;
   }
 
+  .search-button {
+    width: 32px;
+    height: 32px;
+    padding: 0.4rem;
+  }
+
+  .search-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .dropdown-menu {
     min-width: 160px;
+  }
+}
+
+/* ==================== BÚSQUEDA DESPLEGABLE ==================== */
+
+/* Overlay de fondo borroso */
+.search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: overlayFadeIn 0.3s ease-out;
+}
+
+/* Sección de búsqueda desplegable */
+.search-dropdown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #032d70;
+  z-index: 1000;
+  transform: translateY(-100%);
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  height: 50vh;
+}
+
+.search-dropdown--open {
+  transform: translateY(0);
+}
+
+.search-dropdown-content {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ==================== CAMPO DE BÚSQUEDA ESTILO APPLE ==================== */
+
+.apple-search-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 3rem 0 0.5rem 0;
+  padding-left: 2rem;
+}
+
+.apple-search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.apple-search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 1rem 2.5rem 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+.apple-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.apple-search-input:focus {
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.apple-search-input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Botón de limpiar búsqueda */
+.clear-search-button {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #032d70;
+  transition: all 0.15s ease;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+}
+
+.clear-search-button:hover {
+  color: #02244f;
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.clear-search-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+
+/* Mostrar botón cuando hay texto */
+.apple-search-field.has-text .clear-search-button {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==================== HISTORIAL DE BÚSQUEDAS ==================== */
+
+.search-history-header {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-title {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.quick-link-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex: 1;
+}
+
+.quick-link-text:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.remove-history-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.15s ease;
+  opacity: 0;
+  visibility: hidden;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+}
+
+.quick-link:hover .remove-history-button {
+  opacity: 1;
+  visibility: visible;
+}
+
+.remove-history-button:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.remove-history-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ==================== ENLACES RÁPIDOS ESTILO APPLE ==================== */
+
+.quick-links-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0.25rem 2rem 2rem 2rem;
+}
+
+.quick-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 500px;
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  transition: all 0.10s ease;
+  padding: 0.4rem 1.2rem;
+  border-radius: 6px;
+  background: transparent;
+  width: 100%;
+}
+
+.quick-link-arrow {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  font-weight: 300;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.quick-link-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.quick-link {
+  position: relative;
+}
+
+.quick-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0rem;
+  right: -56rem;
+  bottom: 0;
+  background: transparent;
+  border-radius: 6px;
+  transition: all 0.05s ease;
+  z-index: -1;
+}
+
+.quick-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.quick-link:hover::before {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quick-link:hover .quick-link-arrow {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.quick-link:hover .quick-link-text {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.search-placeholder {
+  text-align: center;
+  padding: 3rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+}
+
+/* Animación del overlay */
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
   }
 }
 
@@ -233,6 +809,12 @@
   overflow-y: auto;
   z-index: 1001;
   animation: slideIn 0.3s ease-out;
+}
+
+/* Modo oscuro para el modal */
+.dark .profile-modal {
+  background: #1e40af;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* Header del modal */
@@ -278,6 +860,11 @@
   padding: 2rem;
 }
 
+/* Modo oscuro para el formulario */
+.dark .profile-form {
+  background: #1e40af;
+}
+
 /* Header del perfil (avatar + nombre) */
 .profile-header {
   display: flex;
@@ -309,10 +896,18 @@
   font-weight: 700;
 }
 
+.dark .profile-name h3 {
+  color: #ffffff;
+}
+
 .profile-name p {
   margin: 0;
   color: #6b7280;
   font-size: 0.95rem;
+}
+
+.dark .profile-name p {
+  color: #93c5fd;
 }
 
 /* Secciones del formulario */
@@ -327,6 +922,11 @@
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #e5e7eb;
+}
+
+.dark .form-section h3 {
+  color: #ffffff;
+  border-bottom-color: #3b82f6;
 }
 
 /* Fila de campos */
@@ -351,6 +951,10 @@
   margin-bottom: 0.5rem;
 }
 
+.dark .form-field label {
+  color: #ffffff;
+}
+
 .form-field input {
   padding: 0.75rem;
   border: 2px solid #e5e7eb;
@@ -360,16 +964,32 @@
   background: white;
 }
 
+.dark .form-field input {
+  background: #1e40af;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
 .form-field input:focus {
   outline: none;
   border-color: #032d70;
   box-shadow: 0 0 0 3px rgba(3, 45, 112, 0.1);
 }
 
+.dark .form-field input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
 .form-field input.disabled {
   background: #f3f4f6;
   color: #6b7280;
   cursor: not-allowed;
+}
+
+.dark .form-field input.disabled {
+  background: #1e40af;
+  color: #93c5fd;
 }
 
 .field-note {
@@ -379,6 +999,10 @@
   font-style: italic;
 }
 
+.dark .field-note {
+  color: #93c5fd;
+}
+
 /* Botones de acción */
 .form-actions {
   display: flex;
@@ -386,6 +1010,10 @@
   justify-content: flex-end;
   padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
+}
+
+.dark .form-actions {
+  border-top-color: #3b82f6;
 }
 
 .btn-primary,
@@ -421,9 +1049,20 @@
   border: 2px solid #e5e7eb;
 }
 
+.dark .btn-secondary {
+  background: #1e40af;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
 .btn-secondary:hover:not(:disabled) {
   background: #f3f4f6;
   border-color: #032d70;
+}
+
+.dark .btn-secondary:hover:not(:disabled) {
+  background: #1e40af;
+  border-color: #60a5fa;
 }
 
 .btn-secondary:disabled {
@@ -453,6 +1092,10 @@
 .loading-spinner p {
   color: #6b7280;
   font-size: 0.95rem;
+}
+
+.dark .loading-spinner p {
+  color: #93c5fd;
 }
 
 /* Mensaje de error */
@@ -568,5 +1211,72 @@
   .profile-header {
     flex-direction: column;
     text-align: center;
+  }
+}
+
+/* Responsive para el dropdown de búsqueda */
+@media (max-width: 768px) {
+  .search-dropdown-content {
+    padding: 1.5rem;
+  }
+  
+  .apple-search-container {
+    padding: 1.5rem 0;
+    padding-left: 1.5rem;
+  }
+  
+  .apple-search-field {
+    max-width: 100%;
+  }
+  
+  .apple-search-input {
+    font-size: 1rem;
+    padding: 0.8rem 0 0.8rem 2.2rem;
+  }
+  
+  .search-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .quick-links-container {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+  }
+  
+  .quick-links {
+    max-width: 100%;
+  }
+  
+  .quick-link {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-dropdown-content {
+    padding: 1rem;
+  }
+  
+  .apple-search-container {
+    padding: 1rem 0;
+    padding-left: 1rem;
+  }
+  
+  .apple-search-input {
+    font-size: 0.95rem;
+    padding: 0.7rem 0 0.7rem 2rem;
+  }
+  
+  .search-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .quick-links-container {
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .quick-link {
+    font-size: 0.85rem;
   }
 }

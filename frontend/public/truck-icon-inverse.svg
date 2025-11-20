@@ -1,0 +1,52 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Zona segura: padding de 16px (64 unidades en 1024px) -->
+  <g transform="translate(64, 64)">
+    <!-- Carrocería principal del camión -->
+    <rect x="80" y="200" width="600" height="320" rx="24" fill="#FFFFFF" stroke="#032d70" stroke-width="8"/>
+    
+    <!-- Cabina del conductor -->
+    <rect x="80" y="200" width="240" height="320" rx="24" fill="#FFFFFF" stroke="#032d70" stroke-width="8"/>
+    
+    <!-- Ventana del conductor -->
+    <rect x="100" y="220" width="200" height="180" rx="16" fill="#F5F5F5" stroke="#032d70" stroke-width="6"/>
+    
+    <!-- Check mark en la caja -->
+    <g transform="translate(400, 300)">
+      <circle cx="0" cy="0" r="80" fill="#FFFFFF"/>
+      <path d="M-25,-10 L-5,10 L25,-20" stroke="#032d70" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+    
+    <!-- Líneas de velocidad -->
+    <g transform="translate(40, 300)">
+      <rect x="0" y="0" width="8" height="120" rx="4" fill="#032d70"/>
+      <rect x="16" y="0" width="8" height="120" rx="4" fill="#032d70"/>
+      <rect x="32" y="0" width="8" height="120" rx="4" fill="#032d70"/>
+      <rect x="48" y="0" width="8" height="120" rx="4" fill="#032d70"/>
+    </g>
+    
+    <!-- Rueda delantera -->
+    <g transform="translate(200, 560)">
+      <circle cx="0" cy="0" r="60" fill="#FFFFFF" stroke="#032d70" stroke-width="8"/>
+      <circle cx="0" cy="0" r="40" fill="#032d70"/>
+      <circle cx="0" cy="0" r="20" fill="#FFFFFF"/>
+    </g>
+    
+    <!-- Rueda trasera -->
+    <g transform="translate(600, 560)">
+      <circle cx="0" cy="0" r="60" fill="#FFFFFF" stroke="#032d70" stroke-width="8"/>
+      <circle cx="0" cy="0" r="40" fill="#032d70"/>
+      <circle cx="0" cy="0" r="20" fill="#FFFFFF"/>
+    </g>
+    
+    <!-- Detalles adicionales -->
+    <!-- Parachoques delantero -->
+    <rect x="60" y="180" width="20" height="40" rx="10" fill="#032d70"/>
+    
+    <!-- Luces delanteras -->
+    <circle cx="90" cy="200" r="12" fill="#F5F5F5" stroke="#032d70" stroke-width="4"/>
+    <circle cx="90" cy="240" r="12" fill="#F5F5F5" stroke="#032d70" stroke-width="4"/>
+    
+    <!-- Espejo retrovisor -->
+    <rect x="70" y="250" width="15" height="8" rx="4" fill="#FFFFFF" stroke="#032d70" stroke-width="3"/>
+  </g>
+</svg>

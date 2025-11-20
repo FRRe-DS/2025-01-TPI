@@ -1,16 +1,17 @@
 // src/routes/index.route.tsx
 import { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router";
 import { getProducts, type PaginatedProducts } from "../services/product.service";
 import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
-import { Pagination } from "../components/Product/Pagination";
 import CategoryCard from "../components/CategoryCard";
 import AdvancedFilters, { type FilterState } from "../components/AdvancedFilters";
 import ProductSorting from "../components/ProductSorting";
+import { FilterViewButton } from "../components/FilterViewButton";
 
 export default function IndexRoute() {
+  const location = useLocation();
   const [productData, setProductData] = useState<PaginatedProducts | null>(null);
-  const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,15 +20,40 @@ export default function IndexRoute() {
   const [sortBy, setSortBy] = useState('popularidad_desc');
   const [filters, setFilters] = useState<FilterState>({
     category: 'all',
-    marca: 'all',
-    color: 'all',
-    precioMin: null,
-    precioMax: null
+    q: ''
   });
-  const limit = 8;
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
+  const [showFilterButton, setShowFilterButton] = useState(false);
+  const limit = 1000; // Mostrar todos los productos sin paginación
   
   // Ref para hacer scroll a la sección de productos
   const productsSectionRef = useRef<HTMLElement>(null);
+  const filterButtonRef = useRef<HTMLDivElement>(null);
+
+  // Cargar query del localStorage al montar el componente
+  useEffect(() => {
+    const savedQuery = localStorage.getItem('searchQuery');
+    if (savedQuery) {
+      setQuery(savedQuery);
+      setShowProducts(true);
+      // Limpiar el localStorage después de usarlo
+      localStorage.removeItem('searchQuery');
+    }
+  }, []);
+
+  // Efecto para mostrar/ocultar el botón de filtros basado en scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (productsSectionRef.current && showProducts) {
+        const rect = productsSectionRef.current.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight * 0.3; // Mostrar cuando la sección esté 30% visible
+        setShowFilterButton(isVisible);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showProducts]);
 
   useEffect(() => {
     if (showProducts) {
@@ -35,7 +61,7 @@ export default function IndexRoute() {
       setError(null);
       
       getProducts({ 
-        page, 
+        page: 1, 
         limit, 
         q: query, 
         categoryId: filters.category !== 'all' ? filters.category : undefined,
@@ -55,7 +81,7 @@ export default function IndexRoute() {
           setLoading(false);
         });
     }
-  }, [page, query, filters, sortBy, limit, showProducts]);
+  }, [query, filters, sortBy, limit, showProducts]);
 
   const scrollToProducts = () => {
     if (productsSectionRef.current) {
@@ -69,7 +95,6 @@ export default function IndexRoute() {
   const handleSearch = (q: string) => {
     setIsSearching(true);
     setQuery(q);
-    setPage(1);
     setShowProducts(true);
     
     // Scroll suave a la sección de productos después de un pequeño delay
@@ -83,7 +108,6 @@ export default function IndexRoute() {
     setIsSearching(true);
     setFilters(prev => ({ ...prev, category: categoryId }));
     setQuery("");
-    setPage(1);
     setShowProducts(true);
     
     // Scroll suave a la sección de productos después de un pequeño delay
@@ -95,7 +119,6 @@ export default function IndexRoute() {
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    setPage(1);
     setShowProducts(true);
     
     // Scroll suave a la sección de productos
@@ -106,17 +129,58 @@ export default function IndexRoute() {
 
   const handleSortChange = (newSortBy: string) => {
     setSortBy(newSortBy);
-    setPage(1);
     setShowProducts(true);
   };
 
+  const handleFilterButtonClick = () => {
+    // Scroll hacia arriba para mostrar los filtros
+    if (productsSectionRef.current) {
+      productsSectionRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
+  const handleViewChange = (view: 'grid' | 'list' | 'compact') => {
+    setViewMode(view);
+  };
+
+  // Manejar estado de navegación desde la página de producto
+  useEffect(() => {
+    if (location.state) {
+      const { scrollToProducts, selectedCategory } = location.state as { 
+        scrollToProducts?: boolean; 
+        selectedCategory?: string; 
+      };
+      
+      if (selectedCategory) {
+        setFilters(prev => ({ ...prev, category: selectedCategory }));
+        setQuery("");
+        setShowProducts(true);
+        
+        // Scroll a productos después de un pequeño delay
+        setTimeout(() => {
+          if (productsSectionRef.current) {
+            productsSectionRef.current.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        }, 100);
+      }
+    }
+  }, [location.state]);
+
+
   return (
     <main className="min-h-screen">
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20">
         <div className="container mx-auto px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Bienvenido a <span className="text-blue-200">Shipper</span>
+            Bienvenido a <span className="text-blue-200 shipper-animated">Shipper</span>
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
             Todos tus productos en un solo lugar
@@ -134,9 +198,9 @@ export default function IndexRoute() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="categories-section">
         <div className="container mx-auto px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
+          <h2 className="categories-title">
             Las categorías más buscadas
           </h2>
           
@@ -168,14 +232,14 @@ export default function IndexRoute() {
 
       {/* Products Section */}
       {showProducts && (
-        <section ref={productsSectionRef} className="py-16 bg-white">
+        <section ref={productsSectionRef} className="products-section">
           <div className="container mx-auto px-8">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-gray-800">
+              <h2 className="products-title">
                 {query ? `Resultados para "${query}"` : "Nuestros Productos"}
               </h2>
               {isSearching && (
-                <div className="flex items-center gap-2 text-blue-600">
+                <div className="products-loading">
                   <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm font-medium">Buscando productos...</span>
                 </div>
@@ -200,7 +264,7 @@ export default function IndexRoute() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
-                <p className="mt-4 text-gray-600">Cargando productos...</p>
+                <p className="mt-4 text-gray-600 dark:text-blue-300">Cargando productos...</p>
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -209,25 +273,27 @@ export default function IndexRoute() {
               </div>
             ) : productData ? (
               <>
-                <ProductList products={productData.products} />
-                {productData.totalPages > 1 && (
-                  <div className="mt-12">
-                    <Pagination 
-                      currentPage={productData.currentPage} 
-                      totalPages={productData.totalPages} 
-                      onPageChange={setPage} 
-                    />
-                  </div>
-                )}
+                <ProductList 
+                  products={productData.products} 
+                  viewMode={viewMode}
+                />
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-600 text-lg">No hay datos disponibles</p>
+                <p className="text-gray-600 dark:text-blue-300 text-lg">No hay datos disponibles</p>
               </div>
             )}
           </div>
         </section>
       )}
+
+      {/* Filter View Button - Fixed at bottom */}
+      <FilterViewButton
+        onFilterClick={handleFilterButtonClick}
+        onViewChange={handleViewChange}
+        currentView={viewMode}
+        isVisible={showFilterButton}
+      />
     </main>
   );
 }
