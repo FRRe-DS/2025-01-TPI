@@ -182,7 +182,7 @@ function CartRoute() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Envío:</span>
-                  <span className="font-semibold">Calculado en checkout</span>
+                  <span className="font-semibold">Calculado en pedido</span>
                 </div>
               </div>
               <div className="flex justify-between text-xl font-bold mb-6">

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "react-oidc-context";
+import { useNavigate } from "react-router";
 import ProfileModal from "./ProfileModal";
-import { ThemeToggle } from "../ThemeToggle";
 
 export default function UserModal() {
   const auth = useAuth();
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [showUnderConstruction, setShowUnderConstruction] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -56,7 +57,7 @@ export default function UserModal() {
 
   const handlePedidos = () => {
     setShowModal(false);
-    setShowUnderConstruction(true);
+    navigate('/shopcart/history');
   };
 
   const handleLogout = () => {
@@ -80,9 +81,16 @@ export default function UserModal() {
       
       {showModal && (
         <div ref={modalRef} className="dropdown-menu" style={{ zIndex: 100 }}>
-            <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #e5e7eb', marginBottom: '0.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ThemeToggle size="sm" labelSize="lg" showLabel className="user-dropdown-theme-toggle" />
+            <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #e5e7eb', marginBottom: '0.25rem' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                fontWeight: 600,
+                color: '#032d70',
+                fontSize: '0.95rem'
+              }}>
+                <span>{auth.user?.profile?.name || auth.user?.profile?.preferred_username || 'Usuario'}</span>
               </div>
             </div>
             <button onClick={handleProfileClick}>

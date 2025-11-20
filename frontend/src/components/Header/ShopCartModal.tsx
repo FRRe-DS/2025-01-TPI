@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { useCart } from "../../contexts/CartContext";
 
 export default function ShopCartModal() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showCart, setShowCart] = useState(false);
   const { items, updateQuantity, removeItem, getTotalItems, getTotalPrice, isAnimating } = useCart();
   const totalItems = getTotalItems(); // Cantidad total de items (suma de todas las cantidades)
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // Verificar si estamos en checkout para deshabilitar acciones
+  const isInCheckout = location.pathname.includes('/checkout');
 
   // Cerrar otros modales cuando se abre este
   useEffect(() => {
@@ -61,11 +65,20 @@ export default function ShopCartModal() {
   };
 
   const handleDecreaseQuantity = (itemId: string, currentQuantity: number) => {
+    // No permitir modificar el carrito si estamos en checkout
+    if (isInCheckout) return;
+    
     if (currentQuantity > 1) {
       updateQuantity(itemId, currentQuantity - 1);
     } else {
       removeItem(itemId);
     }
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    // No permitir eliminar items si estamos en checkout
+    if (isInCheckout) return;
+    removeItem(itemId);
   };
 
   return (
@@ -74,7 +87,7 @@ export default function ShopCartModal() {
         className="cart-icon"
         onClick={() => setShowCart(!showCart)}
         title="Carrito de compras"
-        style={{ position: 'relative', cursor: 'pointer' }}
+        style={{ position: 'relative', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
       >
         {/* Efecto de llenado con degradado exacto como SHIPPER */}
         {isAnimating && (
@@ -113,36 +126,37 @@ export default function ShopCartModal() {
         )}
         
         <svg 
-          width="24" 
-          height="24" 
+          width="28" 
+          height="28" 
           viewBox="0 0 24 24" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg"
-          style={{ position: 'relative', zIndex: 2 }}
+          style={{ position: 'relative', zIndex: 2, color: 'white' }}
         >
-          <path d="M7 18C5.9 18 5.01 18.9 5.01 20C5.01 21.1 5.9 22 7 22C8.1 22 9 21.1 9 20C9 18.9 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5.48C20.96 5.34 21 5.17 21 5C21 4.45 20.55 4 20 4H5.21L4.27 2H1ZM17 18C15.9 18 15.01 18.9 15.01 20C15.01 21.1 15.9 22 17 22C18.1 22 19 21.1 19 20C19 18.9 18.1 18 17 18Z" fill="currentColor"/>
+          <path d="M7 18C5.9 18 5.01 18.9 5.01 20C5.01 21.1 5.9 22 7 22C8.1 22 9 21.1 9 20C9 18.9 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5.48C20.96 5.34 21 5.17 21 5C21 4.45 20.55 4 20 4H5.21L4.27 2H1ZM17 18C15.9 18 15.01 18.9 15.01 20C15.01 21.1 15.9 22 17 22C18.1 22 19 21.1 19 20C19 18.9 18.1 18 17 18Z" fill="white"/>
         </svg>
-      </motion.div>
-      
+        
         {totalItems > 0 && (
           <span style={{
             position: 'absolute',
-            top: '-5px',
-            right: '-5px',
+            top: '-2px',
+            right: '-2px',
             background: '#ff4444',
             color: 'white',
             borderRadius: '50%',
-            width: '20px',
-            height: '20px',
+            width: '16px',
+            height: '16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '0.7rem',
-            fontWeight: 'bold'
+            fontSize: '0.65rem',
+            fontWeight: 'bold',
+            zIndex: 10
           }}>
             {totalItems}
           </span>
         )}
+      </motion.div>
 
       {showCart && (
         <div 
@@ -212,29 +226,36 @@ export default function ShopCartModal() {
                               e.stopPropagation();
                               handleDecreaseQuantity(item.id, item.quantity);
                             }}
+                            disabled={isInCheckout}
                             style={{
                               width: '28px',
                               height: '28px',
-                              background: '#f0f0f0',
+                              background: isInCheckout ? '#e5e5e5' : '#f0f0f0',
                               border: '1px solid #ddd',
                               borderRadius: '6px',
-                              cursor: 'pointer',
+                              cursor: isInCheckout ? 'not-allowed' : 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontSize: '1rem',
                               fontWeight: 'bold',
                               transition: 'all 0.2s ease',
-                              color: '#333'
+                              color: isInCheckout ? '#999' : '#333',
+                              opacity: isInCheckout ? 0.6 : 1
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#e0e0e0';
-                              e.currentTarget.style.borderColor = '#bbb';
+                              if (!isInCheckout) {
+                                e.currentTarget.style.background = '#e0e0e0';
+                                e.currentTarget.style.borderColor = '#bbb';
+                              }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#f0f0f0';
-                              e.currentTarget.style.borderColor = '#ddd';
+                              if (!isInCheckout) {
+                                e.currentTarget.style.background = '#f0f0f0';
+                                e.currentTarget.style.borderColor = '#ddd';
+                              }
                             }}
+                            title={isInCheckout ? 'No se puede modificar el carrito durante el checkout' : 'Disminuir cantidad'}
                           >
                             -
                           </button>
@@ -246,29 +267,36 @@ export default function ShopCartModal() {
                               e.stopPropagation();
                               handleIncreaseQuantity(item.id, item.quantity);
                             }}
+                            disabled={isInCheckout}
                             style={{
                               width: '28px',
                               height: '28px',
-                              background: '#f0f0f0',
+                              background: isInCheckout ? '#e5e5e5' : '#f0f0f0',
                               border: '1px solid #ddd',
                               borderRadius: '6px',
-                              cursor: 'pointer',
+                              cursor: isInCheckout ? 'not-allowed' : 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontSize: '1rem',
                               fontWeight: 'bold',
                               transition: 'all 0.2s ease',
-                              color: '#333'
+                              color: isInCheckout ? '#999' : '#333',
+                              opacity: isInCheckout ? 0.6 : 1
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#e0e0e0';
-                              e.currentTarget.style.borderColor = '#bbb';
+                              if (!isInCheckout) {
+                                e.currentTarget.style.background = '#e0e0e0';
+                                e.currentTarget.style.borderColor = '#bbb';
+                              }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#f0f0f0';
-                              e.currentTarget.style.borderColor = '#ddd';
+                              if (!isInCheckout) {
+                                e.currentTarget.style.background = '#f0f0f0';
+                                e.currentTarget.style.borderColor = '#ddd';
+                              }
                             }}
+                            title={isInCheckout ? 'No se puede modificar el carrito durante el checkout' : 'Aumentar cantidad'}
                           >
                             +
                           </button>
@@ -276,32 +304,39 @@ export default function ShopCartModal() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeItem(item.id);
+                            handleRemoveItem(item.id);
                           }}
+                          disabled={isInCheckout}
                           className="remove-item-btn"
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.25rem',
-                            background: 'rgba(239, 68, 68, 0.1)',
+                            background: isInCheckout ? 'rgba(239, 68, 68, 0.05)' : 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
-                            color: '#ef4444',
-                            cursor: 'pointer',
+                            color: isInCheckout ? '#999' : '#ef4444',
+                            cursor: isInCheckout ? 'not-allowed' : 'pointer',
                             fontSize: '0.8rem',
                             padding: '0.4rem 0.6rem',
                             borderRadius: '6px',
                             marginTop: '0.5rem',
                             transition: 'all 0.2s ease',
-                            fontWeight: '500'
+                            fontWeight: '500',
+                            opacity: isInCheckout ? 0.6 : 1
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                            if (!isInCheckout) {
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                            }
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                            if (!isInCheckout) {
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                            }
                           }}
+                          title={isInCheckout ? 'No se puede eliminar items durante el checkout' : 'Eliminar del carrito'}
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
