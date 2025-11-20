@@ -29,34 +29,13 @@ export default function ProductList({ products, viewMode = 'grid' }: ProductList
     );
   }
 
-  // Configuración de clases CSS para cada vista
+  // Apple Store grid layout - Solo vista grid premium
   const getGridClasses = () => {
-    const baseClasses = 'products-grid-transition';
-    const transitionClass = isTransitioning ? 'view-transition' : '';
-    
-    switch (viewMode) {
-      case 'compact':
-        return `${baseClasses} ${transitionClass} grid grid-cols-10 gap-1`;
-      case 'list':
-        return `${baseClasses} ${transitionClass} grid grid-cols-1 gap-4`;
-      case 'grid':
-      default:
-        return `${baseClasses} ${transitionClass} grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6`;
-    }
+    return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 lg:gap-10 xl:gap-12';
   };
 
-  // Clase de animación específica para cada modo de vista
-  const getAnimationClass = () => {
-    switch (viewMode) {
-      case 'compact':
-        return 'product-card-animate-compact';
-      case 'list':
-        return 'product-card-animate-list';
-      case 'grid':
-      default:
-        return 'product-card-animate';
-    }
-  };
+  // Apple-style staggered animation
+  const getAnimationClass = () => 'apple-product-animate';
 
   return (
     <div className={getGridClasses()}>
@@ -65,13 +44,13 @@ export default function ProductList({ products, viewMode = 'grid' }: ProductList
           key={product.id}
           className={getAnimationClass()}
           style={{
-            animationDelay: `${index * 30}ms`,
+            animationDelay: `${index * 50}ms`,
             animationFillMode: 'both'
           }}
         >
-          <ProductCard 
-            product={product} 
-            viewMode={viewMode}
+          <ProductCard
+            product={product}
+            viewMode="grid"
           />
         </div>
       ))}

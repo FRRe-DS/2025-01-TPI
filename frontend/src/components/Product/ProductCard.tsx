@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { type Product, calculateTransferPrice } from '../../services/product.service';
 
+// Apple Store-style Product Card Component
 interface ProductCardProps {
   product: Product;
   viewMode?: 'grid' | 'list' | 'compact';
@@ -11,11 +12,11 @@ interface ProductCardProps {
 export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
-    
+
     const navigate = useNavigate();
     const images = product.imagenes || [];
     const mainImage = images.find(img => img.esPrincipal)?.url || images[0]?.url || 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
-    const transferPrice = product.promociones?.transferenciaDescuento 
+    const transferPrice = product.promociones?.transferenciaDescuento
         ? calculateTransferPrice(product.precio, product.promociones.transferenciaDescuento)
         : null;
 
@@ -52,236 +53,80 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
         navigate(`/product/${product.id}`);
     };
 
-    // Renderizar según el modo de vista
-    if (viewMode === 'list') {
-        return (
-            <div 
-                onClick={handleProductClick}
-                className="product-card-list"
-            >
-                <div className="relative w-32 h-24 flex-shrink-0">
-                    <img src={mainImage} alt={product.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-
-                    {product.promociones?.transferenciaDescuento && (
-                        <div className="absolute top-1 left-1 bg-green-500 text-white text-xs font-bold px-1 py-0.5 rounded">
-                            -{product.promociones.transferenciaDescuento}%
-                        </div>
-                    )}
-                </div>
-                <div className="p-4 flex-1">
-                    <h3 className="product-card-title">{product.nombre}</h3>
-                    <div className="mt-2 space-y-1">
-                        {product.precioOriginal && (
-                            <p className="product-card-original-price">${product.precioOriginal.toLocaleString('es-AR')}</p>
-                        )}
-                        <p className="product-card-price">${product.precio.toLocaleString('es-AR')}</p>
-                        {transferPrice && (
-                            <p className="product-card-transfer-price">
-                                ${transferPrice.toLocaleString('es-AR')} con transferencia
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (viewMode === 'compact') {
+    // Apple Store-style Product Card - Altura fija para consistencia
     return (
-        <div 
+        <div
             onClick={handleProductClick}
-            className="product-card-compact"
-        >
-            <div className="relative">
-                    <img src={mainImage} alt={product.nombre} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
-
-                    {product.promociones?.transferenciaDescuento && (
-                        <div className="absolute top-1 left-1 bg-green-500 text-white text-xs font-bold px-1 py-0.5 rounded text-[10px]">
-                            -{product.promociones.transferenciaDescuento}%
-                        </div>
-                    )}
-                </div>
-                <div className="p-1.5">
-                    <h3 className="product-card-compact-title">{product.nombre}</h3>
-                    <div className="flex items-center justify-between">
-                        {product.precioOriginal ? (
-                            <div className="flex items-center gap-1">
-                                <p className="product-card-compact-original-price">${product.precioOriginal.toLocaleString('es-AR')}</p>
-                                <p className="product-card-compact-price">${product.precio.toLocaleString('es-AR')}</p>
-                            </div>
-                        ) : (
-                            <p className="product-card-compact-price">${product.precio.toLocaleString('es-AR')}</p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // Vista grid por defecto
-    return (
-        <div 
-            onClick={handleProductClick}
-            className="product-card-grid"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onKeyDown={handleKeyDown}
             tabIndex={0}
+            className="group relative bg-white rounded-2xl cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:shadow-gray-200/30 hover:-translate-y-1 will-change-transform h-full flex flex-col"
+            style={{
+                boxShadow: '0 4px 18px rgba(0, 0, 0, 0.08)',
+            }}
         >
-            <div className="relative overflow-hidden">
-                <img 
-                    src={images[currentImageIndex]?.url || mainImage} 
-                    alt={product.nombre} 
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-all duration-500 ease-out" 
-                    style={{
-                        opacity: 1,
-                        transform: 'scale(1)'
-                    }}
-                />
+            {/* Imagen principal - Altura consistente */}
+            <div className="relative overflow-hidden rounded-t-2xl flex-shrink-0">
+                <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                        src={images[currentImageIndex]?.url || mainImage}
+                        alt={product.nombre}
+                        className="w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.02]"
+                        style={{
+                            borderTopLeftRadius: '16px',
+                            borderTopRightRadius: '16px'
+                        }}
+                    />
+                </div>
 
-                {/* Botones de navegación del carrusel */}
-                {images.length > 1 && (
+                {/* Overlay sutil en hover */}
+                <div className={`absolute inset-0 bg-black/0 transition-all duration-300 ease-out ${isHovered ? 'bg-black/5' : ''}`} />
+
+                {/* Badges minimalistas */}
+                {product.promociones?.transferenciaDescuento && (
+                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-900 text-sm font-semibold px-3 py-1.5 rounded-full border border-white/50">
+                        -{product.promociones.transferenciaDescuento}%
+                    </div>
+                )}
+
+                {product.stockDisponible <= 5 && product.stockDisponible > 0 && (
+                    <div className="absolute top-4 right-4 bg-orange-500/90 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                        Solo {product.stockDisponible}
+                    </div>
+                )}
+
+                {product.stockDisponible === 0 && (
+                    <div className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                        Sin stock
+                    </div>
+                )}
+
+                {/* Navegación de imágenes - Minimalista */}
+                {images.length > 1 && isHovered && (
                     <>
-                        {/* Botón anterior */}
                         <button
                             onClick={prevImage}
-                            className={`absolute left-3 top-1/2 w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) hover:scale-110 active:scale-95 ${
-                                isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
-                            }`}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.9)',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                transform: 'translateY(-50%)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
-                                e.currentTarget.style.boxShadow = '0 6px 25px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1)';
-                                e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
-                                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)';
-                                e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-                            }}
-                            onMouseDown={(e) => {
-                                // Efecto ripple sutil
-                                const ripple = document.createElement('div');
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const size = 20;
-                                const x = e.clientX - rect.left - size / 2;
-                                const y = e.clientY - rect.top - size / 2;
-                                
-                                ripple.style.cssText = `
-                                    position: absolute;
-                                    width: ${size}px;
-                                    height: ${size}px;
-                                    left: ${x}px;
-                                    top: ${y}px;
-                                    background: radial-gradient(circle, rgba(0, 0, 0, 0.1) 0%, transparent 70%);
-                                    border-radius: 50%;
-                                    transform: scale(0);
-                                    animation: ripple 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                                    pointer-events: none;
-                                `;
-                                
-                                e.currentTarget.appendChild(ripple);
-                                
-                                setTimeout(() => {
-                                    ripple.remove();
-                                }, 400);
-                            }}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm hover:bg-white/90 rounded-full flex items-center justify-center transition-all duration-200 ease-out hover:scale-105 shadow-lg"
                             aria-label="Imagen anterior"
                         >
-                            <svg 
-                                width="14" 
-                                height="14" 
-                                viewBox="0 0 24 24" 
-                                fill="none" 
-                                className="text-gray-700 dark:text-gray-300 transition-colors duration-200"
-                            >
-                                <path 
-                                    d="M15 18L9 12L15 6" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2.5" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                />
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-700">
+                                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                         </button>
 
-                        {/* Botón siguiente */}
                         <button
                             onClick={nextImage}
-                            className={`absolute right-3 top-1/2 w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) hover:scale-110 active:scale-95 ${
-                                isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
-                            }`}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.9)',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                transform: 'translateY(-50%)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
-                                e.currentTarget.style.boxShadow = '0 6px 25px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1)';
-                                e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
-                                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)';
-                                e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-                            }}
-                            onMouseDown={(e) => {
-                                // Efecto ripple sutil
-                                const ripple = document.createElement('div');
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const size = 20;
-                                const x = e.clientX - rect.left - size / 2;
-                                const y = e.clientY - rect.top - size / 2;
-                                
-                                ripple.style.cssText = `
-                                    position: absolute;
-                                    width: ${size}px;
-                                    height: ${size}px;
-                                    left: ${x}px;
-                                    top: ${y}px;
-                                    background: radial-gradient(circle, rgba(0, 0, 0, 0.1) 0%, transparent 70%);
-                                    border-radius: 50%;
-                                    transform: scale(0);
-                                    animation: ripple 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                                    pointer-events: none;
-                                `;
-                                
-                                e.currentTarget.appendChild(ripple);
-                                
-                                setTimeout(() => {
-                                    ripple.remove();
-                                }, 400);
-                            }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur-sm hover:bg-white/90 rounded-full flex items-center justify-center transition-all duration-200 ease-out hover:scale-105 shadow-lg"
                             aria-label="Imagen siguiente"
                         >
-                            <svg 
-                                width="14" 
-                                height="14" 
-                                viewBox="0 0 24 24" 
-                                fill="none" 
-                                className="text-gray-700 dark:text-gray-300 transition-colors duration-200"
-                            >
-                                <path 
-                                    d="M9 18L15 12L9 6" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2.5" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                />
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-700">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                         </button>
 
-                        {/* Indicadores de posición */}
-                        <div className={`absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1.5 transition-all duration-300 ${
-                            isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-                        }`}>
+                        {/* Indicadores minimalistas */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-1.5">
                             {images.map((_, index) => (
                                 <button
                                     key={index}
@@ -290,55 +135,54 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
                                         e.stopPropagation();
                                         setCurrentImageIndex(index);
                                     }}
-                                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) hover:scale-125 ${
-                                        index === currentImageIndex 
-                                            ? 'bg-white shadow-lg scale-125' 
+                                    className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ease-out ${
+                                        index === currentImageIndex
+                                            ? 'bg-white shadow-sm scale-125'
                                             : 'bg-white/50 hover:bg-white/70'
                                     }`}
-                                    style={index === currentImageIndex ? {
-                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
-                                    } : {}}
                                     aria-label={`Ir a imagen ${index + 1}`}
                                 />
                             ))}
                         </div>
                     </>
                 )}
-
-                {/* Badges de promociones y stock */}
-                {product.promociones?.transferenciaDescuento && (
-                    <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                        -{product.promociones.transferenciaDescuento}%
-                    </div>
-                )}
-                {product.stockDisponible <= 5 && product.stockDisponible > 0 && (
-                    <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
-                        Solo {product.stockDisponible}
-                    </div>
-                )}
-                {product.stockDisponible === 0 && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                        Sin stock
-                    </div>
-                )}
             </div>
-            <div className="p-4">
-                <h3 className="product-card-title">{product.nombre}</h3>
-                <div className="mt-2 space-y-1">
-                    {product.precioOriginal && (
-                        <p className="product-card-original-price">${product.precioOriginal.toLocaleString('es-AR')}</p>
-                    )}
-                    <p className="product-card-price">${product.precio.toLocaleString('es-AR')}</p>
-                    {transferPrice && (
-                        <p className="product-card-transfer-price">
-                            ${transferPrice.toLocaleString('es-AR')} con transferencia
+
+            {/* Contenido de texto - Altura flexible para consistencia */}
+            <div className="px-6 py-6 flex flex-col flex-1">
+                {/* Nombre del producto - Altura consistente */}
+                <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 leading-tight line-clamp-2 min-h-[3.5rem]">
+                        {product.nombre}
+                    </h3>
+                </div>
+
+                {/* Precios - Siempre al final para alineación */}
+                <div className="mt-auto">
+                    <div className="space-y-1">
+                        {product.precioOriginal && (
+                            <p className="text-sm text-gray-500 line-through">
+                                ${product.precioOriginal.toLocaleString('es-AR')}
+                            </p>
+                        )}
+                        <p className="text-2xl font-bold text-gray-900">
+                            ${product.precio.toLocaleString('es-AR')}
                         </p>
-                    )}
-                    {product.promociones?.cuotasSinInteres && (
-                        <p className="product-card-installments">
-                            Hasta {product.promociones.cuotasSinInteres} cuotas sin interés
-                        </p>
-                    )}
+
+                        {/* Información adicional sutil */}
+                        <div className="space-y-0.5 mt-3">
+                            {transferPrice && (
+                                <p className="text-sm text-green-600 font-medium">
+                                    ${transferPrice.toLocaleString('es-AR')} con transferencia
+                                </p>
+                            )}
+                            {product.promociones?.cuotasSinInteres && (
+                                <p className="text-sm text-blue-600 font-medium">
+                                    Hasta {product.promociones.cuotasSinInteres} cuotas sin interés
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
