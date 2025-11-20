@@ -31,20 +31,20 @@ html.dark .header {
 .header-left h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #000000;
+  color: #ffffff;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-shadow: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-/* Texto del header en modo oscuro - negro */
+/* Texto del header en modo oscuro - blanco */
 html.dark .header-left h1 {
-  color: #000000;
-  text-shadow: none;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 

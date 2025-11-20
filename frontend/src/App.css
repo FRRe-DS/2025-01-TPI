@@ -229,14 +229,19 @@ html.dark body {
   opacity: 0.75;
 }
 
+.dark .search-bar-button-loading {
+  background: #cccccc;
+}
+
 .dark .search-bar-button {
-  background: #032d70;
-  box-shadow: 0 4px 14px rgba(3, 45, 112, 0.3);
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
 }
 
 .dark .search-bar-button:hover:not(:disabled) {
-  background: #1e40af;
-  box-shadow: 0 6px 20px rgba(3, 45, 112, 0.4);
+  background: #f0f0f0;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
 }
 
 /* Estilos para AdvancedFilters con colores de Shipper */
