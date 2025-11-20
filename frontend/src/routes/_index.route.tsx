@@ -155,7 +155,7 @@ export default function IndexRoute() {
     <main className="min-h-screen">
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20">
+      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 dark:from-gray-900 dark:via-gray-800 dark:to-black text-white py-20">
         <div className="container mx-auto px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
             Bienvenido a <span className="text-blue-200 shipper-animated">Shipper</span>
@@ -243,9 +243,9 @@ export default function IndexRoute() {
 
             {/* Mostrando productos - Texto informativo sin ordenamiento */}
             {productData && (
-              <div className="mt-8 pt-6 pb-6 border-t border-gray-200/50 dark:border-gray-700/50">
+              <div className="mt-8 pt-6 pb-6 border-t border-gray-200/50 dark:border-gray-600/50">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 dark:text-blue-300">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
                     Mostrando {productData.products.length} producto{productData.products.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -255,7 +255,7 @@ export default function IndexRoute() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
-                <p className="mt-4 text-gray-600 dark:text-blue-300">Cargando productos...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-300">Cargando productos...</p>
               </div>
             ) : error ? (
               <div className="text-center py-12">
@@ -270,7 +270,7 @@ export default function IndexRoute() {
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-blue-300 text-lg">No hay datos disponibles</p>
+                <p className="text-gray-600 dark:text-gray-300 text-lg">No hay datos disponibles</p>
               </div>
             )}
           </div>

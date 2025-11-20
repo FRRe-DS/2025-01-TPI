@@ -46,21 +46,21 @@ function CartRoute() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
         Carrito de Compras
       </h1>
 
       {items.length === 0 ? (
         <motion.div 
-          className="bg-white rounded-lg shadow-lg p-12 text-center"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900 p-12 text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
             Tu carrito está vacío
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             ¡Agrega productos para comenzar tu compra!
           </p>
           <motion.button
@@ -90,7 +90,7 @@ function CartRoute() {
               return (
                 <motion.div
                   key={item.id}
-                  className="bg-white rounded-lg shadow p-6 flex gap-4 items-center"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 p-6 flex gap-4 items-center"
                   initial={{ opacity: 0, x: -20, height: 0 }}
                   animate={{ opacity: 1, x: 0, height: 'auto' }}
                   exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
@@ -109,12 +109,12 @@ function CartRoute() {
                     >
                       <h3 className="font-semibold text-lg">{item.product.nombre}</h3>
                     </Link>
-                    <p className="text-gray-600">{item.product.marca}</p>
-                    <p className="text-gray-800 font-bold mt-1">
+                    <p className="text-gray-600 dark:text-gray-400">{item.product.marca}</p>
+                    <p className="text-gray-800 dark:text-white font-bold mt-1">
                       ${item.price.toLocaleString('es-AR')}
                     </p>
                     {item.selectedColor && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         Color: {item.selectedColor}
                         {item.selectedSize && ` | Tamaño: ${item.selectedSize}`}
                         {item.selectedMaterial && ` | Material: ${item.selectedMaterial}`}
@@ -124,14 +124,14 @@ function CartRoute() {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => handleDecreaseQuantity(item.id, item.quantity)}
-                      className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       -
                     </button>
                     <span className="font-semibold min-w-[30px] text-center">{item.quantity}</span>
                     <button
                       onClick={() => handleIncreaseQuantity(item.id, item.quantity)}
-                      className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       +
                     </button>
@@ -173,11 +173,11 @@ function CartRoute() {
           </motion.div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8">
-              <h2 className="text-xl font-bold mb-4">Resumen del Pedido</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900 p-6 sticky top-8">
+              <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Resumen del Pedido</h2>
               <div className="space-y-2 mb-4 pb-4 border-b">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
                   <span className="font-semibold">${total.toLocaleString('es-AR')}</span>
                 </div>
                 <div className="flex justify-between">
@@ -186,7 +186,7 @@ function CartRoute() {
                 </div>
               </div>
               <div className="flex justify-between text-xl font-bold mb-6">
-                <span>Total:</span>
+                <span className="text-gray-800 dark:text-white">Total:</span>
                 <span>${total.toLocaleString('es-AR')}</span>
               </div>
               <button
@@ -197,7 +197,7 @@ function CartRoute() {
               </button>
               <motion.button
                 onClick={handleViewProducts}
-                className="w-full mt-4 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-300"
+                className="w-full mt-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -207,7 +207,7 @@ function CartRoute() {
               {items.length > 0 && (
                 <motion.button
                   onClick={handleClearCart}
-                  className="w-full mt-2 bg-white border-2 border-red-500 text-red-500 py-2 px-4 rounded-lg font-medium hover:bg-red-50 hover:border-red-600 transition-all duration-300 flex items-center justify-center gap-2"
+                  className="w-full mt-2 bg-white dark:bg-gray-800 border-2 border-red-500 dark:border-red-400 text-red-500 dark:text-red-400 py-2 px-4 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900 hover:border-red-600 dark:hover:border-red-300 transition-all duration-300 flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}

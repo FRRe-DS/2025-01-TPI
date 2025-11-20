@@ -19,16 +19,16 @@ export function ThemeToggle({
   const [isHovered, setIsHovered] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Forzar actualización de estilos
+  // Forzar actualización de estilos - Colores Apple refinados
   useEffect(() => {
     if (buttonRef.current) {
-      const backgroundColor = isDark 
-        ? (isHovered ? '#ffffff' : '#032d70')
+      const backgroundColor = isDark
+        ? (isHovered ? '#0A84FF' : '#1a1a1a')
         : (isHovered ? '#032d70' : '#ffffff');
-      const borderColor = isDark 
-        ? (isHovered ? '#ffffff' : '#ffffff')
+      const borderColor = isDark
+        ? (isHovered ? '#0A84FF' : '#0A84FF')
         : (isHovered ? '#ffffff' : '#000000');
-      
+
       buttonRef.current.style.setProperty('background-color', backgroundColor, 'important');
       buttonRef.current.style.setProperty('border-color', borderColor, 'important');
     }
@@ -81,9 +81,9 @@ export function ThemeToggle({
             stroke="currentColor"
             strokeWidth="2"
             viewBox="0 0 24 24"
-            style={{ 
+            style={{
               willChange: 'transform, opacity, color',
-              color: isDark ? '#ffffff' : '#1e293b'
+              color: isDark ? '#0A84FF' : '#1e293b'
             }}
             animate={{
               scale: isDark ? 0 : (isHovered ? 0 : 1),
@@ -111,9 +111,9 @@ export function ThemeToggle({
             stroke="currentColor"
             strokeWidth="2"
             viewBox="0 0 24 24"
-            style={{ 
+            style={{
               willChange: 'transform, opacity, color',
-              color: isDark ? '#ffffff' : '#032d70'
+              color: isDark ? '#0A84FF' : '#032d70'
             }}
             animate={{
               scale: isDark ? (isHovered ? 0 : 1) : 0,
@@ -147,7 +147,7 @@ export function ThemeToggle({
               scale: isDark && isHovered ? 1 : 0,
               rotate: isDark && isHovered ? 0 : 45,
               opacity: isDark && isHovered ? 1 : 0,
-              color: isDark && isHovered ? '#032d70' : '#ffffff'
+              color: isDark && isHovered ? '#ffffff' : '#0A84FF'
             }}
             transition={{ 
               duration: 0.4, 
@@ -176,7 +176,7 @@ export function ThemeToggle({
               scale: !isDark && isHovered ? 1 : 0,
               rotate: !isDark && isHovered ? 0 : -45,
               opacity: !isDark && isHovered ? 1 : 0,
-                color: !isDark && isHovered ? '#ffffff' : '#032d70'
+                color: !isDark && isHovered ? '#0A84FF' : '#032d70'
             }}
             transition={{ 
               duration: 0.4, 
@@ -196,7 +196,7 @@ export function ThemeToggle({
           className="absolute inset-0 rounded-full"
           style={{ 
             willChange: 'transform, opacity',
-            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.1)'
+            backgroundColor: isDark ? 'rgba(10, 132, 255, 0.2)' : 'rgba(59, 130, 246, 0.1)'
           }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 0, opacity: 0 }}
@@ -212,7 +212,7 @@ export function ThemeToggle({
             ${appliedTextSize} font-medium whitespace-nowrap
             transition-colors duration-150
           `}
-          style={{ willChange: 'transform, opacity', color: isDark ? '#032d70' : '#1f2937' }}
+          style={{ willChange: 'transform, opacity', color: isDark ? '#0A84FF' : '#1f2937' }}
           animate={{ 
             opacity: 1,
             x: 0,

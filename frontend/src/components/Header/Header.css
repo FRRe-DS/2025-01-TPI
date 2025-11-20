@@ -8,6 +8,12 @@
   z-index: 1001;
 }
 
+/* Modo oscuro Apple para el header */
+html.dark .header {
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
 .header-container {
   width: 100%;
   padding: 0 2rem;
@@ -33,6 +39,12 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+/* Texto del header en modo oscuro Apple */
+html.dark .header-left h1 {
+  color: #ffffff;
+  text-shadow: none;
 }
 
 
@@ -175,6 +187,14 @@
   height: 40px;
 }
 
+/* Botón de búsqueda en modo oscuro Apple */
+html.dark .search-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #0A84FF;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* Estados de animación */
 .search-button.entering {
   animation: searchButtonFadeIn 0.3s ease-out;
@@ -189,6 +209,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
+}
+
+/* Hover del botón de búsqueda en modo oscuro Apple */
+html.dark .search-button:hover {
+  background: rgba(10, 132, 255, 0.2);
+  border-color: #0A84FF;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
 }
 
 .search-button svg {
@@ -239,10 +266,25 @@
   color: #020929;
 }
 
+/* User icon en modo oscuro Apple */
+html.dark .user-icon {
+  background: rgba(10, 132, 255, 0.1);
+  border-color: rgba(10, 132, 255, 0.3);
+  color: #0A84FF;
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
+}
+
 .user-icon:hover {
   transform: translateY(-2px) scale(1.05);
   background: rgba(255, 255, 255, 1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover del user icon en modo oscuro Apple */
+html.dark .user-icon:hover {
+  background: rgba(10, 132, 255, 0.2);
+  border-color: #0A84FF;
+  box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
 }
 
 .dropdown-menu {
@@ -257,6 +299,13 @@
   overflow: hidden;
   animation: fadeIn 0.2s ease-in-out;
   z-index: 100;
+}
+
+/* Dropdown menu en modo oscuro Apple */
+html.dark .dropdown-menu {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Modal específico del carrito - más ancho */
@@ -331,9 +380,20 @@
   font-weight: 500;
 }
 
+/* Botones del dropdown en modo oscuro Apple */
+html.dark .dropdown-menu button {
+  color: #ffffff;
+}
+
 .dropdown-menu button:hover {
   background: #032d70;
   color: #fff;
+}
+
+/* Hover de botones del dropdown en modo oscuro Apple */
+html.dark .dropdown-menu button:hover {
+  background: rgba(10, 132, 255, 0.1);
+  color: #0A84FF;
 }
 
 .dropdown-menu button:active {
@@ -357,10 +417,25 @@
   pointer-events: auto;
 }
 
+/* Botón de login en modo oscuro Apple */
+html.dark .login-button {
+  background: rgba(10, 132, 255, 0.1);
+  color: #0A84FF;
+  border-color: rgba(10, 132, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
+}
+
 .login-button:hover {
   background: rgba(255, 255, 255, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Hover del botón de login en modo oscuro Apple */
+html.dark .login-button:hover {
+  background: rgba(10, 132, 255, 0.2);
+  border-color: #0A84FF;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
 }
 
 .login-button:active {
@@ -500,6 +575,11 @@
   height: 50vh;
 }
 
+/* Búsqueda desplegable en modo oscuro Apple */
+html.dark .search-dropdown {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+}
+
 .search-dropdown--open {
   transform: translateY(0);
 }
@@ -541,6 +621,11 @@
   pointer-events: none;
 }
 
+/* Icono de búsqueda en modo oscuro Apple */
+html.dark .search-icon {
+  color: rgba(10, 132, 255, 0.7);
+}
+
 .apple-search-input {
   width: 100%;
   background: transparent;
@@ -555,12 +640,22 @@
   line-height: 1.4;
 }
 
+/* Input de búsqueda en modo oscuro Apple */
+html.dark .apple-search-input {
+  color: #ffffff;
+}
+
 .apple-search-input::placeholder {
   color: rgba(255, 255, 255, 0.6);
   font-weight: 600;
   font-size: 1.3rem;
   letter-spacing: -0.02em;
   font-family: "SF Pro Text", "SF Pro Icons", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Placeholder en modo oscuro Apple */
+html.dark .apple-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .apple-search-input:focus {
@@ -572,6 +667,11 @@
 
 .apple-search-input:focus::placeholder {
   color: rgba(255, 255, 255, 0.4);
+}
+
+/* Focus del input en modo oscuro Apple */
+html.dark .apple-search-input:focus::placeholder {
+  color: rgba(10, 132, 255, 0.6);
 }
 
 /* Botón de limpiar búsqueda */
@@ -637,6 +737,11 @@
   transition: all 0.2s ease;
   cursor: pointer;
   flex: 1;
+}
+
+/* Texto de enlaces rápidos en modo oscuro Apple */
+html.dark .quick-link-text {
+  color: #ffffff;
 }
 
 .quick-link-text:hover {
@@ -757,11 +862,21 @@
   color: rgba(255, 255, 255, 0.95);
 }
 
+/* Hover de texto en enlaces rápidos en modo oscuro Apple */
+html.dark .quick-link:hover .quick-link-text {
+  color: #0A84FF;
+}
+
 .search-placeholder {
   text-align: center;
   padding: 3rem 0;
   color: rgba(255, 255, 255, 0.8);
   font-size: 1.1rem;
+}
+
+/* Placeholder de búsqueda en modo oscuro Apple */
+html.dark .search-placeholder {
+  color: #8e8e93;
 }
 
 /* Animación del overlay */

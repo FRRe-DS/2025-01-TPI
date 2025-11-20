@@ -119,6 +119,16 @@ html.dark {
     color-scheme: dark;
 }
 
+/* Fondo de la aplicación en modo oscuro Apple */
+html.dark body {
+    background-color: #000000 !important;
+}
+
+/* Forzar fondo negro en páginas de producto en modo oscuro */
+html.dark [data-theme-aware] {
+    background-color: #000000 !important;
+}
+
 
 /* Apple Store Product Cards - Ultra minimalista */
 /* Los estilos específicos se manejan en el componente con Tailwind */
@@ -523,7 +533,7 @@ html.dark {
 }
 
 .dark .categories-section {
-  background: #1e40af;
+  background: #1a1a1a;
 }
 
 .categories-title {
@@ -551,7 +561,7 @@ html.dark {
 }
 
 .dark .products-section {
-  background: #1e40af;
+  background: #1a1a1a;
 }
 
 .products-title {

@@ -48,7 +48,6 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
   // Aplicar el tema al documento
   useEffect(() => {
-    console.log('Aplicando tema:', theme);
     
     // Remover todas las clases de tema
     document.documentElement.classList.remove('light', 'dark');
