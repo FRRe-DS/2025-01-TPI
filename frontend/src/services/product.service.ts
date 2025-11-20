@@ -454,14 +454,21 @@ function getProductsMock(filter: Filter): Promise<PaginatedProducts> {
     });
   }
 
-  // 3. Filtro por marca (nota: la API real no tiene marca, pero mantenemos compatibilidad)
+  // 3. Filtro por marca
   if (marca && marca !== 'all') {
     filteredProducts = filteredProducts.filter(p =>
       p.marca && p.marca.toLowerCase() === marca.toLowerCase()
     );
   }
 
-  // 4. Filtro por rango de precio
+  // 4. Filtro por color
+  if (color && color !== 'all') {
+    filteredProducts = filteredProducts.filter(p =>
+      p.color && p.color.toLowerCase() === color.toLowerCase()
+    );
+  }
+
+  // 5. Filtro por rango de precio
   if (precioMin !== undefined) {
     filteredProducts = filteredProducts.filter(p => p.precio >= precioMin);
   }
@@ -469,7 +476,27 @@ function getProductsMock(filter: Filter): Promise<PaginatedProducts> {
     filteredProducts = filteredProducts.filter(p => p.precio <= precioMax);
   }
 
-  // 5. Paginación
+  // 6. Ordenamiento
+  const sortKey = sortBy || 'popularidad_desc';
+  filteredProducts.sort((a, b) => {
+    switch (sortKey) {
+      case 'precio_asc':
+        return a.precio - b.precio;
+      case 'precio_desc':
+        return b.precio - a.precio;
+      case 'nombre_asc':
+        return a.nombre.localeCompare(b.nombre);
+      case 'nombre_desc':
+        return b.nombre.localeCompare(a.nombre);
+      case 'fecha_desc':
+        return new Date(b.fechaCreacion || '2024-01-01').getTime() - new Date(a.fechaCreacion || '2024-01-01').getTime();
+      case 'popularidad_desc':
+      default:
+        return (b.popularidad || 0) - (a.popularidad || 0);
+    }
+  });
+
+  // 7. Paginación
   const totalProducts = filteredProducts.length;
   const totalPages = Math.ceil(totalProducts / limit);
   const startIndex = (page - 1) * limit;
@@ -488,16 +515,38 @@ export async function getCategories(): Promise<Categoria[]> {
   return listarCategorias();
 }
 
-// Obtener marcas únicas (no disponible en API del Stock, retorna vacío por ahora)
+// Obtener marcas únicas de los productos disponibles
 export function getBrands() {
-  // La API del Stock no incluye información de marcas
-  return [];
+  const brands = new Set<string>();
+
+  // Extraer marcas de los productos mockados
+  allMockProducts.forEach(product => {
+    if (product.marca) {
+      brands.add(product.marca);
+    }
+  });
+
+  // Convertir a array y ordenar alfabéticamente
+  return Array.from(brands).sort().map(brand => ({
+    nombre: brand
+  }));
 }
 
-// Obtener colores únicos (no disponible en API del Stock, retorna vacío por ahora)
+// Obtener colores únicos de los productos disponibles
 export function getColors() {
-  // La API del Stock no incluye información de colores
-  return [];
+  const colors = new Set<string>();
+
+  // Extraer colores de los productos mockados
+  allMockProducts.forEach(product => {
+    if (product.color) {
+      colors.add(product.color);
+    }
+  });
+
+  // Convertir a array y ordenar alfabéticamente
+  return Array.from(colors).sort().map(color => ({
+    nombre: color
+  }));
 }
 
 // Obtener rango de precios

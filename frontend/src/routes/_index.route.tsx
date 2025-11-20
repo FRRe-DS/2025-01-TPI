@@ -5,7 +5,7 @@ import { getProducts, type PaginatedProducts } from "../services/product.service
 import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
 import CategoryCard from "../components/CategoryCard";
-import AdvancedFilters, { type FilterState } from "../components/AdvancedFilters";
+import AdvancedFilters, { FilterBar, type FilterState } from "../components/AdvancedFilters";
 import ProductSorting from "../components/ProductSorting";
 import { FilterViewButton } from "../components/FilterViewButton";
 
@@ -24,6 +24,7 @@ export default function IndexRoute() {
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid');
   const [showFilterButton, setShowFilterButton] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const limit = 1000; // Mostrar todos los productos sin paginación
   
   // Ref para hacer scroll a la sección de productos
@@ -246,19 +247,32 @@ export default function IndexRoute() {
               )}
             </div>
 
-            {/* Filtros Avanzados */}
-            <AdvancedFilters
+            {/* Filter Bar - Barra superior minimalista */}
+            <FilterBar
               onFiltersChange={handleFiltersChange}
               initialFilters={filters}
+              onToggleAdvanced={() => setShowAdvancedFilters(!showAdvancedFilters)}
             />
 
-            {/* Ordenamiento */}
+            {/* Advanced Filters Panel - Panel separado con espacio elegante */}
+            {showAdvancedFilters && (
+              <div className="mt-8">
+                <AdvancedFilters
+                  onFiltersChange={handleFiltersChange}
+                  initialFilters={filters}
+                />
+              </div>
+            )}
+
+            {/* Ordenamiento - Separado con espaciado Apple premium */}
             {productData && (
-              <ProductSorting
-                currentSort={sortBy}
-                onSortChange={handleSortChange}
-                totalProducts={productData.products.length}
-              />
+              <div className="mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+                <ProductSorting
+                  currentSort={sortBy}
+                  onSortChange={handleSortChange}
+                  totalProducts={productData.products.length}
+                />
+              </div>
             )}
             
             {loading ? (

@@ -373,9 +373,11 @@ html.dark {
   border-radius: 0.75rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   border: 1px solid #3b82f6;
-  padding: 1.5rem;
+  padding: 1.75rem;
   margin-bottom: 2rem;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .dark .advanced-filters-container {
@@ -388,7 +390,9 @@ html.dark {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .advanced-filters-title {
@@ -404,7 +408,8 @@ html.dark {
 .advanced-filters-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 
 .advanced-filters-clear {
@@ -414,19 +419,27 @@ html.dark {
   background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #3b82f6;
 }
 
 .advanced-filters-clear:hover {
   color: #1d4ed8;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #1d4ed8;
 }
 
 .dark .advanced-filters-clear {
   color: #93c5fd;
+  border-color: #93c5fd;
 }
 
 .dark .advanced-filters-clear:hover {
   color: #ffffff;
+  background-color: rgba(147, 197, 253, 0.2);
+  border-color: #93c5fd;
 }
 
 .advanced-filters-toggle {
@@ -437,11 +450,15 @@ html.dark {
   background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
 }
 
 .advanced-filters-toggle:hover {
   color: #1e293b;
+  background-color: rgba(59, 130, 246, 0.1);
 }
 
 .dark .advanced-filters-toggle {
@@ -450,6 +467,38 @@ html.dark {
 
 .dark .advanced-filters-toggle:hover {
   color: #ffffff;
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Contenedor de transición para filtros */
+.advanced-filters-transition-container {
+  will-change: max-height, opacity, transform;
+}
+
+/* Asegurar que el grid tenga espaciado consistente */
+.advanced-filters-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  padding: 0.5rem 0 0 0;
+}
+
+/* Mejorar el responsive design del header */
+@media (max-width: 640px) {
+  .advanced-filters-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .advanced-filters-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .advanced-filters-container {
+    padding: 1.25rem;
+  }
 }
 
 .advanced-filters-grid {
@@ -458,13 +507,21 @@ html.dark {
   gap: 1.5rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .advanced-filters-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 }
 
 @media (min-width: 1024px) {
+  .advanced-filters-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
   .advanced-filters-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -484,12 +541,15 @@ html.dark {
 
 .advanced-filters-select {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #3b82f6;
   border-radius: 0.5rem;
   background: white;
   color: #1e293b;
   transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
 }
 
 .advanced-filters-select:focus {
@@ -522,12 +582,13 @@ html.dark {
 
 .advanced-filters-input {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #3b82f6;
   border-radius: 0.5rem;
   background: white;
   color: #1e293b;
   font-size: 0.875rem;
+  font-weight: 400;
   transition: all 0.3s ease;
 }
 
@@ -549,13 +610,18 @@ html.dark {
 }
 
 .advanced-filters-active {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #3b82f6;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.02), transparent);
+  padding: 1.25rem 0 0 0;
+  margin: 1.5rem -0.25rem 0 -0.25rem;
+  border-radius: 0 0 0.75rem 0.75rem;
 }
 
 .dark .advanced-filters-active {
-  border-color: #3b82f6;
+  border-color: #374151;
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
 }
 
 .advanced-filters-active-text {
@@ -565,6 +631,28 @@ html.dark {
 
 .dark .advanced-filters-active-text {
   color: #94a3b8;
+}
+
+/* Mejorar apariencia de badges de filtros activos */
+.advanced-filters-active span.inline-flex {
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.advanced-filters-active span.inline-flex:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.advanced-filters-active button {
+  transition: all 0.2s ease;
+  font-weight: 600;
+  margin-left: 0.375rem;
+}
+
+.advanced-filters-active button:hover {
+  transform: scale(1.1);
+  background-color: rgba(239, 68, 68, 0.2);
 }
 
 /* Estilos para secciones principales con colores de Shipper */
