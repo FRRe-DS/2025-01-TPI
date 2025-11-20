@@ -1,17 +1,13 @@
-import { useParams, Link, useNavigate } from 'react-router';
+import { useParams, Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
 import { useCart } from '../contexts/CartContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { useFavoritesContext } from '../contexts/FavoritesContext';
-import FavoriteIcon from '../components/FavoriteIcon';
-import { useFavoriteLists } from '../contexts/FavoriteListsContext';
-import CartAnimation from '../components/CartAnimation';
 import './product.css';
 
 export default function ProductPage() {
   const { id } = useParams();
+  const { addItem, items, updateQuantity, removeItem, getTotalPrice, getTotalItems } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -19,19 +15,16 @@ export default function ProductPage() {
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showFloatingCart, setShowFloatingCart] = useState(false);
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [currentStock, setCurrentStock] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showCartSidebar, setShowCartSidebar] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  
-  const { addToCart } = useCart();
-  const { isDark } = useTheme();
-  const { toggleFavorite, isFavorite } = useFavoritesContext();
-  const navigate = useNavigate();
-  const { lists, createList, addProductToList } = useFavoriteLists();
+  const [cartAnimating, setCartAnimating] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -73,6 +66,49 @@ export default function ProductPage() {
     }
   }, [selectedColor, selectedSize, selectedMaterial, product]);
 
+  // Detectar scroll para mostrar/ocultar el carrito flotante
+  useEffect(() => {
+    let ticking = false;
+    let timeoutId: NodeJS.Timeout;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollPosition = window.scrollY;
+          const windowHeight = window.innerHeight;
+          const documentHeight = document.documentElement.scrollHeight;
+          
+          // Mostrar cuando el usuario haya scrolleado más del 40% de la página
+          // Esto significa que ya pasó la imagen, detalles, descripción y características
+          const threshold = documentHeight * 0.4;
+          const shouldShow = scrollPosition > threshold;
+          
+          if (shouldShow && !showFloatingCart) {
+            setIsCartAnimating(true);
+            setShowFloatingCart(true);
+            // Resetear el estado de animación después de que termine
+            setTimeout(() => setIsCartAnimating(false), 600);
+          } else if (!shouldShow && showFloatingCart) {
+            setIsCartAnimating(true);
+            // Esperar a que termine la animación de salida antes de ocultar
+            setTimeout(() => {
+              setShowFloatingCart(false);
+              setIsCartAnimating(false);
+            }, 400);
+          }
+          
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [showFloatingCart]);
 
   // Auto-cambio de imágenes cada 5 segundos
   useEffect(() => {
@@ -101,7 +137,7 @@ export default function ProductPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8F7F2] flex items-center justify-center">
-        <div className="text-gray-600 dark:text-blue-300">Cargando producto...</div>
+        <div className="text-gray-600">Cargando producto...</div>
       </div>
     );
   }
@@ -110,8 +146,8 @@ export default function ProductPage() {
     return (
       <div className="min-h-screen bg-[#F8F7F2] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Producto no encontrado</h1>
-          <Link to="/" className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Producto no encontrado</h1>
+          <Link to="/" className="text-green-600 hover:text-green-700">
             Volver al inicio
           </Link>
         </div>
@@ -141,192 +177,80 @@ export default function ProductPage() {
     // Simular proceso de agregar al carrito
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Agregar al carrito real
-    const mainImage = product.imagenes.length > 0 
-      ? product.imagenes[0].url
-      : 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+    // Agregar al carrito usando el contexto
+    addItem(
+      product,
+      quantity,
+      selectedColor || undefined,
+      selectedSize || undefined,
+      selectedMaterial || undefined
+    );
     
-    addToCart({
-      id: product.id,
-      name: product.nombre,
-      price: currentPrice,
-      image: mainImage,
-      color: selectedColor,
-      size: selectedSize,
-      material: selectedMaterial
-    }, quantity);
-    
-    // Iniciar animación
-    setIsAnimating(true);
     setIsAddingToCart(false);
-  };
-
-  const handleAnimationComplete = () => {
-    setIsAnimating(false);
+    setCartAnimating(true);
+    setShowCartSidebar(true);
+    
+    // Reset animation state
+    setTimeout(() => setCartAnimating(false), 300);
   };
 
   const handleBuyNow = () => {
     // Aquí se implementará la lógica para comprar ahora
   };
 
-  const handleGoBack = () => {
-    const categoryId = product?.categorias?.[0]?.id;
-    if (categoryId) {
-      navigate('/', { 
-        state: { 
-          scrollToProducts: true, 
-          selectedCategory: categoryId.toString() 
-        } 
-      });
-    } else {
-      navigate('/');
-    }
-  };
-
   return (
-    <>
-      <div 
-        className="min-h-screen py-8 bg-[#F8F7F2]"
-      >
-      <div className="max-w-8xl mx-auto px-16">
-        {/* Botón Volver Atrás */}
-        <div className="mb-6">
-          <button 
-            onClick={handleGoBack}
-            className={`inline-flex items-center gap-2 transition-colors duration-200 group ${isDark ? 'text-blue-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
-          >
-            <div className={`p-2 rounded-full shadow-sm border group-hover:shadow-md group-hover:scale-105 transition-all duration-200 ${isDark ? 'bg-blue-800 border-blue-600' : 'bg-white border-gray-200'}`}>
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                className={`transition-colors duration-200 ${isDark ? 'text-blue-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-800'}`}
-              >
-                <path 
-                  d="M19 12H5M12 19l-7-7 7-7" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span className="text-sm font-medium">Volver a productos</span>
-          </button>
-        </div>
-        
-        <div className="max-w-8xl mx-auto px-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
-            {/* Galería de imágenes con miniaturas - Estilo Apple */}
+    <div className="min-h-screen bg-[#F8F7F2] py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {/* Carrusel de imágenes - Estilo Apple */}
             <div className="sticky top-8">
-              <div className="flex gap-4">
-                {/* Miniaturas verticales */}
-                {productImages.length > 1 && (
-                  <div className="flex flex-col gap-4 h-[500px] justify-start flex-shrink-0">
-                    {productImages.map((image, index) => {
-                      // Calcular altura dinámica para cada miniatura
-                      const thumbnailHeight = Math.floor(500 / productImages.length) - 12; // 12px para gaps
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`relative w-24 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 flex-shrink-0 ${
-                            index === currentImageIndex 
-                              ? `${isDark ? 'ring-2 ring-blue-400 shadow-lg shadow-blue-400/30 opacity-100' : 'ring-2 ring-gray-800 shadow-lg opacity-100'}`
-                              : `${isDark ? 'hover:ring-1 hover:ring-blue-300 hover:shadow-md hover:shadow-blue-300/20 opacity-40 hover:opacity-70' : 'hover:ring-1 hover:ring-gray-400 hover:shadow-md opacity-40 hover:opacity-70'}`
-                          }`}
-                          style={{ height: `${thumbnailHeight}px` }}
-                        >
-                          <img 
-                            src={image} 
-                            alt={`${product.nombre} - Vista ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Overlay sutil para la miniatura activa */}
-                          {index === currentImageIndex && (
-                            <div className={`absolute inset-0 ${isDark ? 'bg-blue-400/10' : 'bg-gray-800/10'}`}></div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+              <div className="relative group">
+                <img 
+                  src={mainImage} 
+                  alt={product.nombre}
+                  className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500"
+                />
                 
-                {/* Imagen principal */}
-                <div className="flex-1 relative group min-w-0">
-                  <img 
-                    src={mainImage} 
-                    alt={product.nombre}
-                    className="w-full h-[500px] object-cover rounded-2xl shadow-sm transition-all duration-500 ease-out"
-                  />
-                  
-                  {/* Ícono de favoritos */}
-                  <div className="absolute top-4 right-4 z-10">
-                    <FavoriteIcon
-                      productId={product.id}
-                      isFavorite={isFavorite(product.id)}
-                      onToggle={toggleFavorite}
-                      size="md"
-                      product={{
-                        id: product.id,
-                        nombre: product.nombre,
-                        precio: product.precio,
-                        descripcion: product.descripcion,
-                        imagen: mainImage
-                      }}
-                      existingLists={lists}
-                      onCreateList={async (nombre: string, productId: string) => {
-                        const l = createList(nombre);
-                        addProductToList(l.id, productId);
-                        return l.id;
-                      }}
-                      onAddToList={async (listId: string, productId: string) => {
-                        addProductToList(listId, String(productId));
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Navegación con flechas */}
-                  {productImages.length > 1 && (
-                    <>
-                      <button
-                        onClick={() => setCurrentImageIndex(prev => 
-                          prev === 0 ? productImages.length - 1 : prev - 1
-                        )}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
-                      >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-                      
-                      <button
-                        onClick={() => setCurrentImageIndex(prev => 
-                          prev === productImages.length - 1 ? 0 : prev + 1
-                        )}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 active:scale-95"
-                      >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-                </div>
+                {/* Navegación con flechas */}
+                {productImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setCurrentImageIndex(prev => 
+                        prev === 0 ? productImages.length - 1 : prev - 1
+                      )}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    
+                    <button
+                      onClick={() => setCurrentImageIndex(prev => 
+                        prev === productImages.length - 1 ? 0 : prev + 1
+                      )}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
               </div>
               
               {/* Indicadores (puntitos) */}
               {productImages.length > 1 && (
-                <div className="flex justify-center mt-4 space-x-2 ml-20">
+                <div className="flex justify-center mt-4 space-x-2">
                   {productImages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 hover:scale-125 ${
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
                         index === currentImageIndex 
-                          ? `${isDark ? 'bg-blue-400 w-8' : 'bg-gray-800 w-8'}`
-                          : `${isDark ? 'bg-blue-600 hover:bg-blue-500' : 'bg-gray-300 hover:bg-gray-500'}`
+                          ? 'bg-gray-800 w-8' 
+                          : 'bg-gray-300 hover:bg-gray-500'
                       }`}
                     />
                   ))}
@@ -337,22 +261,22 @@ export default function ProductPage() {
             {/* Detalles del producto */}
             <div className="space-y-8">
             {/* Marca */}
-            <div className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-600'}`}>
+            <div className="text-sm text-gray-600 font-medium">
               {product.marca}
             </div>
 
             {/* Nombre del producto */}
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            <h1 className="text-3xl font-bold text-gray-800">
               {product.nombre}
             </h1>
 
             {/* Precio */}
             <div className="flex items-center gap-4">
-              <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              <span className="text-2xl font-bold text-gray-800">
                 ${currentPrice.toLocaleString('es-AR')}
               </span>
               {product.precioOriginal && (
-                <span className={`text-lg line-through ${isDark ? 'text-blue-400' : 'text-gray-500'}`}>
+                <span className="text-lg text-gray-500 line-through">
                   ${product.precioOriginal.toLocaleString('es-AR')}
                 </span>
               )}
@@ -406,7 +330,7 @@ export default function ProductPage() {
 
             {/* Selección de color */}
             <div className="space-y-3">
-              <label className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-700'}`}>
+              <label className="text-sm font-medium text-gray-700">
                 Color
               </label>
               <div className="flex gap-3">
@@ -449,13 +373,14 @@ export default function ProductPage() {
 
             {/* Selección de tamaño */}
             <div className="space-y-3">
-              <label className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-700'}`}>
+              <label className="text-sm font-medium text-gray-700">
                 Medida: {selectedSize}
               </label>
               <div className="flex gap-3">
                 <button
                   onClick={() => setSelectedSize('90x40cm')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedSize === '90x40cm'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -465,7 +390,8 @@ export default function ProductPage() {
                 </button>
                 <button
                   onClick={() => setSelectedSize('50x40cm')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedSize === '50x40cm'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -478,13 +404,14 @@ export default function ProductPage() {
 
             {/* Selección de material */}
             <div className="space-y-3">
-              <label className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-gray-700'}`}>
+              <label className="text-sm font-medium text-gray-700">
                 Material: {selectedMaterial}
               </label>
               <div className="flex gap-3">
                 <button
                   onClick={() => setSelectedMaterial('Classic')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedMaterial === 'Classic'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -494,7 +421,8 @@ export default function ProductPage() {
                 </button>
                 <button
                   onClick={() => setSelectedMaterial('PRO')}
-                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                  disabled={showCartSidebar}
+                  className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none ${
                     selectedMaterial === 'PRO'
                       ? 'border-gray-800 text-gray-800 bg-white'
                       : 'border-gray-300 text-gray-600 bg-gray-100 hover:border-gray-500 hover:bg-gray-50'
@@ -507,19 +435,21 @@ export default function ProductPage() {
 
             {/* Selector de cantidad y botones */}
             <div className="flex items-center gap-4">
-              <div className={`flex items-center border rounded-lg min-w-[120px] ${isDark ? 'border-blue-600 bg-blue-800' : 'border-gray-300 bg-white'}`}>
+              <div className="flex items-center border border-gray-300 rounded-lg bg-white min-w-[120px]">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className={`px-3 py-2 transition-colors ${isDark ? 'text-blue-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                  disabled={showCartSidebar}
+                  className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   &lt;
                 </button>
-                <span className={`px-4 py-2 font-medium min-w-[40px] text-center ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                <span className="px-4 py-2 text-gray-800 font-medium min-w-[40px] text-center">
                   {quantity}
                 </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className={`px-3 py-2 transition-colors ${isDark ? 'text-blue-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                  disabled={showCartSidebar}
+                  className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   &gt;
                 </button>
@@ -527,32 +457,17 @@ export default function ProductPage() {
 
               <button
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || currentStock === 0}
+                disabled={isAddingToCart || currentStock === 0 || showCartSidebar}
                 className="liquid-button flex-1 min-w-[200px] bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
               >
                 {isAddingToCart ? (
-                  <div className="flex items-center gap-2">
+                  <>
                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Agregando</span>
-                    <motion.div
-                      className="flex items-center"
-                      animate={{
-                        x: [0, 100],
-                        opacity: [1, 0]
-                      }}
-                      transition={{
-                        duration: 0.5,
-                        ease: "easeIn"
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 18C5.9 18 5.01 18.9 5.01 20C5.01 21.1 5.9 22 7 22C8.1 22 9 21.1 9 20C9 18.9 8.1 18 7 18ZM1 2V4H3L6.6 11.59L5.25 14.04C5.09 14.32 5 14.65 5 15C5 16.1 5.9 17 7 17H19V15H7.42C7.28 15 7.17 14.89 7.17 14.75L7.2 14.63L8.1 13H15.55C16.3 13 16.96 12.59 17.3 11.97L20.88 5.48C20.96 5.34 21 5.17 21 5C21 4.45 20.55 4 20 4H5.21L4.27 2H1ZM17 18C15.9 18 15.01 18.9 15.01 20C15.01 21.1 15.9 22 17 22C18.1 22 19 21.1 19 20C19 18.9 18.1 18 17 18Z" fill="currentColor"/>
-                      </svg>
-                    </motion.div>
-                  </div>
+                    Agregando...
+                  </>
                 ) : (
                   'Agregar al carrito'
                 )}
@@ -561,7 +476,8 @@ export default function ProductPage() {
 
             <button
               onClick={handleBuyNow}
-              className="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 hover:shadow-lg"
+              disabled={showCartSidebar}
+              className="w-full bg-white border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-500 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
             >
               Comprar ahora
             </button>
@@ -570,27 +486,27 @@ export default function ProductPage() {
             <div className="space-y-3">
               {product.garantia && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Garantía</span>
-                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.garantia}</span>
+                  <span className="text-gray-600">Garantía</span>
+                  <span className="font-semibold text-gray-900">{product.garantia}</span>
                 </div>
               )}
               
               {product.tiempoFabricacion && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Tiempo de fabricación</span>
-                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.tiempoFabricacion}</span>
+                  <span className="text-gray-600">Tiempo de fabricación</span>
+                  <span className="font-semibold text-gray-900">{product.tiempoFabricacion}</span>
                 </div>
               )}
 
               <div className="flex items-center justify-between text-sm">
-                <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Envío</span>
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>24-48 horas</span>
+                <span className="text-gray-600">Envío</span>
+                <span className="font-semibold text-gray-900">24-48 horas</span>
               </div>
 
               {product.politicas && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Políticas</span>
-                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <span className="text-gray-600">Políticas</span>
+                  <span className="font-semibold text-gray-900">
                     {product.politicas.cambio ? 'Cambio ✓' : 'Sin cambio ✗'} • 
                     {product.politicas.devolucion ? 'Devolución ✓' : 'Sin devolución ✗'}
                   </span>
@@ -598,10 +514,10 @@ export default function ProductPage() {
               )}
 
               {/* Métodos de pago - Estilo Apple */}
-              <div className={`pt-3 border-t ${isDark ? 'border-blue-600' : 'border-gray-100'}`}>
-                <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-blue-400' : 'text-gray-500'}`}>
+              <div className="pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span>Métodos de pago:</span>
-                  <span className={`${isDark ? 'text-blue-300' : 'text-gray-600'}`}>Visa • Mastercard • Transferencia • Mercado Pago</span>
+                  <span className="text-gray-600">Visa • Mastercard • Transferencia • Mercado Pago</span>
                 </div>
               </div>
             </div>
@@ -610,19 +526,19 @@ export default function ProductPage() {
         </div>
 
         {/* Descripción del producto */}
-        <div className={`mt-12 rounded-lg p-6 shadow-sm ${isDark ? 'bg-[#032d70]' : 'bg-white'}`}>
-          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Descripción</h2>
-          <p className={`leading-relaxed ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
+        <div className="mt-12 bg-white rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Descripción</h2>
+          <p className="text-gray-600 leading-relaxed">
             {product.descripcion}
           </p>
         </div>
 
         {/* Características */}
-        <div className={`mt-6 rounded-lg p-6 shadow-sm ${isDark ? 'bg-[#032d70]' : 'bg-white'}`}>
-          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Características</h2>
+        <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Características</h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {product.caracteristicas.map((caracteristica, index) => (
-              <li key={index} className={`flex items-center gap-2 ${isDark ? 'text-blue-200' : 'text-gray-600'}`}>
+              <li key={index} className="flex items-center gap-2 text-gray-600">
                 <span className="text-green-600">✓</span>
                 <span>{caracteristica}</span>
               </li>
@@ -632,30 +548,30 @@ export default function ProductPage() {
 
         {/* Detalles del producto */}
         <div className="mt-12">
-          <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>DETALLES DEL PRODUCTO</h2>
-          <div className={`space-y-0 border rounded-lg overflow-hidden ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">DETALLES DEL PRODUCTO</h2>
+          <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
             {/* Acordeón 1 - Descripción Serie Classic */}
-            <div className={`border-b ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
+            <div className="border-b border-gray-200">
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'classic' ? null : 'classic')}
-                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>DESCRIPCIÓN SERIE CLASSIC</span>
-                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'classic' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="font-semibold text-gray-800">DESCRIPCIÓN SERIE CLASSIC</span>
+                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'classic' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'classic' && (
                   <motion.div 
-                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
+                    className="px-6 pb-4 bg-gray-50"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
+                      className="space-y-3 text-sm text-gray-700"
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -679,27 +595,27 @@ export default function ProductPage() {
             </div>
 
             {/* Acordeón 2 - Descripción Serie PRO */}
-            <div className={`border-b ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
+            <div className="border-b border-gray-200">
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'pro' ? null : 'pro')}
-                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>DESCRIPCIÓN SERIE PRO</span>
-                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'pro' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="font-semibold text-gray-800">DESCRIPCIÓN SERIE PRO</span>
+                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'pro' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'pro' && (
                   <motion.div 
-                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
+                    className="px-6 pb-4 bg-gray-50"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
+                      className="space-y-3 text-sm text-gray-700"
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -723,27 +639,27 @@ export default function ProductPage() {
             </div>
 
             {/* Acordeón 3 - Cambio y Devolución */}
-            <div className={`border-b ${isDark ? 'border-blue-600' : 'border-gray-200'}`}>
+            <div className="border-b border-gray-200">
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'cambio' ? null : 'cambio')}
-                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>¿TIENEN CAMBIO O DEVOLUCIÓN?</span>
-                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'cambio' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="font-semibold text-gray-800">¿TIENEN CAMBIO O DEVOLUCIÓN?</span>
+                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'cambio' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'cambio' && (
                   <motion.div 
-                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
+                    className="px-6 pb-4 bg-gray-50"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
+                      className="space-y-3 text-sm text-gray-700"
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -773,24 +689,24 @@ export default function ProductPage() {
             <div>
               <button 
                 onClick={() => setExpandedAccordion(expandedAccordion === 'fabricacion' ? null : 'fabricacion')}
-                className={`w-full px-6 py-4 text-left flex items-center justify-between transition-colors ${isDark ? 'hover:bg-blue-800' : 'hover:bg-gray-50'}`}
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>¿QUÉ DEMORA TIENEN EN FABRICARSE?</span>
-                <svg className={`w-5 h-5 transition-transform ${expandedAccordion === 'fabricacion' ? 'rotate-45' : ''} ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="font-semibold text-gray-800">¿QUÉ DEMORA TIENEN EN FABRICARSE?</span>
+                <svg className={`w-5 h-5 text-gray-600 transition-transform ${expandedAccordion === 'fabricacion' ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               <AnimatePresence>
                 {expandedAccordion === 'fabricacion' && (
                   <motion.div 
-                    className={`px-6 pb-4 ${isDark ? 'bg-blue-800' : 'bg-gray-50'}`}
+                    className="px-6 pb-4 bg-gray-50"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                   >
                     <motion.div 
-                      className={`space-y-3 text-sm ${isDark ? 'text-blue-200' : 'text-gray-700'}`}
+                      className="space-y-3 text-sm text-gray-700"
                       initial={{ y: -10 }}
                       animate={{ y: 0 }}
                       exit={{ y: -10 }}
@@ -812,10 +728,10 @@ export default function ProductPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>También te puede gustar</h2>
+              <h2 className="text-2xl font-bold text-gray-800">También te puede gustar</h2>
               <div className="flex gap-2">
-                <button className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? 'bg-blue-700 hover:bg-blue-600' : 'bg-gray-200 hover:bg-gray-300'}`}>
-                  <svg className={`w-4 h-4 ${isDark ? 'text-blue-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
@@ -838,7 +754,7 @@ export default function ProductPage() {
                   <Link 
                     key={relatedProduct.id}
                     to={`/product/${relatedProduct.id}`}
-                    className={`rounded-lg shadow-sm overflow-hidden transition-shadow group ${isDark ? 'bg-[#032d70] shadow-blue-900/20 hover:shadow-blue-900/30' : 'bg-white hover:shadow-md'}`}
+                    className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
                   >
                     <div className="h-48 relative overflow-hidden">
                       <img 
@@ -847,44 +763,18 @@ export default function ProductPage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
-                      
-                      {/* Ícono de favoritos */}
-                      <div className="absolute top-2 right-2 z-10">
-                        <FavoriteIcon
-                          productId={relatedProduct.id}
-                          isFavorite={isFavorite(relatedProduct.id)}
-                          onToggle={toggleFavorite}
-                          size="sm"
-                          product={{
-                            id: relatedProduct.id,
-                            nombre: relatedProduct.nombre,
-                            precio: relatedProduct.precio,
-                            descripcion: relatedProduct.descripcion,
-                            imagen: mainImage
-                          }}
-                          existingLists={lists}
-                          onCreateList={async (nombre: string, productId: string) => {
-                            const l = createList(nombre);
-                            addProductToList(l.id, productId);
-                            return l.id;
-                          }}
-                          onAddToList={async (listId: string, productId: string) => {
-                            addProductToList(listId, String(productId));
-                          }}
-                        />
-                      </div>
                     </div>
                     <div className="p-4">
-                      <h3 className={`font-semibold text-sm mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-2 line-clamp-2">
                         {relatedProduct.nombre}
                       </h3>
                       <div className="space-y-1">
                         {relatedProduct.precioOriginal && (
-                          <div className={`text-xs line-through ${isDark ? 'text-blue-400' : 'text-gray-500'}`}>
+                          <div className="text-xs text-gray-500 line-through">
                             ${relatedProduct.precioOriginal.toLocaleString('es-AR')}
                           </div>
                         )}
-                        <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                        <div className="text-sm font-bold text-gray-800">
                           ${relatedProduct.precio.toLocaleString('es-AR')}
                         </div>
                         {transferPrice && (
@@ -907,6 +797,68 @@ export default function ProductPage() {
         )}
       </div>
 
+      {/* Carrito flotante */}
+      {showFloatingCart && product && (
+        <div className={`fixed bottom-6 right-6 z-50 ${isCartAnimating ? 'floating-cart-enter' : ''}`}>
+          <div className="bg-[#F8F7F2] border border-gray-300 rounded-2xl p-4 shadow-2xl max-w-sm">
+            <div className="flex items-center gap-4">
+              {/* Imagen del producto */}
+              <div className="flex-shrink-0">
+                <img 
+                  src={mainImage} 
+                  alt={product.nombre}
+                  className="w-16 h-16 object-cover rounded-lg shadow-md"
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                />
+              </div>
+              
+              {/* Detalles del producto */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-gray-800 text-sm truncate">
+                    {product.nombre}
+                  </h3>
+                  <span className="text-gray-600 text-xs">| {product.marca}</span>
+                </div>
+                <div className="text-xs text-gray-600 mb-1">
+                  {selectedColor} / {selectedSize} / {selectedMaterial}
+                </div>
+                <div className="text-sm font-semibold text-gray-800">
+                  ${currentPrice.toLocaleString('es-AR')}
+                </div>
+              </div>
+              
+              {/* Botón de agregar al carrito */}
+              <div className="flex-shrink-0">
+                <motion.button
+                  onClick={handleAddToCart}
+                  disabled={isAddingToCart || currentStock === 0 || showCartSidebar}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-full text-sm transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
+                  whileHover={!isAddingToCart && currentStock > 0 ? { 
+                    scale: 1.05, 
+                    boxShadow: "0 20px 25px -5px rgba(59, 130, 246, 0.3), 0 10px 10px -5px rgba(59, 130, 246, 0.1)" 
+                  } : {}}
+                  whileTap={!isAddingToCart && currentStock > 0 ? { scale: 0.95 } : {}}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  {isAddingToCart ? (
+                    <>
+                      <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Agregando...
+                    </>
+                  ) : (
+                    'Agregar al carrito'
+                  )}
+                </motion.button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de zoom de imagen */}
       {showImageModal && (
@@ -935,16 +887,187 @@ export default function ProductPage() {
         </div>
       )}
 
-      {/* Animación del carrito */}
-      {product && (
-        <CartAnimation
-          isAnimating={isAnimating}
-          productImage={productImages[currentImageIndex]}
-          onAnimationComplete={handleAnimationComplete}
-        />
-      )}
+      {/* Carrito Lateral con Framer Motion */}
+      <AnimatePresence>
+        {showCartSidebar && (
+          <motion.div 
+            className="fixed top-16 right-4 h-[calc(100vh-5rem)] w-96 bg-gray-800 z-50 shadow-2xl flex flex-col rounded-lg"
+            initial={{ 
+              scale: 0.1, 
+              opacity: 0, 
+              x: 400, 
+              y: 120,
+              borderRadius: "50%"
+            }}
+            animate={{ 
+              scale: 1, 
+              opacity: 1, 
+              x: 0, 
+              y: 0,
+              borderRadius: "0.5rem"
+            }}
+            exit={{ 
+              scale: 0.1, 
+              opacity: 0, 
+              x: -380, 
+              y: 40,
+              borderRadius: "50%"
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 25,
+              duration: 0.25
+            }}
+          >
+            {/* Header del carrito */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-white">Carrito</h2>
+                {getTotalItems() > 0 && (
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">{getTotalItems()}</span>
+                )}
+              </div>
+              <button
+                onClick={() => setShowCartSidebar(false)}
+                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700 rounded-full"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-      </div>
-    </>
+            {/* Contenido del carrito */}
+            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+              {/* Mensaje de envío gratis */}
+              <div className="bg-green-600 text-white p-3 rounded-lg mb-4">
+                <p className="text-sm font-medium">¡Te faltan solo $56.875,00 para conseguir envío gratis!</p>
+                <div className="w-full bg-green-800 rounded-full h-2 mt-2">
+                  <div className="bg-white h-2 rounded-full" style={{width: '30%'}}></div>
+                </div>
+              </div>
+
+              {/* Productos agregados */}
+              <div className="space-y-3 mb-4">
+                {items.map((item) => {
+                  const itemMainImage = item.product.imagenes && item.product.imagenes.length > 0
+                    ? item.product.imagenes[0].url
+                    : 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+                  
+                  return (
+                    <div key={item.id} className="bg-gray-700 rounded-lg p-4">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={itemMainImage} 
+                          alt={item.product.nombre}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-medium text-white text-sm">{item.product.nombre}</h3>
+                          <p className="text-xs text-gray-300 mb-1">{item.product.marca}</p>
+                          {(item.selectedColor || item.selectedSize || item.selectedMaterial) && (
+                            <p className="text-xs text-gray-400">
+                              {item.selectedColor && `Color: ${item.selectedColor}`}
+                              {item.selectedSize && ` | Tamaño: ${item.selectedSize}`}
+                              {item.selectedMaterial && ` | Material: ${item.selectedMaterial}`}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-white font-bold">${item.price.toLocaleString('es-AR')}</span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  const currentItem = items.find(i => i.id === item.id);
+                                  if (currentItem && currentItem.quantity > 1) {
+                                    updateQuantity(item.id, currentItem.quantity - 1);
+                                  } else {
+                                    removeItem(item.id);
+                                  }
+                                }}
+                                className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+                              >
+                                -
+                              </button>
+                              <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
+                              <button
+                                onClick={() => {
+                                  const currentItem = items.find(i => i.id === item.id);
+                                  if (currentItem) {
+                                    updateQuantity(item.id, currentItem.quantity + 1);
+                                  }
+                                }}
+                                className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="text-red-400 text-xs mt-2 hover:text-red-300 transition-colors"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Información de envío */}
+              <div className="space-y-4">
+                <div className="border-b border-gray-600 pb-4">
+                  <h4 className="text-white font-medium mb-2">Gastos de envío</h4>
+                  <p className="text-gray-300 text-sm">Enviamos con Andreani: $6000 a sucursal o $9000 a domicilio</p>
+                </div>
+
+                <div className="border-b border-gray-600 pb-4">
+                  <h4 className="text-white font-medium mb-2">Notas para entrega</h4>
+                  <p className="text-gray-300 text-sm">Indicaciones para la entrega del pedido</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer del carrito */}
+            <div className="border-t border-gray-700 p-4 flex-shrink-0">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-white font-medium">Subtotal</span>
+                <span className="text-white font-bold text-lg">${getTotalPrice().toLocaleString('es-AR')} ARS</span>
+              </div>
+              
+              <div className="space-y-3">
+                <Link
+                  to="/shopcart/checkout"
+                  onClick={() => setShowCartSidebar(false)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Finalizar pedido
+                </Link>
+                
+                <button
+                  onClick={() => setShowCartSidebar(false)}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-lg transition-colors"
+                >
+                  Seguir comprando
+                </button>
+                
+                <Link
+                  to="/shopcart"
+                  onClick={() => setShowCartSidebar(false)}
+                  className="w-full bg-gray-600 hover:bg-gray-500 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center block"
+                >
+                  Ver carrito completo
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

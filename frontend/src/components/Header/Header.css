@@ -259,6 +259,63 @@
   z-index: 100;
 }
 
+/* Modal específico del carrito - más ancho */
+.cart-dropdown {
+  width: 420px !important;
+  min-width: 420px !important;
+  max-width: 90vw;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e5e7eb;
+}
+
+/* Botón de cerrar del modal del carrito */
+.cart-close-button {
+  transition: all 0.2s ease;
+}
+
+.cart-close-button:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: #333 !important;
+  transform: rotate(90deg);
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Botón de eliminar mejorado */
+.remove-item-btn {
+  transition: all 0.2s ease !important;
+}
+
+.remove-item-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  transform: scale(1.02);
+}
+
+.remove-item-btn:active {
+  transform: scale(0.98);
+}
+
+/* Botón de eliminar en la página del carrito */
+.remove-item-btn-cart:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  transform: scale(1.02);
+}
+
+.remove-item-btn-cart:active {
+  transform: scale(0.98);
+}
+
 
 
 .dropdown-menu button {

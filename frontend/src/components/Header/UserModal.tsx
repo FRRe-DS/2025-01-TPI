@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "react-oidc-context";
 import ProfileModal from "./ProfileModal";
 import { ThemeToggle } from "../ThemeToggle";
@@ -8,6 +8,46 @@ export default function UserModal() {
   const [showModal, setShowModal] = useState(false);
   const [showUnderConstruction, setShowUnderConstruction] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el modal del carrito cuando se abre este
+  useEffect(() => {
+    if (showModal) {
+      window.dispatchEvent(new CustomEvent('closeCartModal'));
+    }
+  }, [showModal]);
+
+  // Cerrar cuando se presiona fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.user-icon')) {
+          setShowModal(false);
+        }
+      }
+    };
+
+    if (showModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showModal]);
+
+  // Escuchar eventos para cerrar cuando se abre el modal del carrito
+  useEffect(() => {
+    const handleCloseUserModal = () => {
+      setShowModal(false);
+    };
+
+    window.addEventListener('closeUserModal', handleCloseUserModal);
+    return () => {
+      window.removeEventListener('closeUserModal', handleCloseUserModal);
+    };
+  }, []);
 
   const handleProfileClick = () => {
     setShowModal(false);
@@ -39,19 +79,7 @@ export default function UserModal() {
       </div>
       
       {showModal && (
-        <>
-          <div 
-            onClick={() => setShowModal(false)} 
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 99
-            }}
-          />
-          <div className="dropdown-menu">
+        <div ref={modalRef} className="dropdown-menu" style={{ zIndex: 100 }}>
             <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #e5e7eb', marginBottom: '0.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ThemeToggle size="sm" labelSize="lg" showLabel className="user-dropdown-theme-toggle" />
@@ -67,7 +95,6 @@ export default function UserModal() {
               Cerrar Sesión
             </button>
           </div>
-        </>
       )}
 
       {/* Modal de Perfil */}

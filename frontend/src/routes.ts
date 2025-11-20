@@ -6,6 +6,7 @@ export default [
   route("/private", "./routes/private.route.tsx"),
   route("/profile", "./routes/profile.route.tsx"),
   route("/cart", "./routes/cart.route.tsx"),
+  route("/shopcart", "./routes/cart.route.tsx"),
   route("/favorites", "./routes/favorites.route.tsx"),
   route("/favorites/:id", "./routes/favoriteList.route.tsx"),
   route("/product/:id", "./routes/product.route.tsx")

@@ -1,103 +1,140 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import React from 'react';
 import type { ReactNode } from 'react';
+import { type Product } from '../services/product.service';
 
 export interface CartItem {
-  id: number;
-  name: string;
-  price: number;
+  id: string; // ID único del item (productId + variantes)
+  productId: number;
+  product: Product;
   quantity: number;
-  image: string;
-  color: string;
-  size: string;
-  material: string;
+  selectedColor?: string;
+  selectedSize?: string;
+  selectedMaterial?: string;
+  price: number;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  addItem: (product: Product, quantity: number, selectedColor?: string, selectedSize?: string, selectedMaterial?: string) => void;
+  removeItem: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
+  clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
-  clearCart: () => void;
   isAnimating: boolean;
   triggerCartAnimation: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-};
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<CartItem[]>(() => {
+    // Verificar si estamos en el navegador (localStorage disponible)
+    if (typeof window === 'undefined') {
+      return [];
+    }
 
-interface CartProviderProps {
-  children: ReactNode;
-}
+    // Cargar del localStorage si existe
+    try {
+      const saved = localStorage.getItem('cart');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+    }
+    return [];
+  });
 
-export const CartProvider = ({ children }: CartProviderProps) => {
-  const [items, setItems] = useState<CartItem[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationTimeout, setAnimationTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const addToCart = (newItem: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
+  // Guardar en localStorage cada vez que cambie
+  useEffect(() => {
+    // Verificar si estamos en el navegador
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cart', JSON.stringify(items));
+      } catch (error) {
+        console.error('Error saving cart to localStorage:', error);
+      }
+    }
+  }, [items]);
+
+  const generateItemId = (
+    productId: number,
+    color?: string,
+    size?: string,
+    material?: string
+  ): string => {
+    return `${productId}-${color || ''}-${size || ''}-${material || ''}`;
+  };
+
+  const addItem = (
+    product: Product,
+    quantity: number,
+    selectedColor?: string,
+    selectedSize?: string,
+    selectedMaterial?: string
+  ) => {
+    const itemId = generateItemId(product.id, selectedColor, selectedSize, selectedMaterial);
+    const price = product.precio; // Usar precio base por ahora
+
     setItems(prevItems => {
-      const existingItem = prevItems.find(item => 
-        item.id === newItem.id && 
-        item.color === newItem.color && 
-        item.size === newItem.size && 
-        item.material === newItem.material
-      );
+      const existingItem = prevItems.find(item => item.id === itemId);
 
       if (existingItem) {
+        // Si ya existe, incrementar cantidad
         return prevItems.map(item =>
-          item.id === existingItem.id &&
-          item.color === existingItem.color &&
-          item.size === existingItem.size &&
-          item.material === existingItem.material
+          item.id === itemId
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
-        return [...prevItems, { ...newItem, quantity }];
+        // Si no existe, agregar nuevo item
+        return [...prevItems, {
+          id: itemId,
+          productId: product.id,
+          product,
+          quantity,
+          selectedColor,
+          selectedSize,
+          selectedMaterial,
+          price
+        }];
       }
     });
-    
+
     // Trigger cart animation
     triggerCartAnimation();
   };
 
-  const removeFromCart = (id: number) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+  const removeItem = (itemId: string) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(id);
+      removeItem(itemId);
       return;
     }
-    
+
     setItems(prevItems =>
       prevItems.map(item =>
-        item.id === id ? { ...item, quantity } : item
+        item.id === itemId ? { ...item, quantity } : item
       )
     );
   };
 
+  const clearCart = () => {
+    setItems([]);
+  };
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0);
   };
 
   const getTotalPrice = () => {
     return items.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const clearCart = () => {
-    setItems([]);
   };
 
   const triggerCartAnimation = () => {
@@ -113,7 +150,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
     // Reset first to ensure animation triggers
     setIsAnimating(false);
-    
+
     // Small delay to ensure reset, then trigger animation
     const timeout = setTimeout(() => {
       setIsAnimating(true);
@@ -121,7 +158,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       const resetTimeout = setTimeout(() => setIsAnimating(false), 3000);
       setAnimationTimeout(resetTimeout);
     }, 10);
-    
+
     setAnimationTimeout(timeout);
   };
 
@@ -134,21 +171,29 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     };
   }, [animationTimeout]);
 
-  const value: CartContextType = {
-    items,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    getTotalItems,
-    getTotalPrice,
-    clearCart,
-    isAnimating,
-    triggerCartAnimation,
-  };
-
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        getTotalItems,
+        getTotalPrice,
+        isAnimating,
+        triggerCartAnimation
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
-};
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}
