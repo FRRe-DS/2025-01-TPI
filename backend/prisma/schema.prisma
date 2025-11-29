@@ -15,17 +15,17 @@ model Auth {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  firstName String?  // Primer nombre
-  lastName  String?  // Apellido
+  firstName String? // Primer nombre
+  lastName  String? // Apellido
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relación con tokens
-  tokens    Token[]
-  
+  tokens Token[]
+
   // Relación con perfil de usuario
-  profile   UserProfile?
+  profile UserProfile?
 }
 
 // Modelo de tokens para autenticación
@@ -35,9 +35,9 @@ model Token {
   userId    Int
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
   // Relación con usuario
-  user      Auth     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user Auth @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Modelo de perfil de usuario complementario
@@ -49,7 +49,22 @@ model UserProfile {
   birthDate DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relación con usuario
-  user      Auth     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user Auth @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Modelo de carrito de compras
+// userId es el UUID de Keycloak (string), no el ID de Auth
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  userId    String // UUID de Keycloak
+  productId Int // ID del producto del backend de stock
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Índice único para evitar duplicados (un usuario no puede tener el mismo producto dos veces)
+  @@unique([userId, productId])
+  @@index([userId])
 }

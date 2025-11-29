@@ -3,6 +3,7 @@ import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
 import { AppModule as AppModuleController } from './modules/app/app.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
     HealthModule,
     UsersModule,
     AuthModule,
+    CartModule,
   ],
   controllers: [],
   providers: [],
