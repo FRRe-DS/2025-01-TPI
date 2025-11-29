@@ -1,11 +1,14 @@
-import { Controller, Get, Put, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserProfileUpdateDto } from '../dto/userProfile.dto';
 import { UserService } from '../services/user.service';
 import { KeycloakService } from '../../../core/keycloak/keycloak.service';
+import { JwtAuthGuard, RequireScopes } from '../../../core/keycloak/jwt-auth.guard';
 
 @ApiTags('user')
 @Controller('api/user')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('Authorization')
 export class UserController {
   constructor(
     private userService: UserService,
@@ -15,9 +18,8 @@ export class UserController {
   @Get('profile')
   @ApiOperation({ 
     summary: 'Obtener perfil del usuario',
-    description: 'Obtiene el perfil complementario del usuario autenticado'
+    description: 'Obtiene el perfil complementario del usuario autenticado. Requiere autenticación válida.'
   })
-  @ApiBearerAuth('Authorization')
   @ApiResponse({ 
     status: 200, 
     description: 'Perfil del usuario',
@@ -26,13 +28,22 @@ export class UserController {
         schema: {
           type: 'object',
           properties: {
-            id: { type: 'integer' },
-            userId: { type: 'integer' },
-            phone: { type: 'string' },
-            dni: { type: 'string' },
-            birthDate: { type: 'string', format: 'date' },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' }
+            success: { type: 'boolean' },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                username: { type: 'string' },
+                email: { type: 'string' },
+                firstName: { type: 'string' },
+                lastName: { type: 'string' },
+                enabled: { type: 'boolean' },
+                createdTimestamp: { type: 'number' },
+                phone: { type: 'string' },
+                dni: { type: 'string' },
+                birthDate: { type: 'string' }
+              }
+            }
           }
         }
       }
@@ -54,6 +65,21 @@ export class UserController {
     }
   })
   @ApiResponse({ 
+    status: 403, 
+    description: 'Permisos insuficientes',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', example: 'Permisos insuficientes. Scopes requeridos: productos:read' },
+            statusCode: { type: 'number', example: 403 }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
     status: 404, 
     description: 'Perfil no encontrado',
     content: {
@@ -68,41 +94,25 @@ export class UserController {
       }
     }
   })
-  @ApiResponse({ 
-    status: 500, 
-    description: 'Error interno del servidor',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            error: { type: 'string', example: 'Error interno del servidor' },
-            code: { type: 'string', example: 'INTERNAL_ERROR' }
-          }
-        }
-      }
-    }
-  })
-  async getUserProfile(@Headers() headers: any) {
+  async getUserProfile(@Request() req: any) {
     try {
-      const authHeader = headers.authorization || headers.Authorization;
+      // El guard ya validó el token y agregó la información al request
+      const userId = req.user.userId;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      if (!userId) {
         return {
-          error: 'Token de autorización requerido',
+          error: 'Usuario no encontrado en el token',
           code: 'UNAUTHORIZED'
         };
       }
 
-      const token = authHeader.substring(7);
-      
-      // Validar token con Keycloak y obtener datos del usuario
-      const userData = await this.keycloakService.getUserByToken(token);
+      // Obtener datos completos del usuario desde Keycloak
+      const userData = await this.keycloakService.getUserById(userId);
       
       if (!userData) {
         return {
-          error: 'Token inválido o expirado',
-          code: 'UNAUTHORIZED'
+          error: 'Usuario no encontrado',
+          code: 'USER_NOT_FOUND'
         };
       }
 
@@ -122,6 +132,7 @@ export class UserController {
         }
       };
     } catch (error) {
+      console.error('Error obteniendo perfil:', error);
       return {
         error: 'Error interno del servidor',
         code: 'INTERNAL_ERROR'
@@ -133,9 +144,8 @@ export class UserController {
   @Put('profile')
   @ApiOperation({ 
     summary: 'Actualizar perfil del usuario',
-    description: 'Actualiza el perfil complementario del usuario autenticado'
+    description: 'Actualiza el perfil complementario del usuario autenticado. Requiere autenticación válida.'
   })
-  @ApiBearerAuth('Authorization')
   @ApiResponse({ 
     status: 200, 
     description: 'Perfil actualizado exitosamente',
@@ -210,26 +220,25 @@ export class UserController {
       }
     }
   })
-  async updateUserProfile(@Body() profileData: UserProfileUpdateDto, @Headers() headers: any) {
+  async updateUserProfile(@Body() profileData: UserProfileUpdateDto, @Request() req: any) {
     try {
-      const authHeader = headers.authorization || headers.Authorization;
+      // El guard ya validó el token y agregó la información al request
+      const userId = req.user.userId;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      if (!userId) {
         return {
-          error: 'Token de autorización requerido',
+          error: 'Usuario no encontrado en el token',
           code: 'UNAUTHORIZED'
         };
       }
 
-      const token = authHeader.substring(7);
-      
-      // Validar token con Keycloak y obtener datos del usuario
-      const userData = await this.keycloakService.getUserByToken(token);
+      // Obtener datos completos del usuario desde Keycloak
+      const userData = await this.keycloakService.getUserById(userId);
       
       if (!userData) {
         return {
-          error: 'Token inválido o expirado',
-          code: 'UNAUTHORIZED'
+          error: 'Usuario no encontrado',
+          code: 'USER_NOT_FOUND'
         };
       }
 

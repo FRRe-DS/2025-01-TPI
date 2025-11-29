@@ -3,10 +3,37 @@ import axios from 'axios';
 
 @Injectable()
 export class KeycloakService {
-  private readonly keycloakUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
-  private readonly realm = process.env.KEYCLOAK_REALM || 'ds-2025-realm';
+  private readonly keycloakIssuer: string;
+  private readonly keycloakUrl: string;
+  private readonly realm: string;
   private readonly adminUsername = process.env.KEYCLOAK_ADMIN_USER || 'admin';
   private readonly adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || 'ds2025';
+
+  constructor() {
+    // Priorizar KEYCLOAK_ISSUER, pero mantener compatibilidad con KEYCLOAK_URL + KEYCLOAK_REALM
+    const issuer = process.env.KEYCLOAK_ISSUER;
+    
+    if (issuer) {
+      // Extraer URL base y realm desde el issuer
+      // Ejemplo: http://localhost:8080/realms/ds-2025-realm
+      const issuerMatch = issuer.match(/^(https?:\/\/[^\/]+)\/realms\/([^\/]+)$/);
+      if (issuerMatch) {
+        this.keycloakIssuer = issuer;
+        this.keycloakUrl = issuerMatch[1];
+        this.realm = issuerMatch[2];
+      } else {
+        // Si el formato no es el esperado, usar valores por defecto
+        this.keycloakIssuer = issuer;
+        this.keycloakUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
+        this.realm = process.env.KEYCLOAK_REALM || 'ds-2025-realm';
+      }
+    } else {
+      // Fallback a variables antiguas
+      this.keycloakUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
+      this.realm = process.env.KEYCLOAK_REALM || 'ds-2025-realm';
+      this.keycloakIssuer = `${this.keycloakUrl}/realms/${this.realm}`;
+    }
+  }
 
   private async getAdminToken(): Promise<string> {
     try {
