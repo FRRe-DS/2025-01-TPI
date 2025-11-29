@@ -1,16 +1,19 @@
 // src/routes/index.route.tsx
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router";
-import { getProducts, type PaginatedProducts } from "../services/product.service";
+import { getProducts, getProductsFromStockDocker, type PaginatedProducts } from "../services/product.service";
 import ProductList from "../components/Product";
 import { SearchBar } from "../components/Product/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import AdvancedFilters, { FilterBar, type FilterState } from "../components/AdvancedFilters";
 import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "react-oidc-context";
+import { getAccessToken } from "../services/auth/getAccessToken";
 
 export default function IndexRoute() {
   const location = useLocation();
   const { isDark } = useTheme();
+  const auth = useAuth();
   const [productData, setProductData] = useState<PaginatedProducts | null>(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -23,6 +26,9 @@ export default function IndexRoute() {
   });
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const limit = 1000; // Mostrar todos los productos sin paginación
+  
+  // Flag para usar el backend de stock en Docker (para pruebas)
+  const USE_STOCK_DOCKER = true;
   
   // Ref para hacer scroll a la sección de productos
   const productsSectionRef = useRef<HTMLElement>(null);
@@ -38,6 +44,49 @@ export default function IndexRoute() {
       localStorage.removeItem('searchQuery');
     }
   }, []);
+
+  // Ejecutar petición automáticamente cuando hay token (para pruebas con Stock Docker)
+  useEffect(() => {
+    console.log('[IndexRoute] useEffect triggered - USE_STOCK_DOCKER:', USE_STOCK_DOCKER);
+    console.log('[IndexRoute] auth.user:', !!auth.user);
+    console.log('[IndexRoute] auth.isAuthenticated:', auth.isAuthenticated);
+    
+    if (USE_STOCK_DOCKER && auth.user && auth.isAuthenticated) {
+      const token = getAccessToken(auth.user);
+      console.log('[IndexRoute] Token available:', !!token);
+      
+      if (token) {
+        console.log('[IndexRoute] 🚀 Auto-fetching products from Stock Docker (token available)');
+        console.log('[IndexRoute] Token (first 50 chars):', token.substring(0, 50));
+        setShowProducts(true);
+        setLoading(true);
+        setError(null);
+        
+        const filterParams = { 
+          page: 1, 
+          limit: 10, 
+          q: '', 
+        };
+        
+        console.log('[IndexRoute] Calling getProductsFromStockDocker with params:', filterParams);
+        getProductsFromStockDocker(filterParams, token)
+          .then(data => {
+            console.log('[IndexRoute] ✅ Products loaded from Stock Docker:', data);
+            setProductData(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error("[IndexRoute] ❌ Error loading products from Stock Docker:", err);
+            setError(err.message);
+            setLoading(false);
+          });
+      } else {
+        console.warn('[IndexRoute] ⚠️ No token available even though user is authenticated');
+      }
+    } else {
+      console.log('[IndexRoute] ⏭️ Skipping Stock Docker fetch - conditions not met');
+    }
+  }, [auth.user, auth.isAuthenticated]);
 
   // Efecto para mostrar/ocultar el botón de filtros basado en scroll
   useEffect(() => {
@@ -57,7 +106,7 @@ export default function IndexRoute() {
       setLoading(true);
       setError(null);
       
-      getProducts({ 
+      const filterParams = { 
         page: 1, 
         limit, 
         q: query, 
@@ -67,7 +116,31 @@ export default function IndexRoute() {
         precioMin: filters.precioMin || undefined,
         precioMax: filters.precioMax || undefined,
         sortBy: (filters.orden || 'popularidad_desc') as any
-      })
+      };
+      
+      // Si está habilitado usar stock Docker y hay token, usar el backend de stock
+      if (USE_STOCK_DOCKER && auth.user) {
+        const token = getAccessToken(auth.user);
+        if (token) {
+          console.log('[IndexRoute] Using Stock Docker backend with token');
+          getProductsFromStockDocker(filterParams, token)
+            .then(data => {
+              setProductData(data);
+              setLoading(false);
+            })
+            .catch(err => {
+              console.error("[IndexRoute] Error loading products from Stock Docker:", err);
+              setError(err.message);
+              setLoading(false);
+            });
+          return;
+        } else {
+          console.warn('[IndexRoute] No token available, falling back to regular getProducts');
+        }
+      }
+      
+      // Fallback al método normal
+      getProducts(filterParams)
         .then(data => {
           setProductData(data);
           setLoading(false);
@@ -78,7 +151,7 @@ export default function IndexRoute() {
           setLoading(false);
         });
     }
-  }, [query, filters, limit, showProducts]);
+  }, [query, filters, limit, showProducts, auth.user]);
 
   const scrollToProducts = () => {
     if (productsSectionRef.current) {

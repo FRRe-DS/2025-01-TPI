@@ -103,6 +103,42 @@ const createMockProduct = (
 // URL base de la API de Stock
 const STOCK_API_BASE_URL = 'https://stock.ds.frre.utn.edu.ar/v1';
 
+// URL del backend de stock en Docker (vía API Gateway)
+// El API Gateway está en el puerto 8000, y el backend de stock espera rutas /api/...
+// La URL completa es: http://localhost:8000/stock/api
+const STOCK_DOCKER_API_URL = 'http://localhost:8000/stock/api';
+
+// Función helper para hacer requests HTTP con autenticación al backend de stock en Docker
+async function apiRequestStockDocker<T>(endpoint: string, token: string, options: RequestInit = {}): Promise<T> {
+  const url = `${STOCK_DOCKER_API_URL}${endpoint}`;
+  
+  console.log('[Stock Docker API] Making request to:', url);
+  console.log('[Stock Docker API] Token length:', token.length);
+  console.log('[Stock Docker API] Token (first 50 chars):', token.substring(0, 50));
+
+  const defaultOptions: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  };
+
+  const response = await fetch(url, { ...defaultOptions, ...options });
+  
+  console.log('[Stock Docker API] Response status:', response.status);
+  console.log('[Stock Docker API] Response ok:', response.ok);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('[Stock Docker API] Error response:', errorText);
+    throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  console.log('[Stock Docker API] Response data:', data);
+  return data;
+}
+
 // Función helper para hacer requests HTTP con autenticación
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${STOCK_API_BASE_URL}${endpoint}`;
@@ -386,6 +422,380 @@ export interface PaginatedProducts {
   totalPages: number;
 }
 
+/**
+ * Transforma un producto del backend de stock al formato esperado por el frontend
+ * El backend envía precio y pesoKg como strings, necesitamos convertirlos a numbers
+ */
+function transformStockProduct(product: any): Product {
+  return {
+    id: product.id,
+    nombre: product.nombre,
+    descripcion: product.descripcion || undefined,
+    precio: typeof product.precio === 'string' ? parseFloat(product.precio) : product.precio,
+    stockDisponible: product.stockDisponible || product.stock_disponible || 0,
+    pesoKg: product.pesoKg 
+      ? (typeof product.pesoKg === 'string' ? parseFloat(product.pesoKg) : product.pesoKg)
+      : undefined,
+    dimensiones: product.dimensiones ? {
+      largoCm: product.dimensiones.largoCm || product.dimensiones.largo_cm || 0,
+      anchoCm: product.dimensiones.anchoCm || product.dimensiones.ancho_cm || 0,
+      altoCm: product.dimensiones.altoCm || product.dimensiones.alto_cm || 0,
+    } : undefined,
+    ubicacion: product.ubicacion ? {
+      street: product.ubicacion.street || '',
+      city: product.ubicacion.city || '',
+      state: product.ubicacion.state || '',
+      postal_code: product.ubicacion.postal_code || '',
+      country: product.ubicacion.country || '',
+    } : undefined,
+    imagenes: (() => {
+      // Función para detectar si una URL es de ejemplo (no válida)
+      const isExampleUrl = (url: string): boolean => {
+        if (!url || url.trim() === '') return true;
+        // Detectar URLs de ejemplo comunes
+        return url.includes('example.com') || 
+               url.includes('placeholder') || 
+               url.startsWith('http://example') ||
+               url.startsWith('https://example');
+      };
+
+      // Función para extraer la primera palabra del nombre del producto y normalizarla
+      const getProductKeyword = (productName: string): string => {
+        if (!productName || productName.trim() === '') return 'product';
+        
+        // Extraer la primera palabra y convertir a minúsculas
+        const firstWord = productName.trim().split(/\s+/)[0].toLowerCase();
+        
+        // Normalizar palabras comunes en español/inglés para mejores resultados de búsqueda
+        const keywordMap: { [key: string]: string } = {
+          'laptop': 'laptop computer',
+          'notebook': 'laptop computer',
+          'mouse': 'computer mouse',
+          'teclado': 'keyboard',
+          'monitor': 'computer monitor',
+          'auriculares': 'headphones',
+          'airpods': 'wireless headphones',
+          'webcam': 'webcam camera',
+          'tablet': 'tablet computer',
+          'ipad': 'tablet computer',
+          'impresora': 'printer',
+          'disco': 'hard drive',
+          'router': 'network router',
+          'micrófono': 'microphone',
+          'adaptador': 'adapter',
+          'silla': 'office chair',
+          'escritorio': 'desk',
+          'lámpara': 'desk lamp',
+          'estantería': 'bookshelf',
+          'sillón': 'armchair',
+          'mesa': 'table',
+          'soporte': 'monitor stand',
+          'reposapiés': 'footrest',
+          'sofá': 'sofa',
+          'cama': 'bed',
+          'armario': 'wardrobe',
+          'cómoda': 'dresser',
+          'camiseta': 't-shirt',
+          'jeans': 'jeans',
+          'pantalón': 'pants',
+          'chaqueta': 'jacket',
+          'zapatos': 'shoes',
+          'zapatillas': 'running shoes',
+          'vestido': 'dress',
+          'sudadera': 'hoodie',
+          'blusa': 'blouse',
+          'top': 'top clothing',
+          'falda': 'skirt',
+          'polo': 'polo shirt',
+          'blazer': 'blazer',
+          'abrigo': 'coat',
+          'pelota': 'soccer ball',
+          'balón': 'ball',
+        };
+        
+        // Si tenemos una traducción, usarla; si no, usar la palabra original
+        return keywordMap[firstWord] || firstWord;
+      };
+
+      // Función para generar una imagen placeholder basada en el producto
+      const generatePlaceholderImage = (productId: number, productName: string, index: number = 0): string => {
+        const keyword = getProductKeyword(productName);
+        
+        // Mapa de imágenes específicas de Unsplash basadas en el keyword
+        // Estas son URLs directas de Unsplash Images que son más confiables
+        const keywordImageMap: { [key: string]: string[] } = {
+          'laptop computer': [
+            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=400&fit=crop',
+          ],
+          'computer mouse': [
+            'https://images.unsplash.com/photo-1527814050087-3793815479db?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=500&h=400&fit=crop',
+          ],
+          'keyboard': [
+            'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=500&h=400&fit=crop',
+          ],
+          'computer monitor': [
+            'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&h=400&fit=crop',
+          ],
+          'headphones': [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500&h=400&fit=crop',
+          ],
+          'wireless headphones': [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500&h=400&fit=crop',
+          ],
+          'office chair': [
+            'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1549497538-303791108f95?w=500&h=400&fit=crop',
+          ],
+          'desk': [
+            'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=400&fit=crop',
+          ],
+          'running shoes': [
+            'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=400&fit=crop',
+          ],
+          't-shirt': [
+            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&h=400&fit=crop',
+          ],
+          'jeans': [
+            'https://images.unsplash.com/photo-1542272604-787c137553f3?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=500&h=400&fit=crop',
+          ],
+          'table': [
+            'https://images.unsplash.com/photo-1532372320572-cda25653a26d?w=500&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=400&fit=crop',
+          ],
+        };
+        
+        // Si tenemos imágenes específicas para este keyword, usarlas
+        if (keywordImageMap[keyword] && keywordImageMap[keyword].length > 0) {
+          const imageIndex = index % keywordImageMap[keyword].length;
+          return keywordImageMap[keyword][imageIndex];
+        }
+        
+        // Fallback: usar Picsum Photos con seed basado en el keyword y el ID
+        // Esto garantiza consistencia incluso cuando no tenemos una imagen específica
+        const keywordHash = keyword.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const seed = (productId * 1000 + keywordHash + index * 100) % 1000;
+        return `https://picsum.photos/seed/${seed}/500/400`;
+      };
+
+      // Log para depuración
+      console.log('[transformStockProduct] Product images raw:', product.imagenes);
+      
+      if (!product.imagenes) {
+        console.warn('[transformStockProduct] No images field in product:', product.id);
+        // Generar una imagen placeholder si no hay imágenes
+        return [{
+          url: generatePlaceholderImage(product.id, product.nombre || 'Producto', 0),
+          esPrincipal: true
+        }];
+      }
+      
+      if (!Array.isArray(product.imagenes)) {
+        console.warn('[transformStockProduct] Images is not an array:', product.id, typeof product.imagenes);
+        // Generar una imagen placeholder si no es un array
+        return [{
+          url: generatePlaceholderImage(product.id, product.nombre || 'Producto', 0),
+          esPrincipal: true
+        }];
+      }
+      
+      if (product.imagenes.length === 0) {
+        console.warn('[transformStockProduct] Images array is empty for product:', product.id);
+        // Generar una imagen placeholder si el array está vacío
+        return [{
+          url: generatePlaceholderImage(product.id, product.nombre || 'Producto', 0),
+          esPrincipal: true
+        }];
+      }
+      
+      // Transformar y validar imágenes
+      const transformedImages = product.imagenes
+        .map((img: any, index: number) => {
+          const originalUrl = img?.url || '';
+          
+          // Si la URL es de ejemplo o está vacía, generar placeholder
+          if (isExampleUrl(originalUrl)) {
+            console.warn(`[transformStockProduct] Replacing example URL with placeholder for product ${product.id}, image ${index}:`, originalUrl);
+            return {
+              url: generatePlaceholderImage(product.id, product.nombre || 'Producto', index),
+              esPrincipal: img.esPrincipal !== undefined ? img.esPrincipal : (img.es_principal !== undefined ? img.es_principal : index === 0),
+            };
+          }
+          
+          // URL válida, usar la original
+          return {
+            url: originalUrl,
+            esPrincipal: img.esPrincipal !== undefined ? img.esPrincipal : (img.es_principal !== undefined ? img.es_principal : index === 0),
+          };
+        })
+        .filter((img: any) => img && img.url); // Filtrar imágenes sin URL (por si acaso)
+      
+      console.log('[transformStockProduct] Transformed images:', transformedImages);
+      
+      // Si no hay imágenes válidas después de la transformación, generar placeholder
+      if (transformedImages.length === 0) {
+        console.warn('[transformStockProduct] No valid images after transformation for product:', product.id, '- generating placeholder');
+        return [{
+          url: generatePlaceholderImage(product.id, product.nombre || 'Producto', 0),
+          esPrincipal: true
+        }];
+      }
+      
+      return transformedImages;
+    })(),
+    categorias: product.categorias && Array.isArray(product.categorias)
+      ? product.categorias.map((cat: any) => ({
+          id: cat.id,
+          nombre: cat.nombre || '',
+          descripcion: cat.descripcion || undefined,
+        }))
+      : [],
+  };
+}
+
+/**
+ * Obtiene productos del backend de stock en Docker (para pruebas)
+ * Esta función replica el flujo del frontend de compras pero apunta al backend de stock
+ * 
+ * NOTA: El backend de stock solo soporta estos filtros:
+ * - page: número de página
+ * - limit: cantidad de productos por página
+ * - q: búsqueda de texto (en nombre y descripción)
+ * - categoriaId: filtro por categoría
+ * 
+ * Los filtros no soportados (marca, color, precioMin, precioMax, sortBy) se ignoran.
+ */
+export async function getProductsFromStockDocker(filter: Filter, token: string): Promise<PaginatedProducts> {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      q = '',
+      categoryId,
+      // Estos filtros NO están soportados por el backend de stock:
+      // marca, color, precioMin, precioMax, sortBy
+    } = filter;
+
+    // Construir parámetros de query (formato del backend de stock)
+    // El backend espera 'categoriaId' (no 'categoryId')
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    // Solo agregar 'q' si tiene valor
+    if (q && q.trim() !== '') {
+      params.append('q', q.trim());
+    }
+
+    // Solo agregar 'categoriaId' si tiene valor y no es 'all'
+    if (categoryId && categoryId !== 'all') {
+      // Convertir categoryId a número si es string
+      const categoriaIdNum = typeof categoryId === 'string' ? parseInt(categoryId, 10) : categoryId;
+      if (!isNaN(categoriaIdNum)) {
+        params.append('categoriaId', categoriaIdNum.toString());
+      }
+    }
+
+    console.log('[getProductsFromStockDocker] Fetching products with params:', params.toString());
+    console.log('[getProductsFromStockDocker] Filter received:', { page, limit, q, categoryId });
+    console.log('[getProductsFromStockDocker] Using token:', token.substring(0, 50) + '...');
+
+    // Llamar al backend de stock en Docker
+    // STOCK_DOCKER_API_URL ya incluye /api, así que solo usamos /productos
+    const response = await apiRequestStockDocker<{ 
+      data: any[], 
+      pagination: { 
+        page: number, 
+        limit: number, 
+        total: number, 
+        totalPages: number,
+        previous?: string | null,
+        next?: string | null
+      } 
+    }>(
+      `/productos?${params}`,
+      token
+    );
+
+    console.log('[getProductsFromStockDocker] Raw response:', response);
+    console.log('[getProductsFromStockDocker] Products count:', response.data?.length || 0);
+
+    // Transformar los productos del backend al formato esperado por el frontend
+    const transformedProducts = (response.data || []).map(transformStockProduct);
+
+    // Aplicar filtros adicionales en el frontend que el backend no soporta
+    // (marca, color, precioMin, precioMax, sortBy)
+    let filteredProducts = transformedProducts;
+
+    // Filtro por marca (si está presente y el backend no lo soporta)
+    if (filter.marca && filter.marca !== 'all') {
+      // Nota: El backend de stock no tiene campo 'marca', así que este filtro no funcionará
+      // a menos que agreguemos un campo 'marca' a los productos
+      console.warn('[getProductsFromStockDocker] Filtro por marca no soportado por el backend');
+    }
+
+    // Filtro por color (si está presente y el backend no lo soporta)
+    if (filter.color && filter.color !== 'all') {
+      // Nota: El backend de stock no tiene campo 'color', así que este filtro no funcionará
+      console.warn('[getProductsFromStockDocker] Filtro por color no soportado por el backend');
+    }
+
+    // Filtro por rango de precio (si está presente y el backend no lo soporta)
+    if (filter.precioMin !== undefined || filter.precioMax !== undefined) {
+      filteredProducts = filteredProducts.filter(product => {
+        if (filter.precioMin !== undefined && product.precio < filter.precioMin) {
+          return false;
+        }
+        if (filter.precioMax !== undefined && product.precio > filter.precioMax) {
+          return false;
+        }
+        return true;
+      });
+      console.log('[getProductsFromStockDocker] Aplicado filtro de precio en frontend. Productos después del filtro:', filteredProducts.length);
+    }
+
+    // Ordenamiento (si está presente y el backend no lo soporta)
+    if (filter.sortBy) {
+      filteredProducts.sort((a, b) => {
+        switch (filter.sortBy) {
+          case 'precio_asc':
+            return a.precio - b.precio;
+          case 'precio_desc':
+            return b.precio - a.precio;
+          case 'nombre_asc':
+            return a.nombre.localeCompare(b.nombre);
+          case 'nombre_desc':
+            return b.nombre.localeCompare(a.nombre);
+          default:
+            return 0; // El backend ordena por id por defecto
+        }
+      });
+      console.log('[getProductsFromStockDocker] Aplicado ordenamiento en frontend:', filter.sortBy);
+    }
+
+    // Adaptar la respuesta del backend de stock al formato esperado
+    return {
+      products: filteredProducts,
+      currentPage: response.pagination?.page || page,
+      totalPages: response.pagination?.totalPages || 1,
+    };
+  } catch (error: any) {
+    console.error('[getProductsFromStockDocker] Error:', error);
+    throw error;
+  }
+}
+
 export async function getProducts(filter: Filter): Promise<PaginatedProducts> {
   try {
     const {
@@ -572,6 +982,38 @@ export async function getProductById(id: number): Promise<Product | null> {
   }
 }
 
+/**
+ * Obtiene un producto por ID del backend de stock en Docker
+ * @param id ID del producto
+ * @param token Token JWT de autenticación
+ * @returns Producto transformado o null si no se encuentra
+ */
+export async function getProductByIdFromStock(id: number, token: string): Promise<Product | null> {
+  try {
+    console.log(`[getProductByIdFromStock] Fetching product ${id} from stock backend`);
+    
+    const response = await apiRequestStockDocker<any>(
+      `/productos/${id}`,
+      token
+    );
+
+    console.log('[getProductByIdFromStock] Raw response:', response);
+
+    // Transformar el producto del backend al formato esperado por el frontend
+    const transformedProduct = transformStockProduct(response);
+
+    console.log('[getProductByIdFromStock] Transformed product:', transformedProduct);
+
+    return transformedProduct;
+  } catch (error: any) {
+    console.error(`[getProductByIdFromStock] Error fetching product ${id}:`, error);
+    if (error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 // Obtener variante específica de un producto
 export function getProductVariant(productId: number, color: string, size: string, material: string): ProductVariant | null {
   const product = allMockProducts.find(p => p.id === productId);
@@ -677,7 +1119,29 @@ export async function cancelarReserva(idReserva: number, input: CancelacionReser
 
 export async function listarCategorias(): Promise<Categoria[]> {
   try {
-    return await apiRequest<Categoria[]>('/categorias');
+    // Las categorías no requieren autenticación, pero usamos el backend de stock en Docker
+    // a través del API Gateway. La URL correcta es: http://localhost:8000/stock/api/categorias
+    console.log('[listarCategorias] Fetching categories from Stock Docker backend');
+    
+    // Hacer la petición directamente al backend de stock en Docker (sin token, ya que no requiere auth)
+    const url = `${STOCK_DOCKER_API_URL}/categorias`;
+    console.log('[listarCategorias] Request URL:', url);
+    
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[listarCategorias] Error response:', response.status, response.statusText, errorText);
+      throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('[listarCategorias] Categories fetched successfully:', data);
+    return data;
   } catch (error) {
     console.error('Error listing categories:', error);
     // Fallback a categorías mockadas

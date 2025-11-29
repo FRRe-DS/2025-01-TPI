@@ -60,15 +60,25 @@ export default function ShopCartModal() {
     navigate('/shopcart');
   };
 
-  const handleIncreaseQuantity = (itemId: string, currentQuantity: number) => {
-    updateQuantity(itemId, currentQuantity + 1);
+  const handleIncreaseQuantity = async (itemId: string, currentQuantity: number) => {
+    try {
+      await updateQuantity(itemId, currentQuantity + 1);
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      alert('Error al actualizar la cantidad. Por favor, intenta nuevamente.');
+    }
   };
 
-  const handleDecreaseQuantity = (itemId: string, currentQuantity: number) => {
-    if (currentQuantity > 1) {
-      updateQuantity(itemId, currentQuantity - 1);
-    } else {
-      removeItem(itemId);
+  const handleDecreaseQuantity = async (itemId: string, currentQuantity: number) => {
+    try {
+      if (currentQuantity > 1) {
+        await updateQuantity(itemId, currentQuantity - 1);
+      } else {
+        await removeItem(itemId);
+      }
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      alert('Error al actualizar la cantidad. Por favor, intenta nuevamente.');
     }
   };
 

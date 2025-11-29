@@ -2,15 +2,17 @@ import { useParams, Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
-import { type Product, getProductById, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
+import { useAuth } from 'react-oidc-context';
+import { type Product, getProductById, getProductByIdFromStock, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
+import { getAccessToken } from '../services/auth/getAccessToken';
 import { useCart } from '../contexts/CartContext';
 import './product.css';
 
 export default function ProductPage() {
   const { id } = useParams();
+  const auth = useAuth();
   const { addItem, items, updateQuantity, removeItem, getTotalPrice, getTotalItems } = useCart();
   const { isDark } = useTheme();
-
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,8 +33,26 @@ export default function ProductPage() {
     const fetchProduct = async () => {
       try {
         const productId = parseInt(id || '0');
+        let foundProduct: Product | null = null;
 
-        const foundProduct = await getProductById(productId);
+        // Intentar obtener del backend de stock si el usuario está autenticado
+        if (auth.isAuthenticated && auth.user) {
+          const token = getAccessToken(auth.user);
+          if (token) {
+            try {
+              console.log(`[ProductPage] Fetching product ${productId} from stock backend`);
+              foundProduct = await getProductByIdFromStock(productId, token);
+              console.log('[ProductPage] Product loaded from stock:', foundProduct);
+            } catch (error) {
+              console.warn('[ProductPage] Error fetching from stock backend, falling back to regular API:', error);
+            }
+          }
+        }
+
+        // Fallback a la API regular si no se pudo obtener del stock
+        if (!foundProduct) {
+          foundProduct = await getProductById(productId);
+        }
 
         setProduct(foundProduct);
         if (foundProduct) {
@@ -52,7 +72,7 @@ export default function ProductPage() {
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, auth.isAuthenticated, auth.user]);
 
 
   // Detectar scroll para mostrar/ocultar el carrito flotante
@@ -161,20 +181,29 @@ export default function ProductPage() {
   const handleAddToCart = async () => {
     if (!product) return;
     
+    if (!auth.isAuthenticated) {
+      // Redirigir al login si no está autenticado
+      auth.signinRedirect();
+      return;
+    }
+    
     setIsAddingToCart(true);
     
-    // Simular proceso de agregar al carrito
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Agregar al carrito usando el contexto
-    addItem(product, quantity);
-    
-    setIsAddingToCart(false);
-    setCartAnimating(true);
-    setShowCartSidebar(true);
-    
-    // Reset animation state
-    setTimeout(() => setCartAnimating(false), 300);
+    try {
+      // Agregar al carrito usando el contexto (ahora usa el backend)
+      await addItem(product, quantity);
+      
+      setCartAnimating(true);
+      setShowCartSidebar(true);
+      
+      // Reset animation state
+      setTimeout(() => setCartAnimating(false), 300);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Error al agregar el producto al carrito. Por favor, intenta nuevamente.');
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const handleBuyNow = () => {
