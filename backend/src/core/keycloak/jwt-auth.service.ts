@@ -11,15 +11,12 @@ export class JwtAuthService {
   constructor() {
     // Usar KEYCLOAK_ISSUER como única variable, igual que STOCK
     // El issuer debe coincidir EXACTAMENTE con el del token (localhost:8080)
+    // El proxy redirigirá localhost:8080 a keycloak:8080
     this.issuer = process.env.KEYCLOAK_ISSUER || 'http://localhost:8080/realms/ds-2025-realm';
+    this.jwksUrl = `${this.issuer}/protocol/openid-connect/certs`;
     
-    // Para obtener el JWKS desde dentro del contenedor, necesitamos usar keycloak:8080
-    // Pero el issuer para validar debe ser localhost:8080 (como en el token)
-    const jwksBaseUrl = this.issuer.replace('localhost:8080', 'keycloak:8080');
-    this.jwksUrl = `${jwksBaseUrl}/protocol/openid-connect/certs`;
-    
-    this.logger.log(`JwtAuthService inicializado - Issuer (para validar): ${this.issuer}`);
-    this.logger.log(`JWKS URL (para obtener claves): ${this.jwksUrl}`);
+    this.logger.log(`JwtAuthService inicializado - Issuer: ${this.issuer}`);
+    this.logger.log(`JWKS URL: ${this.jwksUrl}`);
     
     // Verificar que la URL de JWKS sea accesible al inicializar
     this.verifyJwksAccessibility();
@@ -30,14 +27,11 @@ export class JwtAuthService {
    * Replica la lógica del backend de stock
    */
   private async getJWKS(): Promise<any> {
-    // Limpiar caché para forzar nueva obtención (debug)
-    // TODO: Remover esto después de debug
-    // if (this.jwksCache.has(this.jwksUrl)) {
-    //   return this.jwksCache.get(this.jwksUrl);
-    // }
+    if (this.jwksCache.has(this.jwksUrl)) {
+      return this.jwksCache.get(this.jwksUrl);
+    }
 
     try {
-      this.logger.debug(`Fetching JWKS from: ${this.jwksUrl}`);
       const response = await fetch(this.jwksUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
@@ -45,7 +39,6 @@ export class JwtAuthService {
       const jwks = await response.json();
       this.jwksCache.set(this.jwksUrl, jwks);
       this.logger.debug(`JWKS obtenido - ${jwks.keys?.length || 0} claves disponibles`);
-      this.logger.debug(`JWKS kids: ${jwks.keys?.map((k: any) => k.kid).join(', ')}`);
       return jwks;
     } catch (error: any) {
       this.logger.error('Error fetching JWKS:', error);
@@ -102,15 +95,12 @@ export class JwtAuthService {
         return { valid: false, error: 'Key not found in JWKS' };
       }
 
-      this.logger.debug(`Key found for kid: ${header.kid}, key use: ${key.use}, alg: ${key.alg}`);
-
       // Importar la clave JWK
       const publicKey = await importJWK(key);
 
       // Verificar el JWT - solo validamos el issuer (realm)
       // Replica EXACTAMENTE la lógica del backend de stock: usa el issuer del config directamente
       // SIN normalización - el issuer debe coincidir exactamente con el del token
-      this.logger.debug(`Validating token with issuer: ${this.issuer}`);
       const { payload } = await jwtVerify(token, publicKey, {
         issuer: this.issuer,
       });
