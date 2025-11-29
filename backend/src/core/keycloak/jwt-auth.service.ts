@@ -10,11 +10,16 @@ export class JwtAuthService {
 
   constructor() {
     // Usar KEYCLOAK_ISSUER como única variable, igual que STOCK
+    // El issuer debe coincidir EXACTAMENTE con el del token (localhost:8080)
     this.issuer = process.env.KEYCLOAK_ISSUER || 'http://localhost:8080/realms/ds-2025-realm';
-    this.jwksUrl = `${this.issuer}/protocol/openid-connect/certs`;
     
-    this.logger.log(`JwtAuthService inicializado - Issuer: ${this.issuer}`);
-    this.logger.log(`JWKS URL: ${this.jwksUrl}`);
+    // Para obtener el JWKS desde dentro del contenedor, necesitamos usar keycloak:8080
+    // Pero el issuer para validar debe ser localhost:8080 (como en el token)
+    const jwksBaseUrl = this.issuer.replace('localhost:8080', 'keycloak:8080');
+    this.jwksUrl = `${jwksBaseUrl}/protocol/openid-connect/certs`;
+    
+    this.logger.log(`JwtAuthService inicializado - Issuer (para validar): ${this.issuer}`);
+    this.logger.log(`JWKS URL (para obtener claves): ${this.jwksUrl}`);
     
     // Verificar que la URL de JWKS sea accesible al inicializar
     this.verifyJwksAccessibility();
@@ -97,12 +102,10 @@ export class JwtAuthService {
       const publicKey = await importJWK(key);
 
       // Verificar el JWT - solo validamos el issuer (realm)
-      // Replica exactamente la lógica del backend de stock: usa el issuer del config directamente
-      // Normalizamos el issuer del config para que coincida con el del token (localhost:8080)
-      const issuerToValidate = this.issuer.replace('keycloak:8080', 'localhost:8080');
-      
+      // Replica EXACTAMENTE la lógica del backend de stock: usa el issuer del config directamente
+      // SIN normalización - el issuer debe coincidir exactamente con el del token
       const { payload } = await jwtVerify(token, publicKey, {
-        issuer: issuerToValidate,
+        issuer: this.issuer,
       });
 
       this.logger.log(`Token validado exitosamente para usuario: ${payload.sub}`);
