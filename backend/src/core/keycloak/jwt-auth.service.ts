@@ -1,29 +1,46 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { jwtVerify, createRemoteJWKSet, JWTPayload } from 'jose';
-import axios from 'axios';
+import { jwtVerify, importJWK, JWTPayload } from 'jose';
 
 @Injectable()
 export class JwtAuthService {
   private readonly logger = new Logger(JwtAuthService.name);
   private readonly issuer: string;
   private jwksUrl: string;
-  private jwks: ReturnType<typeof createRemoteJWKSet>;
+  private jwksCache: Map<string, any> = new Map();
 
   constructor() {
     // Usar KEYCLOAK_ISSUER como única variable, igual que STOCK
     this.issuer = process.env.KEYCLOAK_ISSUER || 'http://localhost:8080/realms/ds-2025-realm';
     this.jwksUrl = `${this.issuer}/protocol/openid-connect/certs`;
     
+    this.logger.log(`JwtAuthService inicializado - Issuer: ${this.issuer}`);
+    this.logger.log(`JWKS URL: ${this.jwksUrl}`);
+    
+    // Verificar que la URL de JWKS sea accesible al inicializar
+    this.verifyJwksAccessibility();
+  }
+
+  /**
+   * Obtiene las claves públicas de Keycloak para validar JWTs
+   * Replica la lógica del backend de stock
+   */
+  private async getJWKS(): Promise<any> {
+    if (this.jwksCache.has(this.jwksUrl)) {
+      return this.jwksCache.get(this.jwksUrl);
+    }
+
     try {
-      this.jwks = createRemoteJWKSet(new URL(this.jwksUrl));
-      this.logger.log(`JwtAuthService inicializado - Issuer: ${this.issuer}`);
-      this.logger.log(`JWKS URL: ${this.jwksUrl}`);
-      
-      // Verificar que la URL de JWKS sea accesible al inicializar
-      this.verifyJwksAccessibility();
+      const response = await fetch(this.jwksUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+      }
+      const jwks = await response.json();
+      this.jwksCache.set(this.jwksUrl, jwks);
+      this.logger.debug(`JWKS obtenido - ${jwks.keys?.length || 0} claves disponibles`);
+      return jwks;
     } catch (error: any) {
-      this.logger.error(`Error inicializando JWKS: ${error.message}`);
-      throw error;
+      this.logger.error('Error fetching JWKS:', error);
+      throw new Error('Failed to fetch Keycloak public keys');
     }
   }
 
@@ -43,7 +60,7 @@ export class JwtAuthService {
 
   /**
    * Valida un token JWT usando JWKS de Keycloak
-   * Compatible con el flujo de STOCK
+   * Replica la lógica del backend de stock
    */
   async validateToken(token: string): Promise<{
     valid: boolean;
@@ -51,106 +68,73 @@ export class JwtAuthService {
     error?: string;
   }> {
     try {
-      // Decodificar el header para obtener el kid (Key ID)
+      // Obtener JWKS
+      const jwks = await this.getJWKS();
+      
+      // Decodificar el header del JWT para obtener el kid
       const tokenParts = token.split('.');
       if (tokenParts.length !== 3) {
         return { valid: false, error: 'Token inválido: formato incorrecto' };
       }
 
-      // Decodificar el payload para obtener información de debug
-      let payloadIss: string | undefined;
+      const [headerB64] = tokenParts;
+      let header: any;
+      try {
+        header = JSON.parse(Buffer.from(headerB64, 'base64url').toString());
+      } catch (e) {
+        return { valid: false, error: 'Token inválido: header no válido' };
+      }
+
+      // Encontrar la clave correspondiente
+      const key = jwks.keys.find((k: any) => k.kid === header.kid);
+      if (!key) {
+        this.logger.warn(`Key not found in JWKS for kid: ${header.kid}`);
+        this.logger.debug(`Available kids: ${jwks.keys?.map((k: any) => k.kid).join(', ') || 'N/A'}`);
+        return { valid: false, error: 'Key not found in JWKS' };
+      }
+
+      // Importar la clave JWK
+      const publicKey = await importJWK(key);
+
+      // Verificar el JWT - solo validamos el issuer (realm)
+      // El issuer del token es http://localhost:8080/realms/ds-2025-realm
+      // pero nuestro issuer configurado puede ser http://keycloak:8080/realms/ds-2025-realm
+      // Normalizamos para aceptar ambos (como hace el backend de stock internamente)
+      // Primero obtenemos el issuer del token para validarlo
+      let tokenPayloadIss: string | undefined;
       try {
         const payloadB64 = tokenParts[1];
         const decodedPayload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
-        payloadIss = decodedPayload.iss;
+        tokenPayloadIss = decodedPayload.iss;
       } catch (e) {
-        // Si no se puede decodificar el payload, continuar con la validación
+        // Si no se puede decodificar, continuar
       }
 
-      // Verificar el token con JWKS
-      this.logger.debug(`Intentando validar token con JWKS desde: ${this.jwksUrl}`);
-      this.logger.debug(`Token kid del header: ${JSON.parse(Buffer.from(tokenParts[0], 'base64url').toString()).kid || 'N/A'}`);
-      
-      // Normalizar issuer: aceptar tanto localhost como keycloak (nombre del servicio)
+      // Usar el issuer del token para validar (como hace stock)
+      // Si el token tiene localhost pero nuestro issuer es keycloak, normalizamos
+      const issuerToValidate = tokenPayloadIss || this.issuer;
       const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
       
-      const { payload } = await jwtVerify(token, this.jwks, {
+      const { payload } = await jwtVerify(token, publicKey, {
         issuer: normalizedIssuer,
       });
 
       this.logger.log(`Token validado exitosamente para usuario: ${payload.sub}`);
       return { valid: true, payload };
     } catch (error: any) {
-      // Logs detallados para debug
-      let payloadIss: string | undefined;
-      let tokenParts: string[] = [];
-      try {
-        tokenParts = token.split('.');
-        if (tokenParts.length === 3) {
-          const decodedPayload = JSON.parse(
-            Buffer.from(tokenParts[1], 'base64url').toString()
-          );
-          payloadIss = decodedPayload.iss;
-        }
-      } catch (e) {
-        // Ignorar error de decodificación
-      }
-
+      this.logger.error('Token validation error:', error);
+      
       if (error.code === 'ERR_JWT_EXPIRED') {
-        this.logger.warn('Token expirado');
         return { valid: false, error: 'Token expirado' };
       }
-      // Manejar errores de firma
-      if (error.code === 'ERR_JWT_INVALID' || error.message?.includes('signature') || error.message?.includes('verification failed')) {
-        this.logger.warn(`Token inválido - Signature verification failed`);
-        this.logger.error(`Error completo: ${error.message}`);
-        this.logger.error(`Error code: ${error.code || 'N/A'}`);
-        const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
-        this.logger.debug(`Issuer del token: ${payloadIss || 'N/A'}`);
-        this.logger.debug(`Issuer esperado: ${normalizedIssuer}`);
-        this.logger.debug(`JWKS URL: ${this.jwksUrl}`);
-        
-        // Intentar verificar si podemos alcanzar la URL de JWKS
-        try {
-          this.logger.debug(`Verificando accesibilidad de JWKS URL...`);
-          const testResponse = await fetch(this.jwksUrl);
-          this.logger.debug(`JWKS endpoint accesible: ${testResponse.ok}, Status: ${testResponse.status}`);
-          if (testResponse.ok) {
-            const jwksData = await testResponse.json();
-            this.logger.debug(`JWKS keys disponibles: ${jwksData.keys?.length || 0}`);
-            if (tokenParts.length >= 1) {
-              const tokenKid = JSON.parse(Buffer.from(tokenParts[0], 'base64url').toString()).kid;
-              this.logger.debug(`Token KID: ${tokenKid}`);
-              const matchingKey = jwksData.keys?.find((k: any) => k.kid === tokenKid);
-              this.logger.debug(`Key con kid '${tokenKid}' encontrada en JWKS: ${!!matchingKey}`);
-              if (!matchingKey) {
-                this.logger.warn(`KIDs disponibles en JWKS: ${jwksData.keys?.map((k: any) => k.kid).join(', ') || 'N/A'}`);
-              }
-            }
-          } else {
-            this.logger.error(`JWKS endpoint retornó error: ${testResponse.status} ${testResponse.statusText}`);
-          }
-        } catch (fetchError: any) {
-          this.logger.error(`No se puede alcanzar JWKS URL: ${fetchError.message}`);
-          this.logger.error(`Stack del fetch error: ${fetchError.stack}`);
-        }
-        
-        return { valid: false, error: `Token inválido - Signature verification failed: ${error.message}` };
-      }
-      if (error.code === 'ERR_JWT_CLAIM_VALIDATION_FAILED') {
-        const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
-        this.logger.warn(`Token no válido para este realm - Issuer mismatch`);
-        this.logger.debug(`Issuer del token: ${payloadIss || 'N/A'}`);
-        this.logger.debug(`Issuer esperado: ${normalizedIssuer}`);
-        this.logger.debug(`JWKS URL: ${this.jwksUrl}`);
-        return { valid: false, error: `Token no válido para este realm. Issuer del token: ${payloadIss}, Issuer esperado: ${normalizedIssuer}` };
+      
+      if (error.message === 'Key not found in JWKS') {
+        return { valid: false, error: 'Key not found in JWKS' };
       }
       
-      const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
-      this.logger.error(`Error validando token: ${error.message}`);
-      this.logger.debug(`Issuer del token: ${payloadIss || 'N/A'}`);
-      this.logger.debug(`Issuer esperado: ${normalizedIssuer}`);
-      this.logger.debug(`JWKS URL: ${this.jwksUrl}`);
+      if (error.code === 'ERR_JWT_CLAIM_VALIDATION_FAILED') {
+        return { valid: false, error: `Token no válido para este realm: ${error.message}` };
+      }
       
       return { valid: false, error: error.message || 'Error validando token' };
     }
