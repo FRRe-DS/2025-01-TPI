@@ -71,8 +71,11 @@ export class JwtAuthService {
       this.logger.debug(`Intentando validar token con JWKS desde: ${this.jwksUrl}`);
       this.logger.debug(`Token kid del header: ${JSON.parse(Buffer.from(tokenParts[0], 'base64url').toString()).kid || 'N/A'}`);
       
+      // Normalizar issuer: aceptar tanto localhost como keycloak (nombre del servicio)
+      const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
+      
       const { payload } = await jwtVerify(token, this.jwks, {
-        issuer: this.issuer,
+        issuer: normalizedIssuer,
       });
 
       this.logger.log(`Token validado exitosamente para usuario: ${payload.sub}`);
@@ -102,8 +105,9 @@ export class JwtAuthService {
         this.logger.warn(`Token inválido - Signature verification failed`);
         this.logger.error(`Error completo: ${error.message}`);
         this.logger.error(`Error code: ${error.code || 'N/A'}`);
+        const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
         this.logger.debug(`Issuer del token: ${payloadIss || 'N/A'}`);
-        this.logger.debug(`Issuer esperado: ${this.issuer}`);
+        this.logger.debug(`Issuer esperado: ${normalizedIssuer}`);
         this.logger.debug(`JWKS URL: ${this.jwksUrl}`);
         
         // Intentar verificar si podemos alcanzar la URL de JWKS
@@ -134,16 +138,18 @@ export class JwtAuthService {
         return { valid: false, error: `Token inválido - Signature verification failed: ${error.message}` };
       }
       if (error.code === 'ERR_JWT_CLAIM_VALIDATION_FAILED') {
+        const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
         this.logger.warn(`Token no válido para este realm - Issuer mismatch`);
         this.logger.debug(`Issuer del token: ${payloadIss || 'N/A'}`);
-        this.logger.debug(`Issuer esperado: ${this.issuer}`);
+        this.logger.debug(`Issuer esperado: ${normalizedIssuer}`);
         this.logger.debug(`JWKS URL: ${this.jwksUrl}`);
-        return { valid: false, error: `Token no válido para este realm. Issuer del token: ${payloadIss}, Issuer esperado: ${this.issuer}` };
+        return { valid: false, error: `Token no válido para este realm. Issuer del token: ${payloadIss}, Issuer esperado: ${normalizedIssuer}` };
       }
       
+      const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
       this.logger.error(`Error validando token: ${error.message}`);
       this.logger.debug(`Issuer del token: ${payloadIss || 'N/A'}`);
-      this.logger.debug(`Issuer esperado: ${this.issuer}`);
+      this.logger.debug(`Issuer esperado: ${normalizedIssuer}`);
       this.logger.debug(`JWKS URL: ${this.jwksUrl}`);
       
       return { valid: false, error: error.message || 'Error validando token' };

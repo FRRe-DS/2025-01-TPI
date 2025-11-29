@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import { getUserProfile, updateUserProfile, type UpdateProfileData } from "../../services/user.service";
+import { getAccessToken } from "../../services/auth/getAccessToken";
 import "./Header.css";
 
 interface ProfileModalProps {
@@ -37,7 +38,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     setSuccess(null);
     
     try {
-      const token = auth.user?.access_token;
+      const token = getAccessToken(auth.user);
       if (!token) {
         throw new Error('No hay token de acceso disponible');
       }
@@ -79,7 +80,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     setSuccess(null);
 
     try {
-      const token = auth.user?.access_token;
+      const token = getAccessToken(auth.user);
       if (!token) {
         throw new Error('No hay token de acceso disponible');
       }

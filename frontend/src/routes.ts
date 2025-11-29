@@ -7,5 +7,9 @@ export default [
   route("/profile", "./routes/profile.route.tsx"),
   route("/cart", "./routes/cart.route.tsx"),
   route("/shopcart", "./routes/cart.route.tsx", { id: "shopcart" }),
-  route("/product/:id", "./routes/product.route.tsx")
+  route("/product/:id", "./routes/product.route.tsx"),
+  // Ruta específica para Chrome DevTools (retorna null silenciosamente)
+  route("/.well-known/*", "./routes/well-known.route.tsx"),
+  // Ruta catch-all para manejar otras rutas no encontradas
+  route("*", "./routes/404.route.tsx")
 ] satisfies RouteConfig;

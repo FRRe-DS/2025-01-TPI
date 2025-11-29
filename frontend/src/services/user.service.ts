@@ -1,5 +1,9 @@
 // Servicio para gestionar datos de usuario con Keycloak
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8081';
+// Usa el API Gateway que routea las peticiones
+import { getAccessToken } from './auth/getAccessToken';
+
+const GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8000';
+const API_URL = `${GATEWAY_URL}/compras`;
 
 export interface UserProfile {
   success: boolean;

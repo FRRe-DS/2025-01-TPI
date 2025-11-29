@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { withAuthenticationRequired, useAuth } from "react-oidc-context";
+import { getAccessToken } from "../services/auth/getAccessToken";
 
 function ProfileRoute() {
   const auth = useAuth();
@@ -15,8 +16,9 @@ function ProfileRoute() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.access_token) {
-      loadBackendProfile(user.access_token);
+    const token = getAccessToken(user);
+    if (token) {
+      loadBackendProfile(token);
     }
   }, [user]);
 
