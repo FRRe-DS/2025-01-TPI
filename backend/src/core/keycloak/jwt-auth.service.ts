@@ -9,14 +9,17 @@ export class JwtAuthService {
   private jwksCache: Map<string, any> = new Map();
 
   constructor() {
-    // Usar KEYCLOAK_ISSUER como única variable, igual que STOCK
-    // El issuer debe coincidir EXACTAMENTE con el del token (localhost:8080)
-    // El proxy redirigirá localhost:8080 a keycloak:8080
+    // Usar KEYCLOAK_ISSUER como única variable
+    // Para obtener JWKS desde el contenedor, usar keycloak:8080
+    // Para validar issuer, normalizar a localhost:8080 para que coincida con el token
     this.issuer = process.env.KEYCLOAK_ISSUER || 'http://localhost:8080/realms/ds-2025-realm';
-    this.jwksUrl = `${this.issuer}/protocol/openid-connect/certs`;
     
-    this.logger.log(`JwtAuthService inicializado - Issuer: ${this.issuer}`);
-    this.logger.log(`JWKS URL: ${this.jwksUrl}`);
+    // Obtener JWKS de keycloak:8080 (funciona desde el contenedor)
+    const jwksBaseUrl = this.issuer.replace('localhost:8080', 'keycloak:8080');
+    this.jwksUrl = `${jwksBaseUrl}/protocol/openid-connect/certs`;
+    
+    this.logger.log(`JwtAuthService inicializado - Issuer (para validar): ${this.issuer}`);
+    this.logger.log(`JWKS URL (para obtener claves): ${this.jwksUrl}`);
     
     // Verificar que la URL de JWKS sea accesible al inicializar
     this.verifyJwksAccessibility();
@@ -99,10 +102,10 @@ export class JwtAuthService {
       const publicKey = await importJWK(key);
 
       // Verificar el JWT - solo validamos el issuer (realm)
-      // Replica EXACTAMENTE la lógica del backend de stock: usa el issuer del config directamente
-      // SIN normalización - el issuer debe coincidir exactamente con el del token
+      // Normalizar el issuer para que coincida con el del token (localhost:8080)
+      const issuerToValidate = this.issuer.replace('keycloak:8080', 'localhost:8080');
       const { payload } = await jwtVerify(token, publicKey, {
-        issuer: this.issuer,
+        issuer: issuerToValidate,
       });
 
       this.logger.log(`Token validado exitosamente para usuario: ${payload.sub}`);
