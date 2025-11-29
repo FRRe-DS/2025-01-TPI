@@ -98,8 +98,7 @@ export class JwtAuthService {
 
       // Verificar el JWT - solo validamos el issuer (realm)
       // Replica exactamente la lógica del backend de stock: usa el issuer del config directamente
-      // El backend de stock usa this.config.issuer directamente, pero como nuestro config
-      // puede tener keycloak:8080 y el token tiene localhost:8080, normalizamos para validar
+      // Normalizamos el issuer del config para que coincida con el del token (localhost:8080)
       const issuerToValidate = this.issuer.replace('keycloak:8080', 'localhost:8080');
       
       const { payload } = await jwtVerify(token, publicKey, {
