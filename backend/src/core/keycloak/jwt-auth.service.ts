@@ -97,26 +97,13 @@ export class JwtAuthService {
       const publicKey = await importJWK(key);
 
       // Verificar el JWT - solo validamos el issuer (realm)
-      // El issuer del token es http://localhost:8080/realms/ds-2025-realm
-      // pero nuestro issuer configurado puede ser http://keycloak:8080/realms/ds-2025-realm
-      // Normalizamos para aceptar ambos (como hace el backend de stock internamente)
-      // Primero obtenemos el issuer del token para validarlo
-      let tokenPayloadIss: string | undefined;
-      try {
-        const payloadB64 = tokenParts[1];
-        const decodedPayload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
-        tokenPayloadIss = decodedPayload.iss;
-      } catch (e) {
-        // Si no se puede decodificar, continuar
-      }
-
-      // Usar el issuer del token para validar (como hace stock)
-      // Si el token tiene localhost pero nuestro issuer es keycloak, normalizamos
-      const issuerToValidate = tokenPayloadIss || this.issuer;
-      const normalizedIssuer = this.issuer.replace('keycloak:8080', 'localhost:8080');
+      // Replica exactamente la lógica del backend de stock: usa el issuer del config directamente
+      // El backend de stock usa this.config.issuer directamente, pero como nuestro config
+      // puede tener keycloak:8080 y el token tiene localhost:8080, normalizamos para validar
+      const issuerToValidate = this.issuer.replace('keycloak:8080', 'localhost:8080');
       
       const { payload } = await jwtVerify(token, publicKey, {
-        issuer: normalizedIssuer,
+        issuer: issuerToValidate,
       });
 
       this.logger.log(`Token validado exitosamente para usuario: ${payload.sub}`);
