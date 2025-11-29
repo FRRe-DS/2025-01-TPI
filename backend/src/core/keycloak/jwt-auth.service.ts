@@ -30,11 +30,14 @@ export class JwtAuthService {
    * Replica la lógica del backend de stock
    */
   private async getJWKS(): Promise<any> {
-    if (this.jwksCache.has(this.jwksUrl)) {
-      return this.jwksCache.get(this.jwksUrl);
-    }
+    // Limpiar caché para forzar nueva obtención (debug)
+    // TODO: Remover esto después de debug
+    // if (this.jwksCache.has(this.jwksUrl)) {
+    //   return this.jwksCache.get(this.jwksUrl);
+    // }
 
     try {
+      this.logger.debug(`Fetching JWKS from: ${this.jwksUrl}`);
       const response = await fetch(this.jwksUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
@@ -42,6 +45,7 @@ export class JwtAuthService {
       const jwks = await response.json();
       this.jwksCache.set(this.jwksUrl, jwks);
       this.logger.debug(`JWKS obtenido - ${jwks.keys?.length || 0} claves disponibles`);
+      this.logger.debug(`JWKS kids: ${jwks.keys?.map((k: any) => k.kid).join(', ')}`);
       return jwks;
     } catch (error: any) {
       this.logger.error('Error fetching JWKS:', error);
@@ -98,12 +102,15 @@ export class JwtAuthService {
         return { valid: false, error: 'Key not found in JWKS' };
       }
 
+      this.logger.debug(`Key found for kid: ${header.kid}, key use: ${key.use}, alg: ${key.alg}`);
+
       // Importar la clave JWK
       const publicKey = await importJWK(key);
 
       // Verificar el JWT - solo validamos el issuer (realm)
       // Replica EXACTAMENTE la lógica del backend de stock: usa el issuer del config directamente
       // SIN normalización - el issuer debe coincidir exactamente con el del token
+      this.logger.debug(`Validating token with issuer: ${this.issuer}`);
       const { payload } = await jwtVerify(token, publicKey, {
         issuer: this.issuer,
       });
