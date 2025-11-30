@@ -89,8 +89,8 @@ export class OrdersController {
   @ApiParam({
     name: 'id',
     description: 'ID de la orden (orderId)',
-    type: Number,
-    example: 1704067200000
+    type: String,
+    example: '1704067200000'
   })
   @ApiResponse({ 
     status: 200, 
@@ -111,7 +111,7 @@ export class OrdersController {
   })
   async getOrderById(
     @Request() req,
-    @Param('id', ParseIntPipe) orderId: number
+    @Param('id') orderId: string
   ): Promise<OrderResponseDto> {
     const userId = req.user.userId;
     

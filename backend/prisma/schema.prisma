@@ -74,7 +74,7 @@ model CartItem {
 model Order {
   id            Int      @id @default(autoincrement())
   userId        String   // UUID de Keycloak
-  orderId       Int      @unique // ID único de la orden (puede ser timestamp o secuencial)
+  orderId       BigInt   @unique // ID único de la orden (timestamp en milisegundos)
   shippingId    Int?     // ID del envío del backend de logística
   status        String   @default("pending") // pending, confirmed, shipped, delivered, cancelled
   transportType String?  // Tipo de transporte: air, sea, road, rail

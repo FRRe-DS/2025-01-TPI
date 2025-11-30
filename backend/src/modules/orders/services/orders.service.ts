@@ -94,14 +94,15 @@ export class OrdersService {
   /**
    * Obtiene una orden por ID
    * @param userId UUID del usuario de Keycloak
-   * @param orderId ID de la orden
+   * @param orderId ID de la orden (como string, se convierte a BigInt)
    * @returns Orden encontrada
    */
-  async getOrderById(userId: string, orderId: number): Promise<OrderResponseDto> {
+  async getOrderById(userId: string, orderId: string): Promise<OrderResponseDto> {
     try {
+      const orderIdBigInt = BigInt(orderId);
       const order = await prisma.order.findFirst({
         where: {
-          orderId,
+          orderId: orderIdBigInt,
           userId // Asegurar que la orden pertenece al usuario
         }
       });
@@ -148,7 +149,7 @@ export class OrdersService {
   private mapToOrderResponseDto(order: any): OrderResponseDto {
     return {
       id: order.id,
-      orderId: order.orderId,
+      orderId: order.orderId.toString(), // Convertir BigInt a string para JSON
       shippingId: order.shippingId || undefined,
       status: order.status,
       transportType: order.transportType || undefined,

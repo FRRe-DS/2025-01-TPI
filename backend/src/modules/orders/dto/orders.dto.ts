@@ -164,9 +164,9 @@ export class OrderResponseDto {
   @ApiProperty({
     description: 'ID único de la orden (usado para referencia)',
     example: 1704067200000,
-    type: Number
+    type: String // BigInt se serializa como string en JSON
   })
-  orderId: number;
+  orderId: string;
 
   @ApiProperty({
     description: 'ID del envío del backend de logística',
