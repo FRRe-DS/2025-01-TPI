@@ -68,3 +68,24 @@ model CartItem {
   @@unique([userId, productId])
   @@index([userId])
 }
+
+// Modelo de órdenes de compra
+// userId es el UUID de Keycloak (string)
+model Order {
+  id            Int      @id @default(autoincrement())
+  userId        String   // UUID de Keycloak
+  orderId       Int      @unique // ID único de la orden (puede ser timestamp o secuencial)
+  shippingId    Int?     // ID del envío del backend de logística
+  status        String   @default("pending") // pending, confirmed, shipped, delivered, cancelled
+  transportType String?  // Tipo de transporte: air, sea, road, rail
+  shippingCost  Decimal? @db.Decimal(10, 2) // Costo de envío
+  deliveryAddress Json   // Dirección de entrega: { street, city, state, postal_code, country }
+  products      Json     // Productos: [{ id, quantity, price }]
+  totalAmount   Decimal  @db.Decimal(10, 2) // Total de la orden (productos + envío)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([createdAt])
+}

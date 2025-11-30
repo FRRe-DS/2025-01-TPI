@@ -104,5 +104,20 @@ export class CartService {
       throw new InternalServerErrorException('Error al actualizar el carrito');
     }
   }
+
+  /**
+   * Limpia el carrito del usuario (elimina todos los items)
+   * @param userId UUID del usuario de Keycloak
+   */
+  async clearCart(userId: string): Promise<void> {
+    try {
+      await prisma.cartItem.deleteMany({
+        where: { userId }
+      });
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      throw new InternalServerErrorException('Error al limpiar el carrito');
+    }
+  }
 }
 
