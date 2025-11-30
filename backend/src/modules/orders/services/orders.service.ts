@@ -43,6 +43,21 @@ export class OrdersService {
       // Usar transacción para crear la orden y limpiar el carrito
       const order = await prisma.$transaction(async (tx) => {
         // Crear la orden
+        // Convertir a objetos planos para Prisma JSON fields
+        const deliveryAddressPlain = {
+          street: createOrderDto.deliveryAddress.street,
+          city: createOrderDto.deliveryAddress.city,
+          state: createOrderDto.deliveryAddress.state,
+          postal_code: createOrderDto.deliveryAddress.postal_code,
+          country: createOrderDto.deliveryAddress.country
+        };
+        
+        const productsPlain = createOrderDto.products.map(p => ({
+          id: p.id,
+          quantity: p.quantity,
+          price: p.price
+        }));
+        
         const newOrder = await tx.order.create({
           data: {
             userId,
@@ -51,12 +66,8 @@ export class OrdersService {
             status: 'pending',
             transportType: createOrderDto.transportType || null,
             shippingCost: createOrderDto.shippingCost ? createOrderDto.shippingCost : null,
-            deliveryAddress: createOrderDto.deliveryAddress,
-            products: createOrderDto.products.map(p => ({
-              id: p.id,
-              quantity: p.quantity,
-              price: p.price
-            })),
+            deliveryAddress: deliveryAddressPlain as any,
+            products: productsPlain as any,
             totalAmount
           }
         });
