@@ -232,7 +232,7 @@ export default function Header() {
                                 }}
                                 type="button"
                             >
-                                Iniciar Sesión
+                                Iniciar sesión
                             </button>
                         ) : (
                             <>

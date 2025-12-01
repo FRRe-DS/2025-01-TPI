@@ -10,7 +10,7 @@ export default function ShopCartModal() {
   const [showCart, setShowCart] = useState(false);
 
 
-  const { items, updateQuantity, removeItem, getTotalItems, getTotalPrice, isAnimating } = useCart();
+  const { items, updateQuantity, removeItem, getTotalItems, getTotalPrice } = useCart();
   const totalItems = getTotalItems(); // Cantidad total de items (suma de todas las cantidades)
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -108,36 +108,6 @@ export default function ShopCartModal() {
         }}
         whileTap={{ scale: 0.95 }}
       >
-        {/* Animación de gradiente dinámico como Shipper */}
-        {isAnimating && (
-          <motion.div
-            key={`gradient-${Date.now()}`} // Key única para forzar re-render
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(90deg, transparent 0%, rgba(37, 99, 235, 0.3) 25%, rgba(59, 130, 246, 0.5) 50%, rgba(37, 99, 235, 0.3) 75%, transparent 100%)',
-              backgroundSize: '200% 100%',
-              borderRadius: '50%',
-              zIndex: 0
-            }}
-            initial={{
-              backgroundPosition: '-100% 0%'
-            }}
-            animate={{
-              backgroundPosition: ['-100% 0%', '100% 0%']
-            }}
-            transition={{
-              duration: 1.5,
-              ease: "easeInOut",
-              repeat: 1,
-              repeatType: "reverse"
-            }}
-          />
-        )}
-
         {/* Icono del carrito */}
         <svg
           className="transition-colors duration-300"
@@ -370,17 +340,25 @@ export default function ShopCartModal() {
                     onClick={handleViewCart}
                     style={{
                       width: '100%',
-                      padding: '0.75rem',
+                      padding: '0.75rem 1rem',
                       background: '#2563eb',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '4px',
+                      borderRadius: '0.5rem',
                       cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '0.9rem'
+                      fontSize: '0.95rem',
+                      fontWeight: '500',
+                      transition: 'all 0.3s ease',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#1d4ed8';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#2563eb';
                     }}
                   >
-                    Ver Carrito
+                    Ver carrito
                   </button>
                 </div>
               </div>

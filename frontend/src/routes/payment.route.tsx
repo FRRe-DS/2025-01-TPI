@@ -212,7 +212,7 @@ function PaymentRoute() {
                     <div className={`font-semibold ${
                       isDark ? 'text-white' : 'text-gray-800'
                     }`}>
-                      Transferencia Bancaria
+                      Transferencia bancaria
                     </div>
                     <div className={`text-sm ${
                       isDark ? 'text-gray-300' : 'text-gray-600'
@@ -364,7 +364,7 @@ function PaymentRoute() {
                   disabled={isProcessing || (paymentMethod === 'card' && (!cardData.number || !cardData.name || !cardData.expiry || !cardData.cvv))}
                   className="w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isProcessing ? 'Procesando...' : 'Confirmar Pago'}
+                  {isProcessing ? 'Procesando...' : 'Confirmar pago'}
                 </button>
                 <button
                   onClick={handleBack}

@@ -11,7 +11,7 @@ interface Step {
 }
 
 const steps: Step[] = [
-  { id: 'cart', label: 'Revisar Carrito', path: '/shopcart' },
+  { id: 'cart', label: 'Revisar carrito', path: '/shopcart' },
   { id: 'shipping', label: 'Forma de Envío', path: '/shopcart/shipping' },
   { id: 'payment', label: 'Pago', path: '/shopcart/payment' },
   { id: 'confirmation', label: 'Confirmación', path: '/shopcart/confirmation' },

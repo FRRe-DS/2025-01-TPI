@@ -18,8 +18,6 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [showImageModal, setShowImageModal] = useState(false);
-  const [showFloatingCart, setShowFloatingCart] = useState(false);
-  const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [currentStock, setCurrentStock] = useState(0);
@@ -71,51 +69,6 @@ export default function ProductPage() {
 
     fetchProduct();
   }, [id, auth.isAuthenticated, auth.user]);
-
-
-  // Detectar scroll para mostrar/ocultar el carrito flotante
-  useEffect(() => {
-    let ticking = false;
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollPosition = window.scrollY;
-          const windowHeight = window.innerHeight;
-          const documentHeight = document.documentElement.scrollHeight;
-          
-          // Mostrar cuando el usuario haya scrolleado más del 40% de la página
-          // Esto significa que ya pasó la imagen, detalles, descripción y características
-          const threshold = documentHeight * 0.4;
-          const shouldShow = scrollPosition > threshold;
-          
-          if (shouldShow && !showFloatingCart) {
-            setIsCartAnimating(true);
-            setShowFloatingCart(true);
-            // Resetear el estado de animación después de que termine
-            setTimeout(() => setIsCartAnimating(false), 600);
-          } else if (!shouldShow && showFloatingCart) {
-            setIsCartAnimating(true);
-            // Esperar a que termine la animación de salida antes de ocultar
-            setTimeout(() => {
-              setShowFloatingCart(false);
-              setIsCartAnimating(false);
-            }, 400);
-          }
-          
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [showFloatingCart]);
 
   // Auto-cambio de imágenes cada 5 segundos
   useEffect(() => {
@@ -202,10 +155,6 @@ export default function ProductPage() {
     } finally {
       setIsAddingToCart(false);
     }
-  };
-
-  const handleBuyNow = () => {
-    // Aquí se implementará la lógica para comprar ahora
   };
 
   // Navegación de productos relacionados
@@ -376,17 +325,6 @@ export default function ProductPage() {
                     </>
                   )}
                 </button>
-
-                <button
-                  onClick={handleBuyNow}
-                  disabled={showCartSidebar}
-                  className="w-full bg-white dark:bg-gray-800 border-2 border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 hover:bg-green-600 dark:hover:bg-green-500 hover:text-white dark:hover:text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-green-500/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-3 text-lg"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Comprar ahora
-                </button>
               </div>
             </div>
 
@@ -416,51 +354,148 @@ export default function ProductPage() {
         </div>
 
         {/* Información detallada del producto - Flujo vertical completo */}
-        <div className="mt-16">
-          <section className="rounded-3xl p-12 border border-gray-100/60 dark:border-gray-600/60 shadow-sm dark:shadow-gray-900/50 bg-gray-50/30 dark:bg-white/3">
-            <div className="max-w-4xl space-y-12">
-              {/* Descripción principal */}
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8 tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>Descripción del producto</h2>
-                <div className="prose prose-lg prose-gray dark:prose-invert max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg" style={{ color: isDark ? '#ffffff' : undefined }}>
+        <div className="mt-12">
+          <section className={`relative rounded-2xl p-5 md:p-6 border transition-all duration-300 ${
+            isDark 
+              ? 'border-gray-600/60 bg-white/5' 
+              : 'border-gray-100/60 bg-gray-50/50'
+          }`}>
+            
+            <div className="relative max-w-4xl mx-auto space-y-6">
+              {/* Descripción principal - Mejorada */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-1 h-6 rounded-full ${
+                    isDark ? 'bg-gradient-to-b from-blue-500 to-purple-500' : 'bg-gradient-to-b from-blue-600 to-indigo-600'
+                  }`}></div>
+                  <h2 className={`text-lg md:text-xl font-bold tracking-tight ${
+                    isDark ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    Descripción del producto
+                  </h2>
+                </div>
+                <div className={`relative pl-4 border-l-2 ${
+                  isDark ? 'border-slate-700' : 'border-gray-200'
+                }`}>
+                  <p className={`text-sm md:text-base leading-relaxed ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     {product.descripcion}
                   </p>
                 </div>
               </div>
 
-              {/* Especificaciones técnicas - Integradas */}
+              {/* Especificaciones técnicas - Mejoradas */}
               {product.dimensiones && (
-                <div className="pt-8 border-t border-gray-200/40 dark:border-gray-600/40">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>Especificaciones técnicas</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <span className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider" style={{ color: isDark ? '#ffffff' : undefined }}>Dimensiones</span>
-                      <p className="text-gray-900 dark:text-white text-xl font-medium" style={{ color: isDark ? '#ffffff' : undefined }}>
+                <div className={`pt-5 border-t ${
+                  isDark ? 'border-slate-700/50' : 'border-gray-200/60'
+                }`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`p-1.5 rounded-lg ${
+                      isDark ? 'bg-slate-700/50' : 'bg-gray-100'
+                    }`}>
+                      <svg className={`w-4 h-4 ${
+                        isDark ? 'text-blue-400' : 'text-blue-600'
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-base font-bold tracking-tight ${
+                      isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      Especificaciones técnicas
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className={`p-3 rounded-lg transition-all duration-300 hover:scale-[1.02] ${
+                      isDark 
+                        ? 'bg-slate-800/50 border border-slate-700/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10' 
+                        : 'bg-white border border-gray-200/60 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-100'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <svg className={`w-4 h-4 ${
+                          isDark ? 'text-blue-400' : 'text-blue-600'
+                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                        <span className={`text-xs font-semibold uppercase tracking-wider ${
+                          isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
+                          Dimensiones
+                        </span>
+                      </div>
+                      <p className={`text-base font-bold ${
+                        isDark ? 'text-white' : 'text-gray-900'
+                      }`}>
                         {product.dimensiones.largoCm} × {product.dimensiones.anchoCm} × {product.dimensiones.altoCm} cm
                       </p>
                     </div>
                     {product.pesoKg && (
-                      <div className="space-y-3">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium text-sm uppercase tracking-wider" style={{ color: isDark ? '#ffffff' : undefined }}>Peso neto</span>
-                        <p className="text-gray-900 dark:text-white text-xl font-medium" style={{ color: isDark ? '#ffffff' : undefined }}>{product.pesoKg} kg</p>
+                      <div className={`p-3 rounded-lg transition-all duration-300 hover:scale-[1.02] ${
+                        isDark 
+                          ? 'bg-slate-800/50 border border-slate-700/50 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10' 
+                          : 'bg-white border border-gray-200/60 hover:border-purple-300 hover:shadow-lg hover:shadow-purple-100'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <svg className={`w-4 h-4 ${
+                            isDark ? 'text-purple-400' : 'text-purple-600'
+                          }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                          </svg>
+                          <span className={`text-xs font-semibold uppercase tracking-wider ${
+                            isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            Peso neto
+                          </span>
+                        </div>
+                        <p className={`text-base font-bold ${
+                          isDark ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          {product.pesoKg} kg
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Categorías - Chips integrados */}
+              {/* Categorías - Chips mejorados */}
               {product.categorias && product.categorias.length > 0 && (
-                <div className="pt-8 border-t border-gray-200/40 dark:border-gray-600/40">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 tracking-tight" style={{ color: isDark ? '#ffffff' : undefined }}>Categoría</h3>
-                  <div className="flex flex-wrap gap-4">
+                <div className={`pt-5 border-t ${
+                  isDark ? 'border-slate-700/50' : 'border-gray-200/60'
+                }`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`p-1.5 rounded-lg ${
+                      isDark ? 'bg-slate-700/50' : 'bg-gray-100'
+                    }`}>
+                      <svg className={`w-4 h-4 ${
+                        isDark ? 'text-indigo-400' : 'text-indigo-600'
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-base font-bold tracking-tight ${
+                      isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      Categorías
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     {product.categorias.map((categoria) => (
                       <span
                         key={categoria.id}
-                        className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-2xl border border-gray-200/60 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-sm dark:hover:shadow-gray-900/30 transition-all duration-300 hover:-translate-y-0.5 shadow-sm dark:shadow-gray-900/20"
+                        className={`group relative px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 ${
+                          isDark
+                            ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/50 hover:shadow-lg hover:shadow-indigo-500/20'
+                            : 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200/60 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-200/50'
+                        }`}
                       >
-                        {categoria.nombre}
+                        <span className="relative z-10">{categoria.nombre}</span>
+                        <div className={`absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                          isDark 
+                            ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10' 
+                            : 'bg-gradient-to-r from-indigo-100/50 to-purple-100/50'
+                        }`}></div>
                       </span>
                     ))}
                   </div>
@@ -593,74 +628,6 @@ export default function ProductPage() {
         )}
       </div>
 
-      {/* Carrito flotante - Diseño horizontal alargado */}
-      {showFloatingCart && product && (
-        <div className={`fixed bottom-6 right-6 z-50 ${isCartAnimating ? 'floating-cart-enter' : ''}`}>
-          <div className="bg-white dark:bg-gray-800 border border-gray-100/60 dark:border-gray-600 rounded-2xl p-4 shadow-2xl dark:shadow-gray-900/50 max-w-lg">
-            <div className="flex items-center gap-4">
-              {/* Imagen del producto */}
-              <div className="flex-shrink-0">
-                <img
-                  src={mainImage}
-                  alt={product.nombre}
-                  className="w-16 h-16 object-cover rounded-lg shadow-sm"
-                  onError={handleImageError}
-                  onLoad={handleImageLoad}
-                />
-              </div>
-
-              {/* Información del producto */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-1 line-clamp-2">
-                  {product.nombre}
-                </h3>
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
-                  <span>{product.marca}</span>
-                  {currentStock > 0 && currentStock <= 5 && (
-                    <span className="text-orange-600">• Solo {currentStock} disponibles</span>
-                  )}
-                </div>
-                <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  ${currentPrice.toLocaleString('es-AR')}
-                </div>
-              </div>
-
-              {/* Botón de acción */}
-              <div className="flex-shrink-0">
-                <motion.button
-                  onClick={handleAddToCart}
-                  disabled={isAddingToCart || currentStock === 0 || showCartSidebar}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 disabled:hover:translate-y-0 flex items-center gap-2"
-                  whileHover={!isAddingToCart && currentStock > 0 ? {
-                    scale: 1.02,
-                    boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4), 0 8px 10px -5px rgba(59, 130, 246, 0.1)"
-                  } : {}}
-                  whileTap={!isAddingToCart && currentStock > 0 ? { scale: 0.98 } : {}}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  {isAddingToCart ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Agregando...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                      </svg>
-                      Agregar
-                    </>
-                  )}
-                </motion.button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal de zoom de imagen */}
       {showImageModal && (
         <div 
@@ -692,27 +659,25 @@ export default function ProductPage() {
       <AnimatePresence>
         {showCartSidebar && (
           <motion.div 
-            className={`fixed top-16 right-4 h-[calc(100vh-5rem)] w-96 z-50 shadow-2xl flex flex-col rounded-lg ${isDark ? 'bg-gradient-to-br from-blue-950 via-slate-800 to-slate-900' : 'bg-gray-800'}`}
+            className={`fixed top-16 right-4 h-[calc(100vh-5rem)] w-96 z-50 shadow-2xl flex flex-col rounded-2xl border ${
+              isDark 
+                ? 'bg-slate-800/95 border-gray-700/60' 
+                : 'bg-gray-100 border-gray-200/60'
+            }`}
             initial={{ 
-              scale: 0.1, 
+              scale: 0.95, 
               opacity: 0, 
-              x: 400, 
-              y: 120,
-              borderRadius: "50%"
+              x: 400
             }}
             animate={{ 
               scale: 1, 
               opacity: 1, 
-              x: 0, 
-              y: 0,
-              borderRadius: "0.5rem"
+              x: 0
             }}
             exit={{ 
-              scale: 0.1, 
+              scale: 0.95, 
               opacity: 0, 
-              x: -380, 
-              y: 40,
-              borderRadius: "50%"
+              x: 400
             }}
             transition={{
               type: "spring",
@@ -722,16 +687,28 @@ export default function ProductPage() {
             }}
           >
             {/* Header del carrito */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700 dark:border-gray-600">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white">Carrito</h2>
+            <div className={`flex items-center justify-between p-5 border-b ${
+              isDark ? 'border-gray-700' : 'border-gray-200'
+            }`}>
+              <div className="flex items-center gap-3">
+                <h2 className={`text-xl font-bold ${
+                  isDark ? 'text-white' : 'text-gray-900'
+                }`}>
+                  Carrito
+                </h2>
                 {getTotalItems() > 0 && (
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">{getTotalItems()}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold text-white" style={{ backgroundColor: '#2563eb' }}>
+                    {getTotalItems()}
+                  </span>
                 )}
               </div>
               <button
                 onClick={() => setShowCartSidebar(false)}
-                className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-200 transition-colors p-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-full"
+                className={`p-2 rounded-lg transition-colors ${
+                  isDark 
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-700/50' 
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
+                }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -740,34 +717,41 @@ export default function ProductPage() {
             </div>
 
             {/* Contenido del carrito */}
-            <div className="flex-1 overflow-y-auto p-4 min-h-0">
-              {/* Mensaje de envío gratis */}
-              <div className="bg-green-600 text-white p-3 rounded-lg mb-4">
-                <p className="text-sm font-medium">¡Te faltan solo $56.875,00 para conseguir envío gratis!</p>
-                <div className="w-full bg-green-800 rounded-full h-2 mt-2">
-                  <div className="bg-white h-2 rounded-full" style={{width: '30%'}}></div>
-                </div>
-              </div>
-
+            <div className="flex-1 overflow-y-auto p-5 min-h-0">
               {/* Productos agregados */}
-              <div className="space-y-3 mb-4">
+              <div className="space-y-3">
                 {items && items.length > 0 ? items.map((item) => {
                   const itemMainImage = item.product.imagenes && item.product.imagenes.length > 0
                     ? item.product.imagenes[0].url
                     : 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
                   
                   return (
-                    <div key={item.id} className="bg-gray-700 rounded-lg p-4">
-                      <div className="flex items-center gap-3">
+                    <div 
+                      key={item.id} 
+                      className={`rounded-xl p-4 border transition-all duration-200 ${
+                        isDark 
+                          ? 'bg-slate-700/80 border-gray-600/60 hover:border-gray-500/80' 
+                          : 'bg-gray-50 border-gray-200/80 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
                         <img 
                           src={itemMainImage} 
                           alt={item.product.nombre}
-                          className="w-16 h-16 object-cover rounded"
+                          className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <h3 className="font-medium text-white text-sm">{item.product.nombre}</h3>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-white font-bold">${item.price.toLocaleString('es-AR')}</span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`font-medium text-sm mb-2 line-clamp-2 ${
+                            isDark ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            {item.product.nombre}
+                          </h3>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`font-bold ${
+                              isDark ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              ${item.price.toLocaleString('es-AR')}
+                            </span>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => {
@@ -778,11 +762,19 @@ export default function ProductPage() {
                                     removeItem(item.id);
                                   }
                                 }}
-                                className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-colors ${
+                                  isDark 
+                                    ? 'bg-gray-600 text-white hover:bg-gray-500' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                               >
                                 -
                               </button>
-                              <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
+                              <span className={`text-sm w-6 text-center font-medium ${
+                                isDark ? 'text-white' : 'text-gray-900'
+                              }`}>
+                                {item.quantity}
+                              </span>
                               <button
                                 onClick={() => {
                                   const currentItem = items.find(i => i.id === item.id);
@@ -790,7 +782,11 @@ export default function ProductPage() {
                                     updateQuantity(item.id, currentItem.quantity + 1);
                                   }
                                 }}
-                                className="w-6 h-6 bg-gray-600 text-white rounded flex items-center justify-center text-sm hover:bg-gray-500 transition-colors"
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-colors ${
+                                  isDark 
+                                    ? 'bg-gray-600 text-white hover:bg-gray-500' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                               >
                                 +
                               </button>
@@ -798,7 +794,11 @@ export default function ProductPage() {
                           </div>
                           <button
                             onClick={() => removeItem(item.id)}
-                            className="text-red-400 text-xs mt-2 hover:text-red-300 transition-colors"
+                            className={`text-xs mt-1 transition-colors ${
+                              isDark 
+                                ? 'text-red-400 hover:text-red-300' 
+                                : 'text-red-600 hover:text-red-700'
+                            }`}
                           >
                             Quitar
                           </button>
@@ -807,48 +807,40 @@ export default function ProductPage() {
                     </div>
                   );
                 }) : (
-                  <div className="text-center py-4 text-gray-400 dark:text-gray-500">
+                  <div className={`text-center py-8 ${
+                    isDark ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
                     <p>No hay productos en el carrito</p>
                   </div>
                 )}
               </div>
-
-              {/* Información de envío */}
-              <div className="space-y-4">
-                <div className="border-b border-gray-600 pb-4">
-                  <h4 className="text-white font-medium mb-2">Gastos de envío</h4>
-                  <p className="text-gray-300 dark:text-gray-400 text-sm">Enviamos con Andreani: $6000 a sucursal o $9000 a domicilio</p>
-                </div>
-
-                <div className="border-b border-gray-600 pb-4">
-                  <h4 className="text-white font-medium mb-2">Notas para entrega</h4>
-                  <p className="text-gray-300 dark:text-gray-400 text-sm">Indicaciones para la entrega del pedido</p>
-                </div>
-              </div>
             </div>
 
             {/* Footer del carrito */}
-            <div className="border-t border-gray-700 dark:border-gray-600 p-4 flex-shrink-0">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-white font-medium">Subtotal</span>
-                <span className="text-white font-bold text-lg">${getTotalPrice().toLocaleString('es-AR')} ARS</span>
+            <div className={`border-t p-5 flex-shrink-0 ${
+              isDark ? 'border-gray-700' : 'border-gray-200'
+            }`}>
+              <div className="flex justify-between items-center mb-5">
+                <span className={`font-semibold ${
+                  isDark ? 'text-white' : 'text-gray-900'
+                }`}>
+                  Subtotal
+                </span>
+                <span className={`font-bold text-xl ${
+                  isDark ? 'text-white' : 'text-gray-900'
+                }`}>
+                  ${getTotalPrice().toLocaleString('es-AR')}
+                </span>
               </div>
               
               <div className="space-y-3">
-                <Link
-                  to="/shopcart/checkout"
-                  onClick={() => setShowCartSidebar(false)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Finalizar pedido
-                </Link>
-                
                 <button
                   onClick={() => setShowCartSidebar(false)}
-                  className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-3 px-4 rounded-lg transition-colors"
+                  className={`w-full font-medium py-3 px-4 rounded-xl transition-colors ${
+                    isDark 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                  }`}
                 >
                   Seguir comprando
                 </button>
@@ -856,9 +848,27 @@ export default function ProductPage() {
                 <Link
                   to="/shopcart"
                   onClick={() => setShowCartSidebar(false)}
-                  className="w-full bg-gray-600 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 text-white dark:text-gray-200 font-medium py-3 px-4 rounded-lg transition-colors text-center block"
+                  className={`w-full font-medium py-3 px-4 rounded-xl transition-colors text-center block ${
+                    isDark 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                  }`}
                 >
                   Ver carrito completo
+                </Link>
+                
+                <Link
+                  to="/shopcart"
+                  onClick={() => setShowCartSidebar(false)}
+                  className="w-full text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                  style={{ backgroundColor: '#2563eb' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Finalizar pedido
                 </Link>
               </div>
             </div>

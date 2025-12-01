@@ -145,7 +145,7 @@ export default function UserModal() {
               Mis pedidos
             </button>
             <button onClick={handleLogout}>
-              Cerrar Sesión
+              Cerrar sesión
             </button>
           </div>
       )}
@@ -190,7 +190,7 @@ export default function UserModal() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ color: '#032d70', fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>
-                Mis Pedidos
+                Mis pedidos
               </h2>
               <button 
                 onClick={() => setShowOrdersModal(false)}

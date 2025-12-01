@@ -285,7 +285,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     className="btn-primary"
                     onClick={() => setEditMode(true)}
                   >
-                    Editar Perfil
+                    Editar perfil
                   </button>
                 </>
               ) : (
@@ -303,7 +303,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     className="btn-primary"
                     disabled={loading}
                   >
-                    {loading ? 'Guardando...' : 'Guardar Cambios'}
+                    {loading ? 'Guardando...' : 'Guardar cambios'}
                   </button>
                 </>
               )}

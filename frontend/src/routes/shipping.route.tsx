@@ -125,7 +125,7 @@ function ShippingRoute() {
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
         <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
-          Seleccionar Forma de Envío
+          Seleccionar forma de envío
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -207,7 +207,7 @@ function ShippingRoute() {
                   disabled={isCalculating}
                   className="w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCalculating ? 'Calculando...' : 'Calcular Costo de Envío'}
+                  {isCalculating ? 'Calculando...' : 'Calcular costo de envío'}
                 </button>
               </div>
             </div>
@@ -296,9 +296,9 @@ function ShippingRoute() {
                 <button
                   onClick={handleContinue}
                   disabled={!selectedShipping || shippingCost === null}
-                  className="w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continuar al Pago
+                  Continuar al pago
                 </button>
                 <button
                   onClick={handleBack}

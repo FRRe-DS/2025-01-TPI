@@ -88,7 +88,7 @@ function CartRoute() {
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            Ver Productos
+            Ver productos
           </motion.button>
         </motion.div>
       ) : (
@@ -210,9 +210,9 @@ function CartRoute() {
               <button
                 onClick={handleCheckout}
                 disabled={items.length === 0}
-                className="w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continuar al Envío
+                Continuar al envío
               </button>
               <motion.button
                 onClick={handleViewProducts}
@@ -221,7 +221,7 @@ function CartRoute() {
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                Seguir Comprando
+                Seguir comprando
               </motion.button>
               {items.length > 0 && (
                 <motion.button
@@ -236,7 +236,7 @@ function CartRoute() {
                     <path d="M10 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M14 11V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Vaciar Carrito
+                  Vaciar carrito
                 </motion.button>
               )}
             </div>
