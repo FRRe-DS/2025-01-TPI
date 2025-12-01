@@ -5,7 +5,7 @@ services:
   # Backend Compras
   # ============================================
   compras:
-    image: ghcr.io/frre-ds/backend-compras-g01:215dc44d43d2bbaffc1e7c7276bad6673e1cca10
+    image: ghcr.io/frre-ds/backend-compras-g01:90dfef68b8ae38b925b68ff521de861163f5f62c
     container_name: compras
     restart: always
     environment:
@@ -49,6 +49,7 @@ services:
       start_period: 10s
 
   stock_back:
+    # image: ghcr.io/frre-ds/2025-grupo-11-backend-stock:c56e28f4480813ce138b2659c3aa706f4dc2a951
     image: ghcr.io/frre-ds/2025-grupo-11-backend-stock:f5ff36db6851a291c436acc38baae82805c39c67
     container_name: stock_back
     restart: always
@@ -121,6 +122,11 @@ services:
       DB_DATABASE: shipping_db
       PORT: 3010
       HOST: 0.0.0.0
+      # Keycloak configuration - usar localhost:8080 porque el proxy lo redirige a keycloak:8080
+      KEYCLOAK_AUTH_SERVER_URL: http://localhost:8080
+      KEYCLOAK_REALM: ds-2025-realm
+      # Stock service URL - a través del API Gateway (debe incluir el prefijo /stock)
+      STOCK_SERVICE_URL: http://api-gateway:80/stock
     ports:
       - "8083:3010"
     networks:
@@ -128,6 +134,19 @@ services:
     depends_on:
       logistica_mysql:
         condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  # Proxy para redirigir localhost:8080 a keycloak:8080 dentro del contenedor logistica_back
+  logistica_keycloak_proxy:
+    image: nginx:alpine
+    container_name: logistica_keycloak_proxy
+    restart: always
+    network_mode: "service:logistica_back"
+    volumes:
+      - ./api-gateway/logistica-keycloak-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - keycloak
 
   # ============================================
   # Keycloak con PostgreSQL
