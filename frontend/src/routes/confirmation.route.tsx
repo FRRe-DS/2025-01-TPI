@@ -104,9 +104,13 @@ function ConfirmationRoute() {
             </p>
             <Link
               to="/"
-              className="inline-block bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300"
+              className={`inline-block py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                isDark 
+                  ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
             >
-              Volver al Inicio
+              Volver al inicio
             </Link>
           </div>
         </div>
@@ -275,9 +279,13 @@ function ConfirmationRoute() {
               </div>
               <Link
                 to="/"
-                className="block w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 text-center"
+                className={`block w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 text-center ${
+                  isDark 
+                    ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
               >
-                Volver al Inicio
+                Volver al inicio
               </Link>
             </div>
           </div>

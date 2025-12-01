@@ -39,6 +39,23 @@ function PaymentRoute() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [shippingData, setShippingData] = useState<ShippingData | null>(null);
 
+  // Función para formatear el campo de vencimiento (MM/AA)
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // Solo números
+    
+    // Limitar a 4 dígitos
+    if (value.length > 4) {
+      value = value.slice(0, 4);
+    }
+    
+    // Agregar barra después de 2 dígitos
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2);
+    }
+    
+    setCardData({ ...cardData, expiry: value });
+  };
+
   // Cargar datos de shipping del paso anterior
   useEffect(() => {
     const savedShippingData = localStorage.getItem('shipping_data');
@@ -269,7 +286,7 @@ function PaymentRoute() {
                       <input
                         type="text"
                         value={cardData.expiry}
-                        onChange={(e) => setCardData({ ...cardData, expiry: e.target.value })}
+                        onChange={handleExpiryChange}
                         placeholder="MM/AA"
                         maxLength={5}
                         className={`w-full px-4 py-2 rounded-lg border ${
