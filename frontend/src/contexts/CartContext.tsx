@@ -56,9 +56,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        console.log('[CartContext] Loading cart from backend...');
         const cartResponse = await getCart(token);
-        console.log('[CartContext] Cart loaded:', cartResponse);
 
         // Obtener los productos completos para cada item del carrito
         const itemsWithProducts: CartItem[] = await Promise.all(
@@ -86,7 +84,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // Filtrar items nulos
         const validItems = itemsWithProducts.filter((item): item is CartItem => item !== null);
         setItems(validItems);
-        console.log('[CartContext] Cart items loaded:', validItems);
       } catch (error) {
         console.error('[CartContext] Error loading cart:', error);
         setItems([]);
@@ -126,11 +123,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      console.log(`[CartContext] Adding product ${product.id} to cart with quantity ${quantity}`);
-      
       // Agregar al carrito usando el servicio del backend
       const cartResponse = await addToCart(token, product.id, quantity);
-      console.log('[CartContext] Cart updated:', cartResponse);
 
       // Actualizar el estado local con el producto completo
       setItems(prevItems => {
@@ -182,7 +176,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      console.log(`[CartContext] Removing product ${item.productId} from cart`);
       await removeFromCart(token, item.productId);
       
       setItems(prevItems => prevItems.filter(i => i.id !== itemId));
@@ -213,7 +206,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      console.log(`[CartContext] Updating product ${item.productId} quantity to ${quantity}`);
       await updateCartItemQuantity(token, item.productId, quantity);
       
       setItems(prevItems =>
@@ -240,7 +232,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      console.log('[CartContext] Clearing cart');
       await clearCartService(token);
       setItems([]);
     } catch (error) {

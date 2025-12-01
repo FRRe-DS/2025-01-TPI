@@ -59,9 +59,6 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
 
-    console.log('Clases del html:', document.documentElement.classList.toString());
-    console.log('Clases del body:', document.body.classList.toString());
-
     // Guardar en localStorage solo en el cliente
     if (typeof window !== 'undefined') {
       localStorage.setItem('shipper-theme', theme);

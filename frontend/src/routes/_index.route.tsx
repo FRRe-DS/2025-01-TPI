@@ -47,17 +47,10 @@ export default function IndexRoute() {
 
   // Ejecutar petición automáticamente cuando hay token (para pruebas con Stock Docker)
   useEffect(() => {
-    console.log('[IndexRoute] useEffect triggered - USE_STOCK_DOCKER:', USE_STOCK_DOCKER);
-    console.log('[IndexRoute] auth.user:', !!auth.user);
-    console.log('[IndexRoute] auth.isAuthenticated:', auth.isAuthenticated);
-    
     if (USE_STOCK_DOCKER && auth.user && auth.isAuthenticated) {
       const token = getAccessToken(auth.user);
-      console.log('[IndexRoute] Token available:', !!token);
       
       if (token) {
-        console.log('[IndexRoute] 🚀 Auto-fetching products from Stock Docker (token available)');
-        console.log('[IndexRoute] Token (first 50 chars):', token.substring(0, 50));
         setShowProducts(true);
         setLoading(true);
         setError(null);
@@ -68,23 +61,16 @@ export default function IndexRoute() {
           q: '', 
         };
         
-        console.log('[IndexRoute] Calling getProductsFromStockDocker with params:', filterParams);
         getProductsFromStockDocker(filterParams, token)
           .then(data => {
-            console.log('[IndexRoute] ✅ Products loaded from Stock Docker:', data);
             setProductData(data);
             setLoading(false);
           })
           .catch(err => {
-            console.error("[IndexRoute] ❌ Error loading products from Stock Docker:", err);
             setError(err.message);
             setLoading(false);
           });
-      } else {
-        console.warn('[IndexRoute] ⚠️ No token available even though user is authenticated');
       }
-    } else {
-      console.log('[IndexRoute] ⏭️ Skipping Stock Docker fetch - conditions not met');
     }
   }, [auth.user, auth.isAuthenticated]);
 
@@ -122,7 +108,6 @@ export default function IndexRoute() {
       if (USE_STOCK_DOCKER && auth.user) {
         const token = getAccessToken(auth.user);
         if (token) {
-          console.log('[IndexRoute] Using Stock Docker backend with token');
           getProductsFromStockDocker(filterParams, token)
             .then(data => {
               setProductData(data);

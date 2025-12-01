@@ -16,25 +16,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { GlobalTransition } from "./components/GlobalTransition";
-import ServiceStatus from "./components/ServiceStatus";
-import { useAuth } from "react-oidc-context";
-import { getAccessToken } from "./services/auth/getAccessToken";
 
-// Componente para mostrar el token en consola (debe estar dentro de AuthProvider)
-function TokenLogger() {
-  const auth = useAuth();
-  const user = auth.user;
-
-  React.useEffect(() => {
-    const token = getAccessToken(user);
-    if (token) {
-      console.log("🔑 TOKEN DE ACCESO:", token);
-      console.log("📋 Token completo (para copiar):", token);
-    }
-  }, [user]);
-
-  return null;
-}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   // Obtener el origin de forma segura para SSR
@@ -84,11 +66,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <CartProvider>
             <ThemeProvider>
               <NavigationProvider>
-                <TokenLogger />
                 <Header/>
                 {children}
                 <GlobalTransition />
-                <ServiceStatus />
               </NavigationProvider>
             </ThemeProvider>
           </CartProvider>

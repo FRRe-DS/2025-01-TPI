@@ -4,6 +4,7 @@ import { useCart } from "../contexts/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
+import { CheckoutSteps } from "../components/CheckoutSteps";
 
 function CartRoute() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ function CartRoute() {
   };
 
   const handleCheckout = () => {
-    navigate('/shopcart/checkout');
+    navigate('/shopcart/shipping');
   };
 
   const handleClearCart = async () => {
@@ -55,15 +56,17 @@ function CartRoute() {
   };
 
   return (
-    <motion.main
-      className={`container mx-auto p-8 max-w-6xl min-h-screen ${isDark ? 'bg-gradient-to-br from-black via-slate-900 to-slate-950' : 'bg-gray-50'}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-    >
-      <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
-        Carrito de Compras
-      </h1>
+    <>
+      <CheckoutSteps />
+      <motion.main
+        className={`container mx-auto p-8 max-w-6xl min-h-screen ${isDark ? 'bg-gradient-to-br from-black via-slate-900 to-slate-950' : 'bg-gray-50'}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+          Carrito de Compras
+        </h1>
 
       {items.length === 0 ? (
         <motion.div 
@@ -206,9 +209,10 @@ function CartRoute() {
               </div>
               <button
                 onClick={handleCheckout}
-                className="w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300"
+                disabled={items.length === 0}
+                className="w-full bg-blue-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Proceder al Pago
+                Continuar al Envío
               </button>
               <motion.button
                 onClick={handleViewProducts}
@@ -239,7 +243,8 @@ function CartRoute() {
           </div>
         </div>
       )}
-    </motion.main>
+      </motion.main>
+    </>
   );
 }
 

@@ -10,7 +10,6 @@ const LoginCallback = () => {
     if (auth.isLoading) return; // Espera a que termine de cargar el estado de autenticación
 
     if (auth.isAuthenticated) {
-      console.log("entro")
       const redirectPath = localStorage.getItem('redirect_path') || '/';
       navigate(redirectPath, { replace: true });
     } else if (!auth.isAuthenticated && !auth.isLoading && !auth.error) {

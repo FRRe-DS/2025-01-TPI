@@ -40,11 +40,9 @@ export default function ProductPage() {
           const token = getAccessToken(auth.user);
           if (token) {
             try {
-              console.log(`[ProductPage] Fetching product ${productId} from stock backend`);
               foundProduct = await getProductByIdFromStock(productId, token);
-              console.log('[ProductPage] Product loaded from stock:', foundProduct);
             } catch (error) {
-              console.warn('[ProductPage] Error fetching from stock backend, falling back to regular API:', error);
+              // Fallback silencioso
             }
           }
         }
