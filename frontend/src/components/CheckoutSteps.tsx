@@ -48,7 +48,7 @@ export function CheckoutSteps() {
     if (isStepActive(stepIndex)) {
       return isDark ? 'text-blue-400' : 'text-blue-600';
     }
-    return isDark ? 'text-gray-500' : 'text-gray-400';
+    return isDark ? 'text-white' : 'text-gray-400';
   };
 
   const getStepBgColor = (stepIndex: number): string => {
@@ -111,7 +111,7 @@ export function CheckoutSteps() {
                             isActive
                               ? 'text-white'
                               : isDark
-                              ? 'text-gray-300'
+                              ? 'text-white'
                               : 'text-gray-600'
                           }`}
                         >

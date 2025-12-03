@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { useLocation, useNavigate } from "react-router";
+import { useTheme } from "../../contexts/ThemeContext";
 import UserModal from "./UserModal";
 import ShopCartModal from "./ShopCartModal";
 import "./Header.css";
@@ -9,6 +10,7 @@ export default function Header() {
     const auth = useAuth();
     const path = useLocation().pathname;
     const navigate = useNavigate();
+    const { isDark } = useTheme();
     const [showSearchButton, setShowSearchButton] = useState(false);
     const [isLeaving, setIsLeaving] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -201,7 +203,7 @@ export default function Header() {
                     <div className="header-left">
                         <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
                             <h1>
-                                <img src="/Shipper-mini.png" alt="Shipper logo" className={`header-logo ${truckArrived ? 'arrived' : ''}`} />
+                                <img src={isDark ? "/logoshippernegro.png" : "/Shipper-mini.png"} alt="Shipper logo" className={`header-logo ${truckArrived ? 'arrived' : ''} ${isDark ? 'dark-logo' : ''}`} />
                                 <em>Shipper</em>
                             </h1>
                         </a>

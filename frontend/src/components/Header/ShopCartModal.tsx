@@ -173,7 +173,7 @@ export default function ShopCartModal() {
         >
             <div style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
               <div>
-                <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '1.1rem' }}>Carrito de Compras</h3>
+                <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '1.1rem', color: isDark ? 'white' : '#333' }}>Carrito de Compras</h3>
               </div>
               {totalItems === 0 ? (
                 <p style={{ margin: 0, color: '#666', textAlign: 'center', padding: '1rem 0' }}>

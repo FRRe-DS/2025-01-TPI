@@ -124,7 +124,7 @@ function ShippingRoute() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+        <h1 className={`text-3xl font-bold mb-8 ${isDark ? 'text-white' : 'text-gray-800'}`}>
           Seleccionar forma de envío
         </h1>
 
@@ -132,12 +132,12 @@ function ShippingRoute() {
           <div className="lg:col-span-2 space-y-6">
             {/* Dirección de Entrega */}
             <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
-              <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+              <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 Dirección de Entrega
               </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-700'}`}>
                     Calle y Número
                   </label>
                   <input
@@ -154,7 +154,7 @@ function ShippingRoute() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-700'}`}>
                       Ciudad
                     </label>
                     <input
@@ -170,7 +170,7 @@ function ShippingRoute() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-700'}`}>
                       Provincia
                     </label>
                     <input
@@ -187,7 +187,7 @@ function ShippingRoute() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-700'}`}>
                     Código Postal
                   </label>
                   <input
@@ -215,7 +215,7 @@ function ShippingRoute() {
             {/* Opciones de Envío */}
             {shippingCost !== null && selectedShipping && (
               <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
-                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+                <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                   Método de Envío Seleccionado
                 </h2>
                 <div className="space-y-3">
@@ -247,7 +247,7 @@ function ShippingRoute() {
                               </span>
                             </div>
                             <div className={`text-sm ${
-                              isDark ? 'text-gray-300' : 'text-gray-600'
+                              isDark ? 'text-white' : 'text-gray-600'
                             }`}>
                               {method.estimatedDays}
                             </div>
@@ -261,7 +261,7 @@ function ShippingRoute() {
                       );
                     })}
                 </div>
-                <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                <p className={`mt-4 text-sm ${isDark ? 'text-white' : 'text-gray-600'}`}>
                   El método de transporte fue seleccionado automáticamente por el sistema según las características de tu pedido.
                 </p>
               </div>
@@ -271,16 +271,16 @@ function ShippingRoute() {
           {/* Resumen */}
           <div className="lg:col-span-1">
             <div className={`rounded-lg shadow-lg p-6 sticky top-8 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
-              <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+              <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 Resumen del Pedido
               </h2>
               <div className="space-y-2 mb-4 pb-4 border-b border-gray-300 dark:border-gray-700">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                  <span className={`${isDark ? 'text-white' : 'text-gray-600'}`}>Subtotal:</span>
                   <span className="font-semibold">${(subtotal || 0).toLocaleString('es-AR')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Envío:</span>
+                  <span className={`${isDark ? 'text-white' : 'text-gray-600'}`}>Envío:</span>
                   <span className="font-semibold">
                     {shippingCost !== null 
                       ? `$${shippingCost.toLocaleString('es-AR')}` 
@@ -289,7 +289,7 @@ function ShippingRoute() {
                 </div>
               </div>
               <div className="flex justify-between text-xl font-bold mb-6">
-                <span className="text-gray-800 dark:text-white">Total:</span>
+                <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>Total:</span>
                 <span>${(total || 0).toLocaleString('es-AR')}</span>
               </div>
               <div className="space-y-3">
@@ -302,7 +302,7 @@ function ShippingRoute() {
                 </button>
                 <button
                   onClick={handleBack}
-                  className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300"
+                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${isDark ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
                 >
                   Volver
                 </button>

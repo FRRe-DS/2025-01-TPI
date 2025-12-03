@@ -64,7 +64,7 @@ function CartRoute() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+        <h1 className={`text-3xl font-bold mb-8 ${isDark ? 'text-white' : 'text-gray-800'}`}>
           Carrito de Compras
         </h1>
 
@@ -75,7 +75,7 @@ function CartRoute() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
+          <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
             Tu carrito está vacío
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -125,10 +125,10 @@ function CartRoute() {
                       to={`/product/${item.product.id}`}
                       className="hover:underline"
                     >
-                      <h3 className="font-semibold text-lg">{item.product.nombre}</h3>
+                      <h3 className={`font-semibold text-lg ${isDark ? 'text-gray-800' : ''}`}>{item.product.nombre}</h3>
                     </Link>
                     <p className="text-gray-600 dark:text-gray-400">{item.product.marca}</p>
-                    <p className="text-gray-800 dark:text-white font-bold mt-1">
+                    <p className={`font-bold mt-1 ${isDark ? 'text-gray-800' : 'text-gray-800'}`}>
                       ${item.price.toLocaleString('es-AR')}
                     </p>
                     {item.selectedColor && (
@@ -142,20 +142,20 @@ function CartRoute() {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => handleDecreaseQuantity(item.id, item.quantity)}
-                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                      className={`px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors ${isDark ? 'text-gray-800' : ''}`}
                     >
                       -
                     </button>
-                    <span className="font-semibold min-w-[30px] text-center">{item.quantity}</span>
+                    <span className={`font-semibold min-w-[30px] text-center ${isDark ? 'text-gray-800' : ''}`}>{item.quantity}</span>
                     <button
                       onClick={() => handleIncreaseQuantity(item.id, item.quantity)}
-                      className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                      className={`px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors ${isDark ? 'text-gray-800' : ''}`}
                     >
                       +
                     </button>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-lg mb-2">
+                    <p className={`font-bold text-lg mb-2 ${isDark ? 'text-gray-800' : ''}`}>
                       ${(item.price * item.quantity).toLocaleString('es-AR')}
                     </p>
                     <button
@@ -192,20 +192,20 @@ function CartRoute() {
 
           <div className="lg:col-span-1">
             <div className="rounded-lg shadow-lg p-6 sticky top-8 bg-white dark:bg-white/5">
-              <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Resumen del Pedido</h2>
-              <div className="space-y-2 mb-4 pb-4 border-b">
+              <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-gray-800' : 'text-gray-800'}`}>Resumen del Pedido</h2>
+              <div className={`space-y-2 mb-4 pb-4 border-b ${isDark ? 'border-gray-800' : ''}`}>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                  <span className="font-semibold">${total.toLocaleString('es-AR')}</span>
+                  <span className={`font-semibold ${isDark ? 'text-gray-800' : ''}`}>${total.toLocaleString('es-AR')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Envío:</span>
-                  <span className="font-semibold">Calculado en checkout</span>
+                  <span className={`text-gray-600 ${isDark ? 'dark:text-gray-400' : ''}`}>Envío:</span>
+                  <span className={`font-semibold ${isDark ? 'text-gray-800' : ''}`}>Calculado en checkout</span>
                 </div>
               </div>
               <div className="flex justify-between text-xl font-bold mb-6">
                 <span className="text-gray-800 dark:text-white">Total:</span>
-                <span>${total.toLocaleString('es-AR')}</span>
+                <span className={`${isDark ? 'text-gray-800' : ''}`}>${total.toLocaleString('es-AR')}</span>
               </div>
               <button
                 onClick={handleCheckout}

@@ -69,6 +69,11 @@ html.dark .header-left h1 {
   opacity: 1;
 }
 
+/* Logo más grande en modo oscuro */
+.header-logo.dark-logo {
+  height: 32px;
+}
+
 /* Animación de llegada del camión */
 @keyframes truckArrival {
   0% {
@@ -458,6 +463,10 @@ html.dark .login-button:hover {
     animation: truckArrival 1.8s ease-out;
     animation-fill-mode: forwards;
   }
+
+  .header-logo.dark-logo {
+    height: 28px;
+  }
   
   .header-logo.arrived {
     animation: none;
@@ -509,6 +518,10 @@ html.dark .login-button:hover {
     height: 20px;
     animation: truckArrival 1.5s ease-out;
     animation-fill-mode: forwards;
+  }
+
+  .header-logo.dark-logo {
+    height: 24px;
   }
   
   .header-logo.arrived {
