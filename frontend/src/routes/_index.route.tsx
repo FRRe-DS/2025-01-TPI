@@ -42,35 +42,9 @@ export default function IndexRoute() {
       setShowProducts(true);
       // Limpiar el localStorage después de usarlo
       localStorage.removeItem('searchQuery');
-    }
-  }, []);
-
-  // Ejecutar petición automáticamente cuando hay token (para pruebas con Stock Docker)
-  useEffect(() => {
-    if (USE_STOCK_DOCKER && auth.user && auth.isAuthenticated) {
-      const token = getAccessToken(auth.user);
-      
-      if (token) {
-        setShowProducts(true);
-        setLoading(true);
-        setError(null);
-        
-        const filterParams = { 
-          page: 1, 
-          limit: 10, 
-          q: '', 
-        };
-        
-        getProductsFromStockDocker(filterParams, token)
-          .then(data => {
-            setProductData(data);
-            setLoading(false);
-          })
-          .catch(err => {
-            setError(err.message);
-            setLoading(false);
-          });
-      }
+    } else if (USE_STOCK_DOCKER && auth.user && auth.isAuthenticated) {
+      // Si no hay query guardada pero el usuario está autenticado, mostrar productos automáticamente
+      setShowProducts(true);
     }
   }, [auth.user, auth.isAuthenticated]);
 
@@ -87,6 +61,7 @@ export default function IndexRoute() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showProducts]);
 
+  // Único useEffect para cargar productos - evita duplicados
   useEffect(() => {
     if (showProducts) {
       setLoading(true);

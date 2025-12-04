@@ -32,6 +32,11 @@ export default function ProductPage() {
     const fetchProduct = async () => {
       try {
         const productId = parseInt(id || '0');
+        if (!productId || isNaN(productId)) {
+          setLoading(false);
+          return;
+        }
+
         let foundProduct: Product | null = null;
 
         // Intentar obtener del backend de stock si el usuario está autenticado
@@ -69,7 +74,7 @@ export default function ProductPage() {
     };
 
     fetchProduct();
-  }, [id, auth.isAuthenticated, auth.user]);
+  }, [id, auth.isAuthenticated]); // Removido auth.user para evitar ejecuciones duplicadas
 
   // Auto-cambio de imágenes cada 5 segundos
   useEffect(() => {

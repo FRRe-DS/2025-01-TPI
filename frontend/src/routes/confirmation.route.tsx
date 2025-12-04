@@ -36,7 +36,7 @@ function ConfirmationRoute() {
       // orderId es un string (BigInt serializado)
       const orderId = orderIdParam;
 
-      if (!auth.user) {
+      if (!auth.isAuthenticated || !auth.user) {
         setError('Usuario no autenticado');
         setLoading(false);
         return;
@@ -80,7 +80,7 @@ function ConfirmationRoute() {
     };
 
     loadOrder();
-  }, [searchParams, auth.user]);
+  }, [searchParams, auth.isAuthenticated]); // Usar auth.isAuthenticated en lugar de auth.user
 
   if (loading) {
     return (

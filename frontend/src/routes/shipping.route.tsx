@@ -42,11 +42,39 @@ function ShippingRoute() {
     loadTransportMethods();
   }, []);
 
+  // Validar formato de código postal: LNNNNLLL (1 letra, 4 números, 3 letras)
+  // Ejemplo: H3500AAA
+  const validatePostalCode = (postalCode: string): boolean => {
+    if (!postalCode) return false;
+    
+    // Eliminar espacios en blanco y convertir a mayúsculas
+    const cleaned = postalCode.trim().toUpperCase();
+    
+    // Validar que tenga exactamente 8 caracteres
+    if (cleaned.length !== 8) {
+      return false;
+    }
+    
+    // Formato: LNNNNLLL (ejemplo: H3500AAA)
+    // 1 letra + 4 números + 3 letras
+    const postalCodeRegex = /^[A-Z]\d{4}[A-Z]{3}$/;
+    return postalCodeRegex.test(cleaned);
+  };
+
   const handleCalculateShipping = async () => {
     if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.state || !deliveryAddress.postal_code) {
       notificationManager.warning(
         'Campos incompletos',
         'Por favor, completa todos los campos de la dirección de entrega'
+      );
+      return;
+    }
+
+    // Validar formato del código postal
+    if (!validatePostalCode(deliveryAddress.postal_code)) {
+      notificationManager.error(
+        'Código postal inválido',
+        'El código postal debe tener el formato LNNNNLLL (1 letra, 4 números, 3 letras). Ejemplo: H3500AAA'
       );
       return;
     }
@@ -61,8 +89,13 @@ function ShippingRoute() {
 
       // El endpoint /shipping/cost NO acepta transport_type en el request
       // El backend elige automáticamente el método de transporte
+      // Limpiar y normalizar el código postal antes de enviarlo
+      const cleanedPostalCode = deliveryAddress.postal_code.trim().toUpperCase();
       const request: ShippingCostRequest = {
-        delivery_address: deliveryAddress,
+        delivery_address: {
+          ...deliveryAddress,
+          postal_code: cleanedPostalCode
+        },
         products: items.map(item => ({
           id: item.product.id,
           quantity: item.quantity
@@ -206,14 +239,22 @@ function ShippingRoute() {
                   <input
                     type="text"
                     value={deliveryAddress.postal_code}
-                    onChange={(e) => setDeliveryAddress({ ...deliveryAddress, postal_code: e.target.value })}
+                    onChange={(e) => {
+                      // Convertir a mayúsculas automáticamente
+                      const upperValue = e.target.value.toUpperCase();
+                      setDeliveryAddress({ ...deliveryAddress, postal_code: upperValue });
+                    }}
+                    maxLength={8}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       isDark 
                         ? 'bg-gray-800 border-gray-700 text-white' 
                         : 'bg-white border-gray-300 text-gray-900'
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    placeholder="A1234ABC"
+                    placeholder="H3500AAA"
                   />
+                  <p className={`mt-1 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Formato: 1 letra, 4 números, 3 letras (ejemplo: H3500AAA)
+                  </p>
                 </div>
                 <button
                   onClick={handleCalculateShipping}

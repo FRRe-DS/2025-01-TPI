@@ -196,6 +196,11 @@ export default function UserModal() {
         return newMap;
       });
 
+      // Disparar evento para notificar a otras partes de la app (como la página de tracking)
+      window.dispatchEvent(new CustomEvent('shippingStatusChanged', {
+        detail: { shippingId, shipping: updatedShipping }
+      }));
+
       // Mostrar notificación de éxito
       notificationManager.success(
         'Envío cancelado',

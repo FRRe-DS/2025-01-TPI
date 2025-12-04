@@ -2,7 +2,7 @@
 import { withAuthenticationRequired } from "react-oidc-context";
 import { useNavigate, useSearchParams, Link } from "react-router";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { getShippingById, translateShippingStatus, getShippingStatusColor, type ShippingDetailResponse } from "../services/shipping.service";
 import { getAccessToken } from "../services/auth/getAccessToken";
@@ -19,62 +19,91 @@ function ShippingTrackingRoute() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadShipping = async () => {
-      const shippingIdParam = searchParams.get('id');
+  // Función para cargar el envío (memoizada para evitar recreaciones innecesarias)
+  const loadShipping = useCallback(async (shippingId: number) => {
+    if (!auth.isAuthenticated || !auth.user) {
+      setError('Usuario no autenticado');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = getAccessToken(auth.user);
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const shippingData = await getShippingById(shippingId, token);
+      setShipping(shippingData);
       
-      if (!shippingIdParam) {
-        setError('No se encontró el ID del envío');
-        setLoading(false);
-        return;
-      }
-
-      const shippingId = parseInt(shippingIdParam, 10);
-      if (isNaN(shippingId)) {
-        setError('ID de envío inválido');
-        setLoading(false);
-        return;
-      }
-
-      if (!auth.user) {
-        setError('Usuario no autenticado');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const token = getAccessToken(auth.user);
-        if (!token) {
-          throw new Error('No hay token de autenticación');
-        }
-
-        const shippingData = await getShippingById(shippingId, token);
-        setShipping(shippingData);
-        
-        // Obtener los detalles de cada producto desde el backend de stock
-        const productsMap = new Map<number, Product>();
-        const productPromises = shippingData.products.map(async (shippingProduct) => {
-          try {
-            const product = await getProductByIdFromStock(shippingProduct.id, token);
-            if (product) {
-              productsMap.set(shippingProduct.id, product);
-            }
-          } catch (err) {
-            console.error(`Error al obtener producto ${shippingProduct.id}:`, err);
+      // Obtener los detalles de cada producto desde el backend de stock
+      const productsMap = new Map<number, Product>();
+      const productPromises = shippingData.products.map(async (shippingProduct) => {
+        try {
+          const product = await getProductByIdFromStock(shippingProduct.id, token);
+          if (product) {
+            productsMap.set(shippingProduct.id, product);
           }
-        });
-        await Promise.all(productPromises);
-        setProducts(productsMap);
-      } catch (err: any) {
-        console.error('Error al cargar el envío:', err);
-        setError(err.message || 'Error al cargar los datos del envío');
-      } finally {
-        setLoading(false);
+        } catch (err) {
+          console.error(`Error al obtener producto ${shippingProduct.id}:`, err);
+        }
+      });
+      await Promise.all(productPromises);
+      setProducts(productsMap);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error al cargar el envío:', err);
+      setError(err.message || 'Error al cargar los datos del envío');
+    } finally {
+      setLoading(false);
+    }
+  }, [auth.isAuthenticated, auth.user]);
+
+  useEffect(() => {
+    const shippingIdParam = searchParams.get('id');
+    
+    if (!shippingIdParam) {
+      setError('No se encontró el ID del envío');
+      setLoading(false);
+      return;
+    }
+
+    const shippingId = parseInt(shippingIdParam, 10);
+    if (isNaN(shippingId)) {
+      setError('ID de envío inválido');
+      setLoading(false);
+      return;
+    }
+
+    loadShipping(shippingId);
+  }, [searchParams, auth.isAuthenticated]);
+
+  // Escuchar cambios en el estado del envío (cuando se cancela desde el modal)
+  useEffect(() => {
+    const handleShippingStatusChange = (event: CustomEvent) => {
+      const { shippingId: changedShippingId, shipping: updatedShipping } = event.detail;
+      const currentShippingId = parseInt(searchParams.get('id') || '0', 10);
+      
+      // Si el envío que cambió es el mismo que estamos viendo, refrescar
+      if (changedShippingId === currentShippingId && !isNaN(currentShippingId)) {
+        console.log('[ShippingTracking] Envío cancelado, refrescando datos...');
+        // Actualizar el estado directamente con los datos recibidos
+        if (updatedShipping) {
+          setShipping(updatedShipping);
+        } else {
+          // Si no se recibieron los datos completos, recargar desde el servidor
+          loadShipping(currentShippingId);
+        }
       }
     };
 
-    loadShipping();
-  }, [searchParams, auth.user]);
+    window.addEventListener('shippingStatusChanged', handleShippingStatusChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('shippingStatusChanged', handleShippingStatusChange as EventListener);
+    };
+  }, [searchParams, loadShipping]);
 
   if (loading) {
     return (
