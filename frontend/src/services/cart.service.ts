@@ -3,7 +3,7 @@
  * Consume el endpoint del backend de compras
  */
 
-const CART_API_URL = 'http://localhost:8081/api/cart';
+const CART_API_URL = 'http://localhost:8000/compras/api/cart';
 
 export interface CartItemDto {
   productId: number;

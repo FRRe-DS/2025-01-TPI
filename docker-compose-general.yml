@@ -232,6 +232,21 @@ services:
         condition: service_healthy
 
   # ============================================
+  # Frontend
+  # ============================================
+  frontend:
+    image: ghcr.io/frre-ds/frontend-g01:51ffec7643421701226effbadda4bf4d08008a8d
+    container_name: frontend
+    restart: always
+    ports:
+      - "8004:80"
+    networks:
+      - shared_net
+    depends_on:
+      - api-gateway
+      - keycloak
+
+  # ============================================
   # API Gateway (Nginx)
   # ============================================
   api-gateway:
