@@ -33,8 +33,8 @@ RUN npm run build
 # Stage de producción con nginx
 FROM nginx:alpine
 
-# Copiar archivos buildados
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copiar archivos buildados (React Router v7 genera en build/client)
+COPY --from=builder /app/build/client /usr/share/nginx/html
 
 # Copiar configuración personalizada de nginx
 COPY nginx.conf /etc/nginx/nginx.conf
