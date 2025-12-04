@@ -10,6 +10,7 @@ import { calculateShippingCost, getTransportMethods, type ShippingCostRequest, t
 import { getAccessToken } from "../services/auth/getAccessToken";
 import { useAuth } from "react-oidc-context";
 import { notificationManager } from "../utils/notifications";
+import { getUserOrders, type DeliveryAddress } from "../services/order.service";
 
 function ShippingRoute() {
   const navigate = useNavigate();
@@ -28,6 +29,9 @@ function ShippingRoute() {
     postal_code: '',
     country: 'Argentina'
   });
+  const [previousAddresses, setPreviousAddresses] = useState<DeliveryAddress[]>([]);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState<number | null>(null);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
   // Cargar métodos de transporte al montar el componente
   useEffect(() => {
@@ -41,6 +45,49 @@ function ShippingRoute() {
     };
     loadTransportMethods();
   }, []);
+
+  // Cargar direcciones previas de las órdenes del usuario
+  useEffect(() => {
+    const loadPreviousAddresses = async () => {
+      if (!auth.isAuthenticated || !auth.user) return;
+      
+      setIsLoadingAddresses(true);
+      try {
+        const token = getAccessToken(auth.user);
+        if (!token) {
+          setIsLoadingAddresses(false);
+          return;
+        }
+
+        const ordersResponse = await getUserOrders(token);
+        const orders = ordersResponse.orders || [];
+
+        // Extraer direcciones únicas de las órdenes
+        const addressesMap = new Map<string, DeliveryAddress>();
+        
+        orders.forEach(order => {
+          if (order.deliveryAddress) {
+            // Crear una clave única basada en los datos de la dirección
+            const addressKey = `${order.deliveryAddress.street}|${order.deliveryAddress.city}|${order.deliveryAddress.state}|${order.deliveryAddress.postal_code}`;
+            if (!addressesMap.has(addressKey)) {
+              addressesMap.set(addressKey, order.deliveryAddress);
+            }
+          }
+        });
+
+        // Convertir el Map a un array
+        const uniqueAddresses = Array.from(addressesMap.values());
+        setPreviousAddresses(uniqueAddresses);
+      } catch (error) {
+        console.error('Error loading previous addresses:', error);
+        // No mostrar error al usuario, simplemente no mostrar direcciones previas
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+
+    loadPreviousAddresses();
+  }, [auth.isAuthenticated, auth.user]);
 
   // Validar formato de código postal: LNNNNLLL (1 letra, 4 números, 3 letras)
   // Ejemplo: H3500AAA
@@ -61,8 +108,34 @@ function ShippingRoute() {
     return postalCodeRegex.test(cleaned);
   };
 
+  // Función para formatear dirección como string
+  const formatAddress = (address: DeliveryAddress): string => {
+    return `${address.street}, ${address.city}, ${address.state}, ${address.postal_code}`;
+  };
+
+  // Manejar selección de dirección previa
+  const handleSelectPreviousAddress = (address: DeliveryAddress, index: number) => {
+    setSelectedAddressIndex(index);
+    setDeliveryAddress(address);
+    // Limpiar selección de shipping para recalcular
+    setSelectedShipping(null);
+    setShippingCost(null);
+    setCostsByTransport({});
+  };
+
+  // Manejar selección de formulario manual
+  const handleSelectManualForm = () => {
+    setSelectedAddressIndex(null);
+    // No limpiar el formulario, solo marcar que se está usando
+  };
+
   const handleCalculateShipping = async () => {
-    if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.state || !deliveryAddress.postal_code) {
+    // Determinar qué dirección usar
+    const addressToUse = selectedAddressIndex !== null 
+      ? previousAddresses[selectedAddressIndex]
+      : deliveryAddress;
+
+    if (!addressToUse.street || !addressToUse.city || !addressToUse.state || !addressToUse.postal_code) {
       notificationManager.warning(
         'Campos incompletos',
         'Por favor, completa todos los campos de la dirección de entrega'
@@ -71,7 +144,7 @@ function ShippingRoute() {
     }
 
     // Validar formato del código postal
-    if (!validatePostalCode(deliveryAddress.postal_code)) {
+    if (!validatePostalCode(addressToUse.postal_code)) {
       notificationManager.error(
         'Código postal inválido',
         'El código postal debe tener el formato LNNNNLLL (1 letra, 4 números, 3 letras). Ejemplo: H3500AAA'
@@ -90,10 +163,10 @@ function ShippingRoute() {
       // El endpoint /shipping/cost NO acepta transport_type en el request
       // El backend elige automáticamente el método de transporte
       // Limpiar y normalizar el código postal antes de enviarlo
-      const cleanedPostalCode = deliveryAddress.postal_code.trim().toUpperCase();
+      const cleanedPostalCode = addressToUse.postal_code.trim().toUpperCase();
       const request: ShippingCostRequest = {
         delivery_address: {
-          ...deliveryAddress,
+          ...addressToUse,
           postal_code: cleanedPostalCode
         },
         products: items.map(item => ({
@@ -139,9 +212,14 @@ function ShippingRoute() {
       return;
     }
     
+    // Determinar qué dirección usar para guardar
+    const addressToSave = selectedAddressIndex !== null 
+      ? previousAddresses[selectedAddressIndex]
+      : deliveryAddress;
+
     // Guardar datos de shipping en localStorage para usarlos en el paso de pago
     localStorage.setItem('shipping_data', JSON.stringify({
-      deliveryAddress,
+      deliveryAddress: addressToSave,
       transportType: selectedShipping,
       shippingCost
     }));
@@ -176,11 +254,66 @@ function ShippingRoute() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            {/* Direcciones de otros envíos */}
+            {previousAddresses.length > 0 && (
+              <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
+                <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  Direcciones de otros envíos
+                </h2>
+                <div className="space-y-3">
+                  {previousAddresses.map((address, index) => {
+                    const isSelected = selectedAddressIndex === index;
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => handleSelectPreviousAddress(address, index)}
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                          isSelected
+                            ? isDark
+                              ? 'border-blue-400 bg-blue-900/30'
+                              : 'border-blue-600 bg-blue-50'
+                            : isDark
+                              ? 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+                              : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                        }`}
+                      >
+                        <div className={`font-medium ${
+                          isDark ? 'text-white' : 'text-gray-800'
+                        }`}>
+                          {formatAddress(address)}
+                        </div>
+                        {isSelected && (
+                          <div className={`mt-2 text-sm ${
+                            isDark ? 'text-blue-300' : 'text-blue-600'
+                          }`}>
+                            ✓ Dirección seleccionada
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Dirección de Entrega */}
-            <div className={`rounded-lg shadow-lg p-6 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
+            <div className={`rounded-lg shadow-lg p-6 ${
+              isDark ? 'bg-white/5' : 'bg-white'
+            } ${
+              selectedAddressIndex === null 
+                ? isDark 
+                  ? 'border-2 border-blue-400' 
+                  : 'border-2 border-blue-600'
+                : ''
+            }`}>
               <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                 Dirección de Entrega
               </h2>
+              {selectedAddressIndex === null && (
+                <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Completa el formulario para ingresar una nueva dirección
+                </p>
+              )}
               <div className="space-y-4">
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-700'}`}>
@@ -189,7 +322,10 @@ function ShippingRoute() {
                   <input
                     type="text"
                     value={deliveryAddress.street}
-                    onChange={(e) => setDeliveryAddress({ ...deliveryAddress, street: e.target.value })}
+                    onChange={(e) => {
+                      handleSelectManualForm();
+                      setDeliveryAddress({ ...deliveryAddress, street: e.target.value });
+                    }}
                     className={`w-full px-4 py-2 rounded-lg border ${
                       isDark 
                         ? 'bg-gray-800 border-gray-700 text-white' 
@@ -206,7 +342,10 @@ function ShippingRoute() {
                     <input
                       type="text"
                       value={deliveryAddress.city}
-                      onChange={(e) => setDeliveryAddress({ ...deliveryAddress, city: e.target.value })}
+                      onChange={(e) => {
+                        handleSelectManualForm();
+                        setDeliveryAddress({ ...deliveryAddress, city: e.target.value });
+                      }}
                       className={`w-full px-4 py-2 rounded-lg border ${
                         isDark 
                           ? 'bg-gray-800 border-gray-700 text-white' 
@@ -222,7 +361,10 @@ function ShippingRoute() {
                     <input
                       type="text"
                       value={deliveryAddress.state}
-                      onChange={(e) => setDeliveryAddress({ ...deliveryAddress, state: e.target.value })}
+                      onChange={(e) => {
+                        handleSelectManualForm();
+                        setDeliveryAddress({ ...deliveryAddress, state: e.target.value });
+                      }}
                       className={`w-full px-4 py-2 rounded-lg border ${
                         isDark 
                           ? 'bg-gray-800 border-gray-700 text-white' 
@@ -240,6 +382,7 @@ function ShippingRoute() {
                     type="text"
                     value={deliveryAddress.postal_code}
                     onChange={(e) => {
+                      handleSelectManualForm();
                       // Convertir a mayúsculas automáticamente
                       const upperValue = e.target.value.toUpperCase();
                       setDeliveryAddress({ ...deliveryAddress, postal_code: upperValue });
