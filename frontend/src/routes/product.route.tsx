@@ -6,6 +6,7 @@ import { useAuth } from 'react-oidc-context';
 import { type Product, getProductById, getProductByIdFromStock, getProductVariant, getRelatedProducts, calculateTransferPrice, calculateInstallmentPrice } from '../services/product.service';
 import { getAccessToken } from '../services/auth/getAccessToken';
 import { useCart } from '../contexts/CartContext';
+import { notificationManager } from '../utils/notifications';
 import './product.css';
 
 export default function ProductPage() {
@@ -149,9 +150,12 @@ export default function ProductPage() {
       
       // Reset animation state
       setTimeout(() => setCartAnimating(false), 300);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding to cart:', error);
-      alert('Error al agregar el producto al carrito. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al agregar producto',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     } finally {
       setIsAddingToCart(false);
     }

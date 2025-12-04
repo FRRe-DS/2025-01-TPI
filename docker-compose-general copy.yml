@@ -4,34 +4,13 @@ services:
   # ============================================
   # Backend Compras
   # ============================================
-  compras_postgres:
-    image: postgres:16.2
-    container_name: compras_postgres
-    restart: always
-    environment:
-      POSTGRES_DB: ds_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - compras_postgres_data:/var/lib/postgresql/data
-    networks:
-      - shared_net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ds_db"]
-      interval: 3s
-      timeout: 5s
-      retries: 20
-      start_period: 10s
-
   compras:
     image: ghcr.io/frre-ds/backend-compras-g01:90dfef68b8ae38b925b68ff521de861163f5f62c
     container_name: compras
     restart: always
     environment:
       PORT: 8081
-      DATABASE_URL: postgresql://postgres:postgres@compras_postgres:5432/ds_db?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ds_db?schema=public
       # Para obtener JWKS desde el contenedor, usar keycloak:8080
       # Para validar, normalizaremos a localhost:8080 para que coincida con el token
       KEYCLOAK_ISSUER: http://keycloak:8080/realms/ds-2025-realm
@@ -40,10 +19,7 @@ services:
     networks:
       - shared_net
     depends_on:
-      compras_postgres:
-        condition: service_healthy
-      keycloak:
-        condition: service_started
+      - keycloak
 
   # ============================================
   # Backend Stock con PostgreSQL (el código usa 'pg')
@@ -56,7 +32,6 @@ services:
       POSTGRES_DB: shipping_db
       POSTGRES_USER: shipping_user
       POSTGRES_PASSWORD: shipping_pass
-      
     ports:
       - "5433:5432"
     volumes:
@@ -75,29 +50,20 @@ services:
 
   stock_back:
     # image: ghcr.io/frre-ds/2025-grupo-11-backend-stock:c56e28f4480813ce138b2659c3aa706f4dc2a951
-    image: ghcr.io/frre-ds/2025-grupo-11-backend-stock:38d12396b5830f23f18092a04d87d2c7430d5133
-    # Esta imagen es la que funciona
-    # image: ghcr.io/frre-ds/2025-grupo-11-backend-stock:f5ff36db6851a291c436acc38baae82805c39c67
+    image: ghcr.io/frre-ds/2025-grupo-11-backend-stock:f5ff36db6851a291c436acc38baae82805c39c67
     container_name: stock_back
     restart: always
     environment:
-      # Database - variables individuales para Next.js
+      # Variables para el código Next.js que usa PostgreSQL
       DB_HOST: stock_postgres
       DB_PORT: 5432
       DB_NAME: shipping_db
       DB_USER: shipping_user
       DB_PASSWORD: shipping_pass
-      # Database URL (compatible con Prisma y otros)
-      DATABASE_URL: postgresql://shipping_user:shipping_pass@stock_postgres:5432/shipping_db
-      # Server
       PORT: 8082
       SERVER_PORT: 8082
       # Keycloak configuration - usar localhost:8080 porque el proxy lo redirige a keycloak:8080
-      # El token tiene issuer http://localhost:8080, por lo que debemos validar contra localhost:8080
       KEYCLOAK_ISSUER: http://localhost:8080/realms/ds-2025-realm
-      KEYCLOAK_REALM: ds-2025-realm
-      KEYCLOAK_CLIENT_ID: grupo-11
-      KEYCLOAK_CLIENT_SECRET: ef7f0900-8de5-46c0-b813-ce76d61e0158
     ports:
       - "8082:8082"
     networks:
@@ -253,8 +219,6 @@ services:
       - logistica_back
 
 volumes:
-  compras_postgres_data:
-    driver: local
   stock_postgres_data:
     driver: local
   logistica_mysql_data:

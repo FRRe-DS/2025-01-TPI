@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "../contexts/ThemeContext";
 import { useCart } from "../contexts/CartContext";
 import { CheckoutSteps } from "../components/CheckoutSteps";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getOrderById, type OrderResponse } from "../services/order.service";
 import { getAccessToken } from "../services/auth/getAccessToken";
 import { useAuth } from "react-oidc-context";
@@ -21,6 +21,7 @@ function ConfirmationRoute() {
   const [products, setProducts] = useState<Map<number, Product>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const cartClearedRef = useRef(false);
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -65,8 +66,11 @@ function ConfirmationRoute() {
         await Promise.all(productPromises);
         setProducts(productsMap);
         
-        // Limpiar el carrito después de cargar la orden
-        clearCart();
+        // Limpiar el carrito solo una vez después de cargar la orden exitosamente
+        if (!cartClearedRef.current) {
+          await clearCart();
+          cartClearedRef.current = true;
+        }
       } catch (err: any) {
         console.error('Error al cargar la orden:', err);
         setError(err.message || 'Error al cargar los datos de la orden');
@@ -76,7 +80,7 @@ function ConfirmationRoute() {
     };
 
     loadOrder();
-  }, [searchParams, auth.user, clearCart]);
+  }, [searchParams, auth.user]);
 
   if (loading) {
     return (

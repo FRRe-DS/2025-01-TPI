@@ -25,6 +25,7 @@ export interface ReservationResponse {
   estado: string;
   expiresAt: string;
   fechaCreacion: string;
+  fechaActualizacion?: string;
   productos?: Array<{
     idProducto: number;
     nombre: string;
@@ -33,50 +34,70 @@ export interface ReservationResponse {
   }>;
 }
 
+export interface ReservationError {
+  code: string;
+  message: string;
+  details?: string;
+}
+
 /**
  * Crea una nueva reserva de stock
- * No requiere autenticación según la documentación
+ * Requiere autenticación con Bearer Token y scope: reservas:write
+ * 
+ * @param request - Datos de la reserva (idCompra, usuarioId, productos)
+ * @param token - JWT token con scope reservas:write
+ * @returns Respuesta con idReserva, estado, expiresAt, etc.
+ * @throws Error si hay stock insuficiente, producto no encontrado, o problemas de autenticación
  */
 export async function createReservation(
-  reservationData: CreateReservationRequest
+  request: CreateReservationRequest,
+  token: string
 ): Promise<ReservationResponse> {
   try {
-    console.log('[ReservationService] Enviando request a:', `${STOCK_API_URL}/reservas`);
-    console.log('[ReservationService] Payload:', JSON.stringify(reservationData, null, 2));
-    
     const response = await fetch(`${STOCK_API_URL}/reservas`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(reservationData),
+      body: JSON.stringify(request),
     });
 
-    const responseText = await response.text();
-    console.log('[ReservationService] Response status:', response.status);
-    console.log('[ReservationService] Response body:', responseText);
-
     if (!response.ok) {
-      let errorData;
-      try {
-        errorData = JSON.parse(responseText);
-      } catch {
-        errorData = { message: responseText || response.statusText };
+      const errorData: ReservationError = await response.json().catch(() => ({
+        code: 'UNKNOWN_ERROR',
+        message: response.statusText,
+      }));
+      
+      // Manejo específico de errores según la documentación
+      if (response.status === 401) {
+        throw new Error('No autorizado. Por favor, inicia sesión nuevamente.');
       }
       
-      if (response.status === 400) {
-        // El backend puede devolver un mensaje específico sobre qué producto no existe
-        const errorMessage = errorData.message || errorData.code || 'Error al crear la reserva';
-        throw new Error(errorMessage);
+      if (response.status === 403) {
+        throw new Error('No tienes permisos para crear reservas. Se requiere el scope: reservas:write');
       }
-      throw new Error(errorData.message || `Error al crear la reserva: ${response.status} ${response.statusText}`);
+      
+      if (errorData.code === 'INSUFFICIENT_STOCK') {
+        throw new Error(errorData.message || 'Stock insuficiente para uno o más productos');
+      }
+      
+      if (errorData.code === 'PRODUCT_NOT_FOUND') {
+        throw new Error(errorData.message || 'Uno o más productos no existen');
+      }
+      
+      throw new Error(errorData.message || `Error al crear la reserva: ${response.status}`);
     }
 
-    const data = JSON.parse(responseText);
+    // El endpoint retorna 201 Created según la documentación
+    if (response.status !== 201) {
+      console.warn(`[createReservation] Respuesta inesperada: ${response.status}`);
+    }
+
+    const data = await response.json();
     return data;
   } catch (error: any) {
     console.error('[createReservation] Error:', error);
     throw error;
   }
 }
-

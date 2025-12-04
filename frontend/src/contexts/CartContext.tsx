@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from 'react-oidc-context';
 import { type Product, getProductByIdFromStock } from '../services/product.service';
@@ -219,7 +219,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     if (!auth.isAuthenticated || !auth.user) {
       console.warn('[CartContext] User not authenticated, cannot clear cart');
       return;
@@ -238,7 +238,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       console.error('[CartContext] Error clearing cart:', error);
       throw error;
     }
-  };
+  }, [auth.isAuthenticated, auth.user]);
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0);
   };

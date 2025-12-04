@@ -8,9 +8,11 @@ import { useCart } from "../contexts/CartContext";
 import { CheckoutSteps } from "../components/CheckoutSteps";
 import { createShipping, type CreateShippingRequest } from "../services/shipping.service";
 import { createOrder, type CreateOrderRequest } from "../services/order.service";
+import { createReservation, type CreateReservationRequest } from "../services/reservation.service";
 import { getAccessToken } from "../services/auth/getAccessToken";
 import { getUserId } from "../services/auth/getUserId";
 import { useAuth } from "react-oidc-context";
+import { notificationManager } from "../utils/notifications";
 
 interface ShippingData {
   deliveryAddress: {
@@ -88,9 +90,11 @@ function PaymentRoute() {
         throw new Error('No se pudo obtener el ID del usuario');
       }
 
-      // Generar un order_id único (usando timestamp)
-      const orderId = Date.now();
-      const idCompra = `compra-${orderId}`;
+      // Generar un order_id único compatible con INT (máximo 2,147,483,647)
+      // Usamos los últimos 9 dígitos del timestamp para mantener unicidad
+      const timestamp = Date.now();
+      const orderId = parseInt(timestamp.toString().slice(-9), 10); // Últimos 9 dígitos
+      const idCompra = `compra-${timestamp}`;
       
       // Validar que todos los productos tengan IDs válidos
       const invalidProducts = items.filter(item => !item.product || !item.product.id);
@@ -98,13 +102,53 @@ function PaymentRoute() {
         throw new Error('Algunos productos no tienen un ID válido. Por favor, actualiza tu carrito.');
       }
       
-      // PASO 1: Crear envío en logística (antes de confirmar el pago)
+      // PASO 1: Crear reserva en stock (antes de crear el envío)
+      let reservationResponse;
+      try {
+        const reservationRequest: CreateReservationRequest = {
+          idCompra: idCompra,
+          usuarioId: userId,
+          productos: items.map(item => ({
+            idProducto: item.product.id,
+            cantidad: item.quantity
+          }))
+        };
+        
+        reservationResponse = await createReservation(reservationRequest, token);
+      } catch (reservationError: any) {
+        console.error('Error al crear reserva:', reservationError);
+        const errorMessage = reservationError.message || 'No se pudo crear la reserva de stock';
+        notificationManager.error(
+          'Error al reservar stock',
+          `${errorMessage}. Por favor, verifica que haya stock disponible e intenta nuevamente.`
+        );
+        throw new Error(errorMessage);
+      }
+      
+      // PASO 2: Si la reserva fue exitosa, crear envío en logística
       let shippingResponse;
       try {
+        // Asegurar que delivery_address tenga el formato correcto con todos los campos requeridos
+        const delivery_address = {
+          street: shippingData.deliveryAddress.street,
+          city: shippingData.deliveryAddress.city,
+          state: shippingData.deliveryAddress.state,
+          postal_code: shippingData.deliveryAddress.postal_code,
+          country: shippingData.deliveryAddress.country || 'Argentina'
+        };
+        
+        // Asegurar que user_id y order_id sean números
+        const userIdNumber = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+        const orderIdNumber = typeof orderId === 'string' ? parseInt(orderId, 10) : orderId;
+        
+        if (isNaN(userIdNumber) || isNaN(orderIdNumber)) {
+          throw new Error('user_id o order_id no son números válidos');
+        }
+        
         const shippingRequest: CreateShippingRequest = {
-          user_id: userId,
-          order_id: orderId,
-          delivery_address: shippingData.deliveryAddress,
+          user_id: userIdNumber,
+          order_id: orderIdNumber,
+          delivery_address: delivery_address,
           transport_type: shippingData.transportType as 'air' | 'sea' | 'road' | 'rail',
           products: items.map(item => ({
             id: item.product.id,
@@ -112,15 +156,19 @@ function PaymentRoute() {
           }))
         };
         
+        console.log('[PaymentRoute] Creando envío con request:', JSON.stringify(shippingRequest, null, 2));
         shippingResponse = await createShipping(shippingRequest, token);
       } catch (shippingError: any) {
         console.error('Error al crear envío:', shippingError);
         const errorMessage = shippingError.message || 'No se pudo crear el envío';
-        alert(`Error al crear envío: ${errorMessage}\n\nPor favor, intenta nuevamente.`);
+        notificationManager.error(
+          'Error al crear envío',
+          `${errorMessage}. Por favor, intenta nuevamente.`
+        );
         throw new Error(errorMessage);
       }
       
-      // PASO 2: Si el envío fue exitoso, crear la orden en nuestro backend
+      // PASO 3: Si el envío fue exitoso, crear la orden en nuestro backend
       const orderRequest: CreateOrderRequest = {
         shippingId: shippingResponse.shipping_id,
         transportType: shippingData.transportType as 'air' | 'sea' | 'road' | 'rail',
@@ -143,9 +191,12 @@ function PaymentRoute() {
       
       // Redirigir a la página de confirmación con el orderId
       navigate(`/shopcart/confirmation?orderId=${orderResponse.orderId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al procesar pago y crear envío:', error);
-      alert('Error al procesar el pago. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al procesar el pago',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
       setIsProcessing(false);
     }
   };

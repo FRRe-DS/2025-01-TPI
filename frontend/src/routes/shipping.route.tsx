@@ -9,6 +9,7 @@ import { CheckoutSteps } from "../components/CheckoutSteps";
 import { calculateShippingCost, getTransportMethods, type ShippingCostRequest, type TransportMethod } from "../services/shipping.service";
 import { getAccessToken } from "../services/auth/getAccessToken";
 import { useAuth } from "react-oidc-context";
+import { notificationManager } from "../utils/notifications";
 
 function ShippingRoute() {
   const navigate = useNavigate();
@@ -43,7 +44,10 @@ function ShippingRoute() {
 
   const handleCalculateShipping = async () => {
     if (!deliveryAddress.street || !deliveryAddress.city || !deliveryAddress.state || !deliveryAddress.postal_code) {
-      alert('Por favor, completa todos los campos de la dirección de entrega');
+      notificationManager.warning(
+        'Campos incompletos',
+        'Por favor, completa todos los campos de la dirección de entrega'
+      );
       return;
     }
 
@@ -75,9 +79,12 @@ function ShippingRoute() {
       setCostsByTransport({ [selectedTransportType]: cost });
       setSelectedShipping(selectedTransportType);
       setShippingCost(cost);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error calculating shipping:', error);
-      alert('Error al calcular el costo de envío. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al calcular envío',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     } finally {
       setIsCalculating(false);
     }
@@ -85,11 +92,17 @@ function ShippingRoute() {
 
   const handleContinue = () => {
     if (!selectedShipping) {
-      alert('Por favor, selecciona una forma de envío');
+      notificationManager.warning(
+        'Selección requerida',
+        'Por favor, selecciona una forma de envío'
+      );
       return;
     }
     if (shippingCost === null) {
-      alert('Por favor, calcula el costo de envío primero');
+      notificationManager.warning(
+        'Cálculo requerido',
+        'Por favor, calcula el costo de envío primero'
+      );
       return;
     }
     

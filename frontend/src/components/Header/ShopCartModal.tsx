@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useCart } from "../../contexts/CartContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { notificationManager } from "../../utils/notifications";
 
 export default function ShopCartModal() {
   const navigate = useNavigate();
@@ -63,9 +64,12 @@ export default function ShopCartModal() {
   const handleIncreaseQuantity = async (itemId: string, currentQuantity: number) => {
     try {
       await updateQuantity(itemId, currentQuantity + 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating quantity:', error);
-      alert('Error al actualizar la cantidad. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al actualizar cantidad',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     }
   };
 
@@ -76,9 +80,12 @@ export default function ShopCartModal() {
       } else {
         await removeItem(itemId);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating quantity:', error);
-      alert('Error al actualizar la cantidad. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al actualizar cantidad',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     }
   };
 

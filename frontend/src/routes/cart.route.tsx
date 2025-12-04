@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { CheckoutSteps } from "../components/CheckoutSteps";
+import { notificationManager } from "../utils/notifications";
 
 function CartRoute() {
   const navigate = useNavigate();
@@ -16,9 +17,12 @@ function CartRoute() {
   const handleIncreaseQuantity = async (itemId: string, currentQuantity: number) => {
     try {
       await updateQuantity(itemId, currentQuantity + 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating quantity:', error);
-      alert('Error al actualizar la cantidad. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al actualizar cantidad',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     }
   };
 
@@ -29,9 +33,12 @@ function CartRoute() {
       } else {
         await removeItem(itemId);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating quantity:', error);
-      alert('Error al actualizar la cantidad. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al actualizar cantidad',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     }
   };
 
@@ -43,9 +50,12 @@ function CartRoute() {
     setIsClearing(true);
     try {
       await clearCart();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error clearing cart:', error);
-      alert('Error al vaciar el carrito. Por favor, intenta nuevamente.');
+      notificationManager.error(
+        'Error al vaciar carrito',
+        error.message || 'Por favor, intenta nuevamente.'
+      );
     } finally {
       setIsClearing(false);
     }

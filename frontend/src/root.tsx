@@ -16,6 +16,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { NavigationProvider } from "./contexts/NavigationContext";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { GlobalTransition } from "./components/GlobalTransition";
+import Notifications from "./components/Notifications";
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -69,6 +70,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Header/>
                 {children}
                 <GlobalTransition />
+                <Notifications />
               </NavigationProvider>
             </ThemeProvider>
           </CartProvider>

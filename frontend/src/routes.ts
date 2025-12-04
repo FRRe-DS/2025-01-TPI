@@ -10,6 +10,7 @@ export default [
   route("/shopcart/shipping", "./routes/shipping.route.tsx"),
   route("/shopcart/payment", "./routes/payment.route.tsx"),
   route("/shopcart/confirmation", "./routes/confirmation.route.tsx"),
+  route("/shipping/tracking", "./routes/shipping-tracking.route.tsx"),
   route("/product/:id", "./routes/product.route.tsx"),
   // Ruta específica para Chrome DevTools (retorna null silenciosamente)
   route("/.well-known/*", "./routes/well-known.route.tsx"),

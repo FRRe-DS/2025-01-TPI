@@ -5,16 +5,23 @@ import { ThemeToggle } from "../ThemeToggle";
 import { getUserOrders, type OrderResponse } from "../../services/order.service";
 import { getAccessToken } from "../../services/auth/getAccessToken";
 import { getProductByIdFromStock, type Product } from "../../services/product.service";
+import { getShippingById, translateShippingStatus, getShippingStatusColor, cancelShipping, type ShippingDetailResponse } from "../../services/shipping.service";
+import { useNavigate } from "react-router";
+import { notificationManager } from "../../utils/notifications";
 
 export default function UserModal() {
   const auth = useAuth();
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [products, setProducts] = useState<Map<number, Product>>(new Map());
+  const [shippings, setShippings] = useState<Map<number, ShippingDetailResponse>>(new Map());
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [cancellingShippingId, setCancellingShippingId] = useState<number | null>(null);
+  const [confirmCancelShippingId, setConfirmCancelShippingId] = useState<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Cerrar el modal del carrito cuando se abre este
@@ -80,6 +87,9 @@ export default function UserModal() {
       const ordersData = await getUserOrders(token);
       setOrders(ordersData.orders || []);
       
+      console.log('[UserModal] Órdenes cargadas:', ordersData.orders?.length);
+      console.log('[UserModal] Órdenes con shippingId:', ordersData.orders?.filter(o => o.shippingId).map(o => ({ orderId: o.orderId, shippingId: o.shippingId })));
+      
       // Obtener detalles de productos para cada orden
       const productsMap = new Map<number, Product>();
       const productPromises: Promise<void>[] = [];
@@ -104,9 +114,37 @@ export default function UserModal() {
       
       await Promise.all(productPromises);
       setProducts(productsMap);
+      
+      // Obtener detalles de envíos para órdenes que tengan shippingId
+      const shippingMap = new Map<number, ShippingDetailResponse>();
+      const shippingPromises: Promise<void>[] = [];
+      
+      ordersData.orders?.forEach(order => {
+        if (order.shippingId && !shippingMap.has(order.shippingId)) {
+          shippingPromises.push(
+            getShippingById(order.shippingId, token)
+              .then(shipping => {
+                shippingMap.set(order.shippingId!, shipping);
+              })
+              .catch(err => {
+                console.error(`Error al obtener envío ${order.shippingId}:`, err);
+                // No fallar si no se puede obtener el envío, simplemente no lo mostramos
+              })
+          );
+        }
+      });
+      
+      await Promise.all(shippingPromises);
+      setShippings(shippingMap);
+      
+      console.log('[UserModal] Envíos cargados:', shippingMap.size, 'de', ordersData.orders?.filter(o => o.shippingId).length);
     } catch (error: any) {
       console.error('Error al cargar órdenes:', error);
       setOrdersError(error.message || 'Error al cargar las órdenes');
+      notificationManager.error(
+        'Error al cargar pedidos',
+        error.message || 'No se pudieron cargar tus pedidos. Por favor, intenta nuevamente.'
+      );
     } finally {
       setLoadingOrders(false);
     }
@@ -116,6 +154,66 @@ export default function UserModal() {
     setShowModal(false);
     auth.removeUser();
     auth.signoutRedirect();
+  };
+
+  const handleViewTracking = (shippingId: number) => {
+    setShowOrdersModal(false);
+    navigate(`/shipping/tracking?id=${shippingId}`);
+  };
+
+  const handleCancelShipping = (shippingId: number) => {
+    setConfirmCancelShippingId(shippingId);
+  };
+
+  const confirmCancelShipping = async () => {
+    const shippingId = confirmCancelShippingId;
+    if (!shippingId) return;
+
+    if (!auth.user) {
+      notificationManager.error(
+        'Error de autenticación',
+        'Usuario no autenticado. Por favor, inicia sesión nuevamente.'
+      );
+      setConfirmCancelShippingId(null);
+      return;
+    }
+
+    setConfirmCancelShippingId(null);
+    setCancellingShippingId(shippingId);
+    try {
+      const token = getAccessToken(auth.user);
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      await cancelShipping(shippingId, token);
+      
+      // Recargar los envíos
+      const updatedShipping = await getShippingById(shippingId, token);
+      setShippings(prev => {
+        const newMap = new Map(prev);
+        newMap.set(shippingId, updatedShipping);
+        return newMap;
+      });
+
+      // Mostrar notificación de éxito
+      notificationManager.success(
+        'Envío cancelado',
+        'El envío ha sido cancelado exitosamente.'
+      );
+    } catch (error: any) {
+      console.error('Error al cancelar envío:', error);
+      notificationManager.error(
+        'Error al cancelar envío',
+        error.message || 'No se pudo cancelar el envío. Por favor, intenta nuevamente.'
+      );
+    } finally {
+      setCancellingShippingId(null);
+    }
+  };
+
+  const canCancelShipping = (status: string): boolean => {
+    return status === 'created' || status === 'reserved';
   };
 
   return (
@@ -148,6 +246,75 @@ export default function UserModal() {
               Cerrar sesión
             </button>
           </div>
+      )}
+
+      {/* Modal de Confirmación para Cancelar Envío */}
+      {confirmCancelShippingId && (
+        <div 
+          onClick={() => setConfirmCancelShippingId(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '1rem'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: '1rem',
+              padding: '2rem',
+              maxWidth: '400px',
+              width: '100%',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            <h3 style={{ color: '#032d70', fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>
+              Confirmar cancelación
+            </h3>
+            <p style={{ color: '#374151', marginBottom: '1.5rem' }}>
+              ¿Estás seguro de que deseas cancelar este envío? Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConfirmCancelShippingId(null)}
+                style={{
+                  padding: '0.5rem 1.5rem',
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmCancelShipping}
+                style={{
+                  padding: '0.5rem 1.5rem',
+                  background: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal de Perfil */}
@@ -257,19 +424,41 @@ export default function UserModal() {
                       style={{
                         border: '1px solid #e5e7eb',
                         borderRadius: '0.5rem',
-                        padding: '1.5rem',
-                        background: '#f9fafb'
+                        padding: '1rem',
+                        background: 'white'
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        <div>
-                          <p style={{ fontWeight: 600, color: '#032d70', margin: 0 }}>
-                            Orden #{order.orderId}
-                          </p>
-                          <p style={{ fontSize: '0.875rem', color: '#666', margin: '0.25rem 0 0 0' }}>
+                      {/* Header compacto */}
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'flex-start',
+                        marginBottom: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        borderBottom: '1px solid #e5e7eb'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <p style={{ fontWeight: 600, color: '#032d70', margin: 0, fontSize: '0.9375rem' }}>
+                              Orden #{order.orderId}
+                            </p>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '0.125rem 0.5rem',
+                              borderRadius: '0.25rem',
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              backgroundColor: '#f3f4f6',
+                              color: '#374151',
+                              textTransform: 'capitalize'
+                            }}>
+                              {order.status}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
                             {new Date(order.createdAt).toLocaleDateString('es-AR', {
                               year: 'numeric',
-                              month: 'long',
+                              month: 'short',
                               day: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit'
@@ -277,62 +466,170 @@ export default function UserModal() {
                           </p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontWeight: 600, color: '#032d70', margin: 0 }}>
+                          <p style={{ fontWeight: 700, color: '#032d70', margin: 0, fontSize: '1.125rem' }}>
                             ${total.toLocaleString('es-AR')}
-                          </p>
-                          <p style={{ fontSize: '0.875rem', color: '#666', margin: '0.25rem 0 0 0', textTransform: 'capitalize' }}>
-                            {order.status}
                           </p>
                         </div>
                       </div>
                       
-                      <div style={{ marginBottom: '1rem' }}>
-                        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
-                          Productos:
-                        </p>
+                      {/* Productos compactos */}
+                      <div style={{ marginBottom: '0.75rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           {order.products.map((orderProduct) => {
                             const product = products.get(orderProduct.productId);
                             const productName = product?.nombre || `Producto #${orderProduct.productId}`;
+                            const mainImage = product?.imagenes && product.imagenes.length > 0
+                              ? product.imagenes[0].url
+                              : `https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80`;
                             
                             return (
                               <div 
                                 key={orderProduct.productId}
                                 style={{
                                   display: 'flex',
-                                  justifyContent: 'space-between',
-                                  fontSize: '0.875rem',
-                                  color: '#666'
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                  padding: '0.5rem',
+                                  background: '#f9fafb',
+                                  borderRadius: '0.375rem'
                                 }}
                               >
-                                <span>
-                                  {productName} x {orderProduct.quantity}
-                                </span>
-                                <span style={{ fontWeight: 600 }}>
-                                  ${(orderProduct.price * orderProduct.quantity).toLocaleString('es-AR')}
-                                </span>
+                                <img
+                                  src={mainImage}
+                                  alt={productName}
+                                  style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    objectFit: 'cover',
+                                    borderRadius: '0.25rem',
+                                    flexShrink: 0
+                                  }}
+                                />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <p style={{ 
+                                    fontSize: '0.8125rem', 
+                                    fontWeight: 500, 
+                                    color: '#374151',
+                                    margin: 0,
+                                    marginBottom: '0.125rem',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}>
+                                    {productName}
+                                  </p>
+                                  <p style={{ 
+                                    fontSize: '0.75rem', 
+                                    color: '#6b7280',
+                                    margin: 0
+                                  }}>
+                                    {orderProduct.quantity} × ${orderProduct.price.toLocaleString('es-AR')}
+                                  </p>
+                                </div>
+                                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                  <p style={{ 
+                                    fontSize: '0.8125rem', 
+                                    fontWeight: 600, 
+                                    color: '#032d70',
+                                    margin: 0
+                                  }}>
+                                    ${(orderProduct.price * orderProduct.quantity).toLocaleString('es-AR')}
+                                  </p>
+                                </div>
                               </div>
                             );
                           })}
                         </div>
                       </div>
                       
-                      {order.deliveryAddress && (
+                      {/* Información de envío y acciones */}
+                      {order.shippingId ? (
                         <div style={{ 
                           padding: '0.75rem',
-                          background: 'white',
+                          background: '#f9fafb',
                           borderRadius: '0.375rem',
-                          fontSize: '0.875rem',
-                          color: '#666'
+                          border: '1px solid #e5e7eb'
                         }}>
-                          <p style={{ fontWeight: 600, marginBottom: '0.25rem', color: '#374151' }}>
-                            Dirección de entrega:
-                          </p>
-                          <p style={{ margin: 0 }}>
-                            {order.deliveryAddress.street}, {order.deliveryAddress.city}, {order.deliveryAddress.state}
-                          </p>
+                          {shippings.has(order.shippingId) ? (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                              <div>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>
+                                  Estado del envío:
+                                </p>
+                                <span style={{
+                                  display: 'inline-block',
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '0.25rem',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600,
+                                  color: '#1f2937',
+                                  backgroundColor: getShippingStatusColor(shippings.get(order.shippingId)!.status) + '40',
+                                  border: `1px solid ${getShippingStatusColor(shippings.get(order.shippingId)!.status)}`
+                                }}>
+                                  {translateShippingStatus(shippings.get(order.shippingId)!.status)}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <button
+                                  onClick={() => handleViewTracking(order.shippingId!)}
+                                  style={{
+                                    padding: '0.375rem 0.75rem',
+                                    fontSize: '0.75rem',
+                                    background: '#032d70',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '0.25rem',
+                                    cursor: 'pointer',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  Ver Seguimiento
+                                </button>
+                                {canCancelShipping(shippings.get(order.shippingId)!.status) && (
+                                  <button
+                                    onClick={() => handleCancelShipping(order.shippingId!)}
+                                    disabled={cancellingShippingId === order.shippingId}
+                                    style={{
+                                      padding: '0.375rem 0.75rem',
+                                      fontSize: '0.75rem',
+                                      background: cancellingShippingId === order.shippingId ? '#9ca3af' : '#dc2626',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '0.25rem',
+                                      cursor: cancellingShippingId === order.shippingId ? 'not-allowed' : 'pointer',
+                                      fontWeight: 500,
+                                      opacity: cancellingShippingId === order.shippingId ? 0.6 : 1
+                                    }}
+                                  >
+                                    {cancellingShippingId === order.shippingId ? 'Cancelando...' : 'Cancelar'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>
+                                Cargando estado del envío...
+                              </span>
+                              <button
+                                onClick={() => handleViewTracking(order.shippingId!)}
+                                style={{
+                                  padding: '0.375rem 0.75rem',
+                                  fontSize: '0.75rem',
+                                  background: '#032d70',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '0.25rem',
+                                  cursor: 'pointer',
+                                  fontWeight: 500
+                                }}
+                              >
+                                Ver Seguimiento
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })}

@@ -1,5 +1,4 @@
 -- PostgreSQL Database Schema for Stock Management System
--- Updated on 2025-12-03 to ensure consistency
 
 -- Create database (run this manually first)
 -- CREATE DATABASE stock_management;
@@ -66,7 +65,6 @@ CREATE TABLE reserva_productos (
     id SERIAL PRIMARY KEY,
     reserva_id INTEGER NOT NULL,
     producto_id INTEGER NOT NULL,
-    producto_nombre VARCHAR(255) NOT NULL,
     cantidad INTEGER NOT NULL CHECK (cantidad > 0),
     precio_unitario DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -488,6 +486,8 @@ INSERT INTO producto_categorias (producto_id, categoria_id) VALUES
     (31, 14), -- Vitaminas -> Salud
     (32, 15), -- Pañales -> Bebés
     (33, 15); -- Biberón -> Bebés
+
+-- Create a view for easier product querying with categories
 CREATE OR REPLACE VIEW productos_con_categorias AS
 SELECT 
     p.id,
