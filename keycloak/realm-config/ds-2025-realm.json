@@ -1,6 +1,10 @@
 {
   "realm": "ds-2025-realm",
   "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "resetPasswordAllowed": true,
   "defaultDefaultClientScopes": [
     "usuarios:read",
     "usuarios:write",
@@ -395,6 +399,11 @@
       "redirectUris": [
         "*"
       ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:8004"
+      ],
+      "publicClient": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true,
       "protocol": "openid-connect",
@@ -451,6 +460,11 @@
       "redirectUris": [
         "*"
       ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:8004"
+      ],
+      "publicClient": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true,
       "protocol": "openid-connect",
@@ -585,6 +599,11 @@
       "redirectUris": [
         "*"
       ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:8004"
+      ],
+      "publicClient": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true,
       "protocol": "openid-connect"

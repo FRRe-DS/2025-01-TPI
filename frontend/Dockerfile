@@ -13,6 +13,20 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
+# Variables de entorno como build args (Vite necesita estas en tiempo de build)
+ARG VITE_KEYCLOAK_ISSUER
+ARG VITE_KEYCLOAK_CLIENT_ID
+ARG VITE_API_GATEWAY_URL
+ARG VITE_API_BASE
+ARG VITE_APP_ORIGIN
+
+# Establecer las variables de entorno para el build
+ENV VITE_KEYCLOAK_ISSUER=$VITE_KEYCLOAK_ISSUER
+ENV VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
+ENV VITE_API_GATEWAY_URL=$VITE_API_GATEWAY_URL
+ENV VITE_API_BASE=$VITE_API_BASE
+ENV VITE_APP_ORIGIN=$VITE_APP_ORIGIN
+
 # Build de producción
 RUN npm run build
 
