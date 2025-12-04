@@ -235,7 +235,7 @@ services:
   # Frontend
   # ============================================
   frontend:
-    image: ghcr.io/frre-ds/frontend-g01:20f687e0b1b8e860d6155896397a3193d188457a
+    image: ghcr.io/frre-ds/frontend-g01:ce80927f7cd85a6c9f7a41549c2cfd8d8318dcbd
     container_name: frontend
     restart: always
     ports:
